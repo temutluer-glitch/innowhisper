@@ -1,5 +1,8 @@
 import AppKit
 import AppShell
+import OSLog
+
+private let launchLog = Logger(subsystem: "com.innosolv.InnoWhisper", category: "app")
 
 /// Hooks into launch, reopen, quit and shutdown (AC-6, AC-19, AC-20, EC-1, EC-5).
 @MainActor
@@ -15,12 +18,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             bundleIdentifier: ownID,
             running: environment.runningApps.runningApps()
         ) != nil {
+            launchLog.notice("Second instance detected, handing over")
             SingleInstanceGuard.askRunningInstanceToOpenSettings()
             NSApplication.shared.terminate(nil)
             return
         }
 
         environment.showsMenuBarItem = true
+        launchLog.notice("Launch checks passed, menu bar item shown")
         observers.append(
             SingleInstanceGuard.observeOpenSettingsRequests { [environment] in environment.settingsWindow.open() })
         observers.append(

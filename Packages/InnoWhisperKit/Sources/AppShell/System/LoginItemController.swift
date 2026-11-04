@@ -62,6 +62,7 @@ public final class LoginItemController {
     /// Re-reads macOS (AC-15): on opening "Allgemein" and when the app becomes active.
     public func refresh() {
         let status = service.status
+        AppShellLog.system.notice("Login item status: \(String(describing: status), privacy: .public)")
         isEnabled = status == .enabled
         switch status {
         case .enabled:

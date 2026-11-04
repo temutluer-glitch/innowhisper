@@ -90,11 +90,13 @@ public final class LegacyAppGuard {
             return
         }
         let newlySeen = !pids.subtracting(knownLegacyPIDs).isEmpty
+        AppShellLog.system.notice("Legacy app running: \(pids.count, privacy: .public) instance(s), new: \(newlySeen, privacy: .public)")
         knownLegacyPIDs = pids
         guard newlySeen, !isPrompting else { return }
 
         isPrompting = true
         let choice = await presenter.askWhatToDo()
+        AppShellLog.system.notice("Legacy prompt answered: \(String(describing: choice), privacy: .public)")
         isPrompting = false
         switch choice {
         case .terminate:
@@ -125,6 +127,7 @@ public final class LegacyAppGuard {
                 return .terminated
             }
             if !forced, waited >= Self.politeTimeout {
+                AppShellLog.system.notice("Legacy app ignored polite quit, forcing")
                 for app in legacyApps() { apps.forceTerminate(pid: app.pid) }
                 forced = true
             }
@@ -137,6 +140,7 @@ public final class LegacyAppGuard {
             presenter.showTerminated()
             return .terminated
         }
+        AppShellLog.system.notice("Legacy app still running after 5 s")
         reportProblem()
         presenter.showManualInstructions()
         return .stillRunning
