@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		A1000000000000000000F001 /* AppShell in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000D001 /* AppShell */; };
+		A1000000000000000000F002 /* Notices in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000D002 /* Notices */; };
+		A1000000000000000000F003 /* Diagnostics in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000D003 /* Diagnostics */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +43,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000000000000000000F001 /* AppShell in Frameworks */,
+				A1000000000000000000F002 /* Notices in Frameworks */,
+				A1000000000000000000F003 /* Diagnostics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -84,6 +88,8 @@
 			name = InnoWhisper;
 			packageProductDependencies = (
 				A1000000000000000000D001 /* AppShell */,
+				A1000000000000000000D002 /* Notices */,
+				A1000000000000000000D003 /* Diagnostics */,
 			);
 			productName = InnoWhisper;
 			productReference = A10000000000000000000P01 /* InnoWhisper.app */;
@@ -269,6 +275,14 @@
 		A1000000000000000000D001 /* AppShell */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = AppShell;
+		};
+		A1000000000000000000D002 /* Notices */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Notices;
+		};
+		A1000000000000000000D003 /* Diagnostics */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Diagnostics;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

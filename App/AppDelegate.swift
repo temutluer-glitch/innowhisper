@@ -1,8 +1,6 @@
 import AppKit
 import AppShell
-import OSLog
-
-private let launchLog = Logger(subsystem: "com.innosolv.InnoWhisper", category: "app")
+import Diagnostics
 
 /// Hooks into launch, reopen, quit and shutdown (AC-6, AC-19, AC-20, EC-1, EC-5).
 @MainActor
@@ -18,14 +16,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             bundleIdentifier: ownID,
             running: environment.runningApps.runningApps()
         ) != nil {
-            launchLog.notice("Second instance detected, handing over")
+            Log.write("Second instance detected, handing over", category: .app)
             SingleInstanceGuard.askRunningInstanceToOpenSettings()
             NSApplication.shared.terminate(nil)
             return
         }
 
         environment.showsMenuBarItem = true
-        launchLog.notice("Launch checks passed, menu bar item shown")
+        Log.write("Launch checks passed, menu bar item shown", category: .app)
+        logStart()
+        environment.start()
         observers.append(
             SingleInstanceGuard.observeOpenSettingsRequests { [environment] in environment.settingsWindow.open() })
         observers.append(
@@ -62,5 +62,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSApplication.shared.activate()
             return alert.runModal() == .alertSecondButtonReturn ? .terminateNow : .terminateCancel
         }
+    }
+
+    private func logStart() {
+        let build = Int(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "") ?? 0
+        let os = ProcessInfo.processInfo.operatingSystemVersion
+        Log.write(
+            "App started, build \(build), macOS \(os.majorVersion).\(os.minorVersion).\(os.patchVersion)",
+            category: .app)
     }
 }

@@ -1,15 +1,10 @@
 import AppKit
 import AppShell
 
-/// System dialogs around the old app (AC-16, AC-17, EC-3).
+/// System dialogs around the old app (AC-16, EC-3). The success message is a
+/// notice since PROJ-2 (AC-8 there).
 @MainActor
 enum LegacyAlerts {
-    static let presenter = LegacyAppGuard.Presenter(
-        askWhatToDo: { askWhatToDo() },
-        showTerminated: { showTerminated() },
-        showManualInstructions: { showManualInstructions($0) }
-    )
-
     static func askWhatToDo() -> LegacyPromptChoice {
         let alert = NSAlert()
         alert.alertStyle = .warning
@@ -19,15 +14,6 @@ enum LegacyAlerts {
         alert.addButton(withTitle: "Später")
         NSApplication.shared.activate()
         return alert.runModal() == .alertFirstButtonReturn ? .terminate : .later
-    }
-
-    static func showTerminated() {
-        let alert = NSAlert()
-        alert.alertStyle = .informational
-        alert.messageText = "Die alte Version wurde beendet."
-        alert.addButton(withTitle: "OK")
-        NSApplication.shared.activate()
-        alert.runModal()
     }
 
     static func showManualInstructions(_ steps: String) {

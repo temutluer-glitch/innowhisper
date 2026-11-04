@@ -1,10 +1,13 @@
 import AppKit
+import Diagnostics
 import Foundation
 
 /// The two sounds (AC-9).
-public enum SystemSound: String, Sendable {
+public enum SystemSound: String, Sendable, LogValue {
     case start = "Tink"
     case end = "Pop"
+
+    public var logDescription: String { rawValue }
 }
 
 /// Plays sounds. Replaced by a fake in tests.
