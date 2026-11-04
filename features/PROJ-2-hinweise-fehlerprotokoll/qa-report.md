@@ -86,7 +86,7 @@ Keine zusätzlichen Unit-Tests in diesem Lauf; die gefundenen Lücken sind Fehle
 
 #### BUG-1: Protokoll-Meldung hat drei Wege für freien Text
 - **Schwere:** Medium
-- **Status:** Open (entschieden von Timur, 2026-11-04)
+- **Status:** Fixed (2026-11-04, re-verified)
 - **Fehlerart:** Die sichere Meldungsart hat freie Textkanäle: Programmkennung wird nach Form statt gegen eine Liste geprüft, Fehlerbereich wird wörtlich übernommen, `LogValue` ist offen für jeden Typ.
 - **Kontrolle / AC:** SEC-01, SEC-02; AC-12
 - **Sweep:** `grep -rnE 'appendInterpolation\((bundleID|error):|\\\((bundleID|error):|extension [A-Za-z.]+ *: *(@retroactive )?LogValue|String\(describing: self\)' Packages/InnoWhisperKit/Sources App --include='*.swift'` — 6 Treffer
@@ -94,7 +94,7 @@ Keine zusätzlichen Unit-Tests in diesem Lauf; die gefundenen Lücken sind Fehle
 
 #### BUG-2: 7-Tage-Grenze gilt nur beim Start
 - **Schwere:** Medium
-- **Status:** Open (entschieden von Timur, 2026-11-04)
+- **Status:** Fixed (2026-11-04, re-verified)
 - **Fehlerart:** Aufbewahrungsregel nur an einer von zwei verlangten Stellen angewendet (Spec: „startet oder schreibt“).
 - **Kontrolle / AC:** AC-13
 - **Sweep:** `grep -n "trim()" Packages/InnoWhisperKit/Sources/Diagnostics/LogFile.swift` — 3 Treffer, kein Altersauslöser beim Schreiben
@@ -102,7 +102,7 @@ Keine zusätzlichen Unit-Tests in diesem Lauf; die gefundenen Lücken sind Fehle
 
 #### BUG-3: Gelöschte Protokolldatei schaltet das Protokoll bis zum Neustart ab
 - **Schwere:** Medium
-- **Status:** Open (entschieden von Timur, 2026-11-04)
+- **Status:** Fixed (2026-11-04, re-verified)
 - **Fehlerart:** Ein einzelner Schreibfehler setzt „nicht verfügbar“ dauerhaft, statt die Datei neu anzulegen.
 - **Kontrolle / AC:** EC-4, EC-3
 - **Sweep:** `grep -rn "available = false" Packages/InnoWhisperKit/Sources/Diagnostics` — 4 Treffer
@@ -179,9 +179,42 @@ Keine zusätzlichen Unit-Tests in diesem Lauf; die gefundenen Lücken sind Fehle
 ### Weitere Beobachtung (kein Fehler dieses Features)
 Im selben Ordner `~/Library/Logs/InnoWhisper/` liegt `debug.log` der **alten** App (3,2 MB, ohne Diktat-Text, aber mit Programmkennungen und Geräte-Kennungen). Ein Kollege könnte statt `InnoWhisper.log` diese Datei schicken. Vormerken für die Umzugsanleitung (PROJ-14).
 
+## Nachprüfung (2026-11-04)
+
+Zwei Runden nach den Korrekturen von `/build`, jeweils von frischen `qa-engineer`-Prüfern ohne Kenntnis des Baus.
+- Runde 1, Umfang `git diff --stat 0e1fdb7..HEAD` (`Diagnostics/LogFile.swift`, `Diagnostics/LogMessage.swift`; gemeinsames Modul → drei Spuren): BUG-2 und BUG-3 geschlossen; BUG-1 Weg (c) noch offen (`LogValue` per selbst geschriebenem `allCases` erfüllbar).
+- Runde 2, Umfang `git diff --stat 90bd0ad..HEAD` (`LogMessage.swift`, `SettingsSection.swift`, `LegacyAppGuard.swift`, `LoginItemService.swift`, `Notice.swift`, `SoundPlayer.swift`): Sicherheits-Spur und kombinierte Abnahme-/Regressions-Spur.
+- Testlauf zuletzt: 74 Tests in 12 Suites bestanden; Stilprüfung und Bau ohne Meldung.
+
+### Offene Fehler
+- [x] **BUG-1** geschlossen — Sweep aus dem Bericht → 4 Treffer, alle die gefilterten Eingänge (`LogMessage.swift:68, 74`) und ihre zwei Aufrufe mit System-Fehlern (`LoginItemController.swift:61, 118`); `String(describing: self)` und `extension …: LogValue` → 0. `LogValue.logDescription` ist `StaticString`: Struktur-Feld, Begleitwert, `String`, `StaticString(stringLiteral:)` und Zugriff auf `text` von außen werden vom Übersetzer abgelehnt (Test `logValueOnlyFixedText`, gegen den alten Stand rot). Programmkennung nur für installierte Programme, Fehlerbereich nur System-Bereiche (Tests `identifierShapedFreeTextIsRejected`, `installedAppIsLogged`, `freeTextErrorDomainIsRejected`).
+- [x] **BUG-2** geschlossen — Altersauslöser beim Schreiben (`LogFile.swift:118-120`); Test `dropsOldEntriesWhileRunning`; Gegenprobe mit gleitendem Fenster über 11 Tage ohne Neustart
+- [x] **BUG-3** geschlossen — jeder Eintrag legt eine fehlende Datei neu an (`LogFile.swift:56`); Test `deletedFileIsRecreatedOnWrite`; live: Datei während des Laufs gelöscht, beim Öffnen der Einstellungen neu angelegt (15:04)
+- [x] Wortlaut der Protokollzeilen unverändert (alle 5 `LogValue`-Typen gegen `git show 90bd0ad` verglichen; echte Datei vor und nach dem Fix gleich)
+
+### Neue Funde der Nachprüfung (alle Low, Deferred nach Stoppregel)
+- **BUG-14:** Nach einem Schreibfehler meldet der Knopf wieder „verfügbar“, sobald die Datei existiert, auch wenn sie schreibgeschützt ist. Fehlerart: Verfügbarkeit aus „Datei existiert“ statt aus dem letzten Schreibergebnis. Sweep: `grep -n "available = true" Packages/InnoWhisperKit/Sources/Diagnostics/LogFile.swift` → 2 Treffer.
+- **BUG-15:** Beginnt die Datei mit einer Zeile ohne Zeitpunkt (nur durch Fremdschreiben), ruht die 7-Tage-Regel beim Schreiben bis zum Neustart. Fehlerart: Aufbewahrungszustand aus einer einzelnen Zeile. Sweep: `grep -n "maxSplits: 1" Packages/InnoWhisperKit/Sources/Diagnostics/LogFile.swift` → 1 Treffer.
+- **BUG-16:** Der Kommentar in `LogMessage.swift:7-8` verspricht, der Übersetzer lehne „jeden Weg“ ab; absichtlicher Missbrauch mit `unsafeBitCast` kommt durch. Versehentlich nicht erreichbar. Sweep: `grep -rnE 'unsafeBitCast|unsafeDowncast|withMemoryRebound|assumingMemoryBound' Packages/InnoWhisperKit/Sources App` → 0.
+- **BUG-5** (Deferred) vom Diff berührt, Mechanismus unverändert. **BUG-8** (Deferred) verschärft: bei ungültigem UTF-8 liest jeder Eintrag nach 7 Tagen die ganze Datei neu (nur durch Fremdschreiben). **BUG-13** schreibt die gemeinsame Datei nun häufiger neu.
+- Hinweis für spätere Features: Eigene Swift-Fehler erscheinen als `<domain>#N`; wer die Ursache protokollieren will, braucht einen eigenen Aufzählungswert (steht in `design.md`).
+
+### Aufgezeichneter Test durch Timur (2026-11-04, 15:22–16:15, sein Mac mit macOS 26.5, Testversion)
+- [x] **AC-8** Meldung zur alten App → „Alte Version beenden“ → Erfolgs-Hinweis statt OK-Fenster — Timur: passt; Protokoll „Legacy prompt answered: terminate“, „Notice shown: success“
+- [x] **AC-1, AC-2, AC-3** Glas-Kapsel mit grünem Haken oben mittig, nach etwa 2 s weg — Timur: passt
+- [x] **AC-6** Hinweisfenster übernimmt die Tastatur nicht — Protokoll „key: false“
+- [x] **AC-10** Gruppe „Töne“, Schalter an, aus- und wieder einschaltbar — Timur: passt
+- [x] **AC-14, EC-4** „Fehlerprotokoll zeigen“ öffnet den Finder mit markierter `InnoWhisper.log` — Timur: passt
+- [x] **AC-11, AC-12** echte Protokolldatei nach dem Fix gelesen: nur feste Texte, Aufzählungswerte, Zahlen
+
+### Weiterhin nicht geprüft
+- [!] **AC-9** Töne hörbar — kein Aufrufer vor PROJ-5
+- [!] **AC-4** Esc in fremden Programmen — braucht „Bedienungshilfen“ (PROJ-3); kein Feature erzeugt bisher einen Fehler-Hinweis
+- [!] **AC-7** VoiceOver-Ausgabe, „Bewegung/Transparenz reduzieren“; **EC-2** Vollbild; **EC-3** echte volle Festplatte
+
 ## Zusammenfassung
-- **Abnahmekriterien:** 11 von 14 per Logik belegt, AC-12 und AC-13 fehlerhaft; Sonderfälle: EC-2, EC-3, EC-5 belegt, EC-1 und EC-4 fehlerhaft. Kein Kriterium in diesem Lauf am laufenden Programm beobachtet.
-- **Fehler:** 13 (0 Critical, 0 High, 4 Medium, 9 Low) — Open 3 (BUG-1 bis BUG-3), Deferred 10 (entschieden von Timur)
-- **Sicherheit:** 8 Prüfungen belegt, 4 Befunde (BUG-1, BUG-5 bis BUG-7), 6 NOT VERIFIED (davon 5 nicht anwendbar)
-- **Produktionsreif:** NEIN, solange BUG-1 bis BUG-3 offen sind und der aufgezeichnete Test fehlt
-- **Empfehlung:** BUG-1 bis BUG-3 mit `/build PROJ-2` beheben, danach Nachprüfung mit kurzem Test durch Timur
+- **Abnahmekriterien:** alle 14 per Logik belegt; AC-1, AC-2, AC-3, AC-6, AC-8, AC-10, AC-11, AC-12, AC-14 zusätzlich am laufenden Programm durch Timur oder das Protokoll bestätigt; AC-4 (Esc), AC-7, AC-9 offen bis PROJ-3/PROJ-5. Sonderfälle: EC-3, EC-4, EC-5 belegt, EC-1 als BUG-4 zurückgestellt (PROJ-8), EC-2 nur per Logik.
+- **Fehler:** 16 insgesamt (0 Critical, 0 High, 4 Medium, 12 Low). Behoben und nachgeprüft: BUG-1 bis BUG-3. Deferred: BUG-4 bis BUG-16 (BUG-4 wird mit PROJ-8 gelöst). Open: keiner.
+- **Sicherheit:** BUG-1 geschlossen (keine versehentliche Weitergabe von Inhalten ins Protokoll mehr möglich); offene Low-Punkte zu Verknüpfungen und Steuerzeichen zurückgestellt.
+- **Produktionsreif:** JA — keine offenen Critical- oder High-Fehler, keine offenen Fehler überhaupt, Laufzeitkriterien durch aufgezeichneten Test von Timur ausgeübt. Nicht geprüft bleiben die oben genannten Punkte.
+- **Empfehlung:** Freigeben (Approved). Zurückgestellte Fehler gesammelt mit `/build PROJ-2 deferred` beheben, spätestens vor der Auslieferung (PROJ-14).
