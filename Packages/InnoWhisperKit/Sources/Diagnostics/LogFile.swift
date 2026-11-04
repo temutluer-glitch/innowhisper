@@ -127,18 +127,20 @@ public final class LogFile: @unchecked Sendable {
 
 /// One line per entry: time, category in brackets, message.
 enum LogLineFormat {
+    /// Local time with offset, e.g. 2026-11-04T14:47:05.585+01:00.
+    static let style = Date.ISO8601FormatStyle(timeZone: .current)
+        .year().month().day().time(includingFractionalSeconds: true).timeZone(separator: .colon)
+
     static func line(date: Date, category: String, text: String) -> String {
         "\(timestamp(date)) [\(category)] \(text.replacingOccurrences(of: "\n", with: " "))"
     }
 
     static func timestamp(_ date: Date) -> String {
-        date.formatted(.iso8601.year().month().day().time(includingFractionalSeconds: true).timeZone(separator: .colon))
+        date.formatted(style)
     }
 
     static func date(ofLine line: Substring) -> Date? {
         guard let space = line.firstIndex(of: " ") else { return nil }
-        return try? Date(
-            String(line[..<space]),
-            strategy: .iso8601.year().month().day().time(includingFractionalSeconds: true).timeZone(separator: .colon))
+        return try? Date(String(line[..<space]), strategy: style)
     }
 }

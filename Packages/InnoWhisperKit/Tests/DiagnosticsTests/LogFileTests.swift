@@ -30,7 +30,7 @@ struct LogFileTests {
         #expect(lines.count == 2)
         #expect(lines[0].contains("[app] Aufnahme gestartet"))
         #expect(lines[1].contains("[notices] n=2"))
-        #expect(LogLineFormat.date(ofLine: lines[0]) != nil)
+        #expect(LogLineFormat.date(ofLine: lines[0]) == clock.date)
     }
 
     // AC-13: entries older than 7 days are removed at start
