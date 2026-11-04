@@ -26,8 +26,8 @@
 
 ## Stufe 4 — Oberflächen
 
-- [ ] T10 [P]  Menüleiste: Symbol mit Zustand, Menüleisten-Fenster mit Problem-Hinweisen, Inhaltsfläche für PROJ-13, Glas-Knopfleiste („Einstellungen …“ ⌘, · „InnoWhisper beenden“ ⌘Q), feste Flächen bei „Transparenz reduzieren“, Esc schließt  · files: Src/MenuBar/MenuBarLabel.swift, Src/MenuBar/MenuBarPanel.swift  · → AC-2, AC-3, AC-4, AC-18, AC-21, AC-22, AC-23
-- [ ] T11 [P]  Einstellungsfenster: genau ein Fenster, nach vorne holen, Öffnen direkt in einem Bereich, Seitenleiste aus angemeldeten Bereichen, Problem-Hinweise je Bereich, letzter Bereich, Größe 760 × 520 / mindestens 680 × 460 und gespeicherte Lage (inkl. Fensterlage-Regel), Bereich „Allgemein“ mit Schalter „Start beim Anmelden“ und Platz für Gruppen  · files: Src/Settings/SettingsWindowController.swift, Src/Settings/SettingsWindowView.swift, Src/Settings/GeneralPane.swift  · → AC-5, AC-7, AC-9, AC-10, AC-11, AC-12, AC-13, AC-21, AC-23, EC-6
+- [x] T10 [P]  Menüleiste: Symbol mit Zustand, Menüleisten-Fenster mit Problem-Hinweisen, Inhaltsfläche für PROJ-13, Glas-Knopfleiste („Einstellungen …“ ⌘, · „InnoWhisper beenden“ ⌘Q), feste Flächen bei „Transparenz reduzieren“, Esc schließt  · files: Src/MenuBar/MenuBarLabel.swift, Src/MenuBar/MenuBarPanel.swift  · → AC-2, AC-3, AC-4, AC-18, AC-21, AC-22, AC-23
+- [x] T11 [P]  Einstellungsfenster: genau ein Fenster, nach vorne holen, Öffnen direkt in einem Bereich, Seitenleiste aus angemeldeten Bereichen, Problem-Hinweise je Bereich, letzter Bereich, Größe 760 × 520 / mindestens 680 × 460 und gespeicherte Lage (inkl. Fensterlage-Regel), Bereich „Allgemein“ mit Schalter „Start beim Anmelden“ und Platz für Gruppen  · files: Src/Settings/SettingsWindowController.swift, Src/Settings/SettingsWindowView.swift, Src/Settings/GeneralPane.swift  · → AC-5, AC-7, AC-9, AC-10, AC-11, AC-12, AC-13, AC-21, AC-23, EC-6
 
 ## Stufe 5 — Zusammensetzen und echt prüfen
 
