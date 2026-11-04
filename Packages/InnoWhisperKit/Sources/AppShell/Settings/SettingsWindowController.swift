@@ -40,7 +40,8 @@ public final class SettingsWindowController {
         window.setFrame(reachableFrame(for: window.frame), display: false)
         NSApplication.shared.activate()
         window.makeKeyAndOrderFront(nil)
-        AppShellLog.system.notice("Settings window shown, section \(self.navigation.selection.rawValue, privacy: .public)")
+        AppShellLog.system.notice(
+            "Settings window shown, section \(self.navigation.selection.rawValue, privacy: .public)")
     }
 
     private func makeWindow() -> NSWindow {

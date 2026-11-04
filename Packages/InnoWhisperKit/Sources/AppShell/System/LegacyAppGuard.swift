@@ -90,7 +90,8 @@ public final class LegacyAppGuard {
             return
         }
         let newlySeen = !pids.subtracting(knownLegacyPIDs).isEmpty
-        AppShellLog.system.notice("Legacy app running: \(pids.count, privacy: .public) instance(s), new: \(newlySeen, privacy: .public)")
+        AppShellLog.system.notice(
+            "Legacy app running: \(pids.count, privacy: .public) instance(s), new: \(newlySeen, privacy: .public)")
         knownLegacyPIDs = pids
         guard newlySeen, !isPrompting else { return }
 
