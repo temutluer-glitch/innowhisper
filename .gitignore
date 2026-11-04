@@ -1,0 +1,18 @@
+# Build output
+build/
+DerivedData/
+.build/
+*.xcresult
+
+# Xcode user state
+xcuserdata/
+*.xcuserstate
+.swiftpm/
+
+# macOS
+.DS_Store
+
+# Secrets (never commit)
+.env
+.env.*
+!.env.example

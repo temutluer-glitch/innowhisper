@@ -8,8 +8,8 @@
 
 ## Stufe 1 — Grundgerüst
 
-- [ ] T1  Lokales Paket anlegen: Paketbeschreibung (macOS 26, Swift 6, Modul `AppShell`, Testziel `AppShellTests`), Platzhalter-Quelle, erster Test mit Swift Testing, Formatier-Regel, Git-Ausnahmen für Bau-Ordner  · files: Kit/Package.swift, Src/AppShell.swift, Tst/SmokeTests.swift, .swift-format, .gitignore  · → AC-1
-- [ ] T2  Xcode-Projekt anlegen: App-Ziel „InnoWhisper“, synchronisierter Ordner `App/`, Kennung `com.innosolv.InnoWhisper`, Mindestversion macOS 26, nur Menüleiste (kein Dock-Symbol), Hardened Runtime ohne App Sandbox, lokales Signieren, vorläufiges App-Symbol, minimaler Einstiegspunkt; einmal bauen und starten  · files: InnoWhisper.xcodeproj/project.pbxproj, App/Info.plist, App/InnoWhisper.entitlements, App/Assets.xcassets/, App/InnoWhisperApp.swift  · → AC-1
+- [x] T1  Lokales Paket anlegen: Paketbeschreibung (macOS 26, Swift 6, Modul `AppShell`, Testziel `AppShellTests`), Platzhalter-Quelle, erster Test mit Swift Testing, Formatier-Regel, Git-Ausnahmen für Bau-Ordner  · files: Kit/Package.swift, Src/AppShell.swift, Tst/SmokeTests.swift, .swift-format, .gitignore  · → AC-1
+- [x] T2  Xcode-Projekt anlegen: App-Ziel „InnoWhisper“, synchronisierter Ordner `App/`, Kennung `com.innosolv.InnoWhisper`, Mindestversion macOS 26, nur Menüleiste (kein Dock-Symbol), Hardened Runtime ohne App Sandbox, lokales Signieren, vorläufiges App-Symbol, minimaler Einstiegspunkt; einmal bauen und starten  · files: InnoWhisper.xcodeproj/project.pbxproj, App/Info.plist, App/InnoWhisper.entitlements, App/Assets.xcassets/, App/InnoWhisperApp.swift  · → AC-1
 
 ## Stufe 2 — Innere Logik
 

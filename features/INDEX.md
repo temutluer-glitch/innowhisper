@@ -25,7 +25,7 @@
 
 | ID | Feature | Description | Status | Spec | Created |
 |----|---------|-------------|--------|------|---------|
-| PROJ-1 | App-Rahmen & Einstellungen | Menüleisten-Symbol, Einstellungsfenster mit allen Bereichen und Start beim Anmelden. | Tasked | [PROJ-1](PROJ-1-app-rahmen-einstellungen/) | 2026-11-04 |
+| PROJ-1 | App-Rahmen & Einstellungen | Menüleisten-Symbol, Einstellungsfenster mit allen Bereichen und Start beim Anmelden. | In Progress | [PROJ-1](PROJ-1-app-rahmen-einstellungen/) | 2026-11-04 |
 | PROJ-2 | Hinweise & Fehlerprotokoll | Kurze Hinweise, Töne und ein Fehlerprotokoll ohne Diktat-Inhalte. | Roadmap | — | 2026-11-04 |
 | PROJ-3 | Erlaubnisse & Einführung | Führt beim ersten Start durch Mikrofon und Bedienungshilfen und warnt, wenn eine Erlaubnis fehlt. | Roadmap | — | 2026-11-04 |
 | PROJ-4 | Groq-Zugang | Zugangsschlüssel eintragen, prüfen und im Schlüsselbund ablegen. | Roadmap | — | 2026-11-04 |
