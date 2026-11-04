@@ -82,4 +82,33 @@ struct LogFileTests {
         #expect(!log.isAvailable)
         #expect(log.ensureFileExists() == nil)
     }
+
+    // BUG-2 (AC-13): the 7-day rule also applies while writing, without a restart
+    @Test func dropsOldEntriesWhileRunning() {
+        let clock = FixedClock(start)
+        let log = LogFile(directory: tempDir(), now: { clock.date })
+        log.write("alt", category: .app)
+        log.flush()
+        clock.date = start.addingTimeInterval(9 * 24 * 3600)
+        log.write("neu", category: .app)
+        log.flush()
+        let content = read(log.fileURL)
+        #expect(!content.contains("alt"))
+        #expect(content.contains("neu"))
+    }
+
+    // BUG-3 (EC-4, EC-3): a file deleted while running is recreated, logging goes on
+    @Test func deletedFileIsRecreatedOnWrite() throws {
+        let log = LogFile(directory: tempDir())
+        try FileManager.default.removeItem(at: log.fileURL)
+        log.write("nach dem Löschen", category: .app)
+        log.flush()
+        #expect(log.isAvailable)
+        #expect(read(log.fileURL).contains("nach dem Löschen"))
+        try FileManager.default.removeItem(at: log.fileURL)
+        log.write("noch einmal", category: .app)
+        log.flush()
+        #expect(log.ensureFileExists() == log.fileURL)
+        #expect(read(log.fileURL).contains("noch einmal"))
+    }
 }

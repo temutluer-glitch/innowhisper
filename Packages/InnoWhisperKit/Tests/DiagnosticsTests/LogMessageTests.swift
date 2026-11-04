@@ -23,14 +23,14 @@ struct LogMessageTests {
     @Test(arguments: ["Hallo Welt, das ist mein Diktat", "geheim", "", nil] as [String?])
     func freeTextIsNeverLoggedAsBundleID(value: String?) {
         let message: LogMessage = "app=\(bundleID: value)"
-        #expect(message.text == "app=<invalid>" || message.text == "app=<none>")
+        #expect(message.text == "app=<unknown-app>" || message.text == "app=<none>")
     }
 
     // AC-12: only domain and code of an error, never its message
     @Test func errorMessageTextIsDropped() {
         let error = NSError(domain: "Test", code: 7, userInfo: [NSLocalizedDescriptionKey: "Diktat: Hallo Welt"])
         let message: LogMessage = "e=\(error: error)"
-        #expect(message.text == "e=Test#7")
+        #expect(message.text == "e=<domain>#7")
         #expect(!message.text.contains("Hallo"))
     }
 
@@ -65,5 +65,50 @@ struct LogMessageTests {
         try process.run()
         process.waitUntilExit()
         return process.terminationStatus
+    }
+
+    // BUG-1 (a): an identifier-shaped word that is no installed app is never logged
+    @Test(arguments: ["max.mustermann", "z.B.", "Termin-am-3.12", "meier.mueller-gmbh.de", "Danke."])
+    func identifierShapedFreeTextIsRejected(value: String) {
+        let message: LogMessage = "app=\(bundleID: value)"
+        #expect(message.text == "app=<unknown-app>")
+    }
+
+    // BUG-1 (a): a real installed app still shows
+    @Test func installedAppIsLogged() {
+        let message: LogMessage = "app=\(bundleID: "com.apple.TextEdit")"
+        #expect(message.text == "app=com.apple.TextEdit")
+    }
+
+    // BUG-1 (b): an error domain made of free text is never logged
+    @Test func freeTextErrorDomainIsRejected() {
+        let error = NSError(domain: "Hallo Herr Meier, mein Passwort ist geheim", code: 7)
+        let message: LogMessage = "e=\(error: error)"
+        #expect(message.text == "e=<domain>#7")
+        let oneWord = NSError(domain: "geheim", code: 2)
+        let second: LogMessage = "e=\(error: oneWord)"
+        #expect(second.text == "e=<domain>#2")
+    }
+
+    // BUG-1 (c): String cannot become a LogValue, an enum with a payload neither
+    @Test func logValueOnlyForPayloadFreeEnums() throws {
+        #expect(
+            try typecheckSnippet(#"enum S: LogValue { case a }; func f() { let m: LogMessage = "\(S.a)"; _ = m }"#) == 0
+        )
+        #expect(
+            try typecheckSnippet(#"extension String: LogValue { public var logDescription: String { self } }"#) != 0)
+        #expect(try typecheckSnippet(#"enum P: LogValue { case text(String) }"#) != 0)
+    }
+
+    private func typecheckSnippet(_ code: String) throws -> Int32 {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("logval-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let source = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("Sources/Diagnostics/LogMessage.swift")
+        let snippet = dir.appendingPathComponent("snippet.swift")
+        try code.write(to: snippet, atomically: true, encoding: .utf8)
+        return try typecheck([source, snippet])
     }
 }

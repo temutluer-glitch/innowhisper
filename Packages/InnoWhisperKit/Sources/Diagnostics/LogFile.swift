@@ -27,6 +27,8 @@ public final class LogFile: @unchecked Sendable {
     private let queue = DispatchQueue(label: "com.innosolv.InnoWhisper.logfile")
     private var available = true
     private var sizeBytes: Int = 0
+    /// Time of the oldest entry in the file; drives the 7-day rule on write (QA BUG-2).
+    private var oldestEntry: Date?
 
     public init(
         directory: URL = LogFile.defaultDirectory,
@@ -50,9 +52,10 @@ public final class LogFile: @unchecked Sendable {
     public func write(_ message: LogMessage, category: LogCategory) {
         let date = now()
         queue.async { [self] in
-            guard available else { return }
+            // A failure is never permanent: try to (re)create the file first (QA BUG-3).
+            guard createFileIfNeeded() else { return }
             let line = LogLineFormat.line(date: date, category: category.name, text: message.text)
-            append(line)
+            append(line, date: date)
         }
     }
 
@@ -60,7 +63,7 @@ public final class LogFile: @unchecked Sendable {
     /// when the log is not available.
     public func ensureFileExists() -> URL? {
         queue.sync {
-            guard available, createFileIfNeeded() else { return nil }
+            guard createFileIfNeeded() else { return nil }
             return fileURL
         }
     }
@@ -74,6 +77,7 @@ public final class LogFile: @unchecked Sendable {
 
     private func prepare() {
         guard createFileIfNeeded() else { return }
+        sizeBytes = (try? FileManager.default.attributesOfItem(atPath: fileURL.path)[.size] as? Int) ?? 0
         trim()
     }
 
@@ -86,8 +90,12 @@ public final class LogFile: @unchecked Sendable {
                     available = false
                     return false
                 }
+                sizeBytes = 0
+                oldestEntry = nil
+            } else if !available {
+                sizeBytes = (try? manager.attributesOfItem(atPath: fileURL.path)[.size] as? Int) ?? 0
             }
-            sizeBytes = (try? manager.attributesOfItem(atPath: fileURL.path)[.size] as? Int) ?? 0
+            available = true
             return true
         } catch {
             available = false
@@ -95,7 +103,7 @@ public final class LogFile: @unchecked Sendable {
         }
     }
 
-    private func append(_ line: String) {
+    private func append(_ line: String, date: Date) {
         guard let data = (line + "\n").data(using: .utf8) else { return }
         do {
             let handle = try FileHandle(forWritingTo: fileURL)
@@ -107,7 +115,9 @@ public final class LogFile: @unchecked Sendable {
             available = false
             return
         }
-        if sizeBytes > retention.maxBytes { trim() }
+        if oldestEntry == nil { oldestEntry = date }
+        let tooOld = oldestEntry.map { now().timeIntervalSince($0) > retention.maxAge } ?? false
+        if sizeBytes > retention.maxBytes || tooOld { trim() }
     }
 
     private func trim() {
@@ -115,6 +125,7 @@ public final class LogFile: @unchecked Sendable {
             return
         }
         let kept = retention.apply(to: content, now: now())
+        oldestEntry = kept.split(separator: "\n", maxSplits: 1).first.flatMap(LogLineFormat.date(ofLine:))
         guard kept != content else { return }
         do {
             try Data(kept.utf8).write(to: fileURL, options: .atomic)

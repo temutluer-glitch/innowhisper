@@ -1,9 +1,15 @@
+import CoreServices
 import Foundation
 
-/// A value that may appear in a log message. Opt-in: only types that declare
-/// a safe, content-free description (e.g. enums of states) conform.
-public protocol LogValue {
+/// A value that may appear in a log message: only enums without payloads.
+/// `CaseIterable` cannot be synthesised for cases that carry values and
+/// `String` is not `CaseIterable`, so free text cannot sneak in (QA BUG-1).
+public protocol LogValue: CaseIterable {
     var logDescription: String { get }
+}
+
+extension LogValue {
+    public var logDescription: String { String(describing: self) }
 }
 
 /// A log message that can only be built from fixed text in the source code
@@ -58,16 +64,18 @@ public struct LogMessage: Sendable, ExpressibleByStringInterpolation {
             text += value.logDescription
         }
 
-        /// An app identifier such as `com.apple.TextEdit`. Anything that does
-        /// not look like one is replaced, so free text cannot slip through.
+        /// An app identifier such as `com.apple.TextEdit`. Only identifiers of
+        /// apps installed on this Mac are logged; anything else is replaced,
+        /// so free text cannot slip through (QA BUG-1).
         public mutating func appendInterpolation(bundleID: String?) {
             text += BundleIdentifierFilter.loggable(bundleID)
         }
 
-        /// Only domain and code of an error, never its message text.
+        /// Only domain and code of an error, never its message text. Domains
+        /// that are not system error domains are replaced (QA BUG-1).
         public mutating func appendInterpolation(error: any Error) {
             let nsError = error as NSError
-            text += "\(nsError.domain)#\(nsError.code)"
+            text += "\(ErrorDomainFilter.loggable(nsError.domain))#\(nsError.code)"
         }
     }
 }
@@ -77,9 +85,27 @@ enum BundleIdentifierFilter {
 
     static func loggable(_ value: String?) -> String {
         guard let value, !value.isEmpty else { return "<none>" }
-        guard value.count <= 255, value.contains("."),
-            value.unicodeScalars.allSatisfy(allowed.contains)
-        else { return "<invalid>" }
+        guard value.count <= 255, value.unicodeScalars.allSatisfy(allowed.contains), isInstalledApp(value)
+        else { return "<unknown-app>" }
         return value
+    }
+
+    /// Asks Launch Services whether an app with this identifier is installed.
+    static func isInstalledApp(_ identifier: String) -> Bool {
+        let urls = LSCopyApplicationURLsForBundleIdentifier(identifier as CFString, nil)?.takeRetainedValue()
+        return (urls as? [URL])?.isEmpty == false
+    }
+}
+
+enum ErrorDomainFilter {
+    static let allowed = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._")
+
+    /// System error domains end in "ErrorDomain" (NSCocoaErrorDomain,
+    /// SMAppServiceErrorDomain, …) or start with "com.apple.".
+    static func loggable(_ domain: String) -> String {
+        guard domain.count <= 80, domain.unicodeScalars.allSatisfy(allowed.contains),
+            domain.hasSuffix("ErrorDomain") || domain.hasPrefix("com.apple.")
+        else { return "<domain>" }
+        return domain
     }
 }
