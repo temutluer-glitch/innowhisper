@@ -1,0 +1,145 @@
+{
+  "version": "0.7.7",
+  "mode": "new",
+  "language": "de",
+  "agents": [
+    "claude"
+  ],
+  "memory": "CLAUDE.md",
+  "createdWith": "create-ai-eng-app",
+  "platform": "desktop",
+  "stack": {
+    "framework": null,
+    "backend": null,
+    "test": null,
+    "e2e": null,
+    "ui": null,
+    "deploy": null,
+    "packageManager": null
+  },
+  "commands": {
+    "dev": null,
+    "build": null,
+    "test": null,
+    "lint": null,
+    "check": null
+  },
+  "checkLayers": [],
+  "checkCoverage": null,
+  "probe": {
+    "kind": null,
+    "baseUrl": null
+  },
+  "layers": [],
+  "law": null,
+  "quality": null,
+  "featurePrefix": "PROJ",
+  "managed": {
+    ".claude/skills": [
+      "architecture",
+      "audit",
+      "build",
+      "cleanup",
+      "deploy",
+      "dsgvo",
+      "e2e-tests",
+      "help",
+      "init",
+      "map",
+      "qa",
+      "refactor",
+      "refine",
+      "reverse-spec",
+      "security-check",
+      "starter-kit-migration",
+      "tasks",
+      "verify-setup",
+      "write-spec"
+    ],
+    ".claude/rules": [
+      "general.md",
+      "security.md"
+    ],
+    ".claude/agents": [
+      "qa-engineer.md"
+    ],
+    "docs/production": [
+      "database-optimization.md",
+      "error-tracking.md",
+      "performance.md",
+      "rate-limiting.md",
+      "security-headers.md"
+    ],
+    "docs/stacks": [
+      "backend-supabase.md",
+      "ci-github-actions.md",
+      "deploy-hostinger.md",
+      "deploy-vercel.md",
+      "framework-nextjs.md",
+      "tests-vitest-playwright.md",
+      "ui-shadcn.md"
+    ],
+    "docs/law": [
+      "ai-act.md",
+      "dsg.md",
+      "gdpr.md"
+    ],
+    "docs/kit/guides": [
+      "auth-design.md",
+      "checks.md",
+      "design.md",
+      "security.md"
+    ],
+    "docs/kit/checks": [
+      "plan.cjs"
+    ],
+    "docs/kit": [
+      "CHANGELOG.md"
+    ]
+  },
+  "hashes": {
+    ".claude/skills/architecture": "73f72d3269dbf736",
+    ".claude/skills/audit": "0136503de4db9b7d",
+    ".claude/skills/build": "818e593704ee6426",
+    ".claude/skills/cleanup": "dd0a75549d095b86",
+    ".claude/skills/deploy": "dedde5cdc9a2ea32",
+    ".claude/skills/dsgvo": "08a99f20ba62a7ee",
+    ".claude/skills/e2e-tests": "fe0f54758c495687",
+    ".claude/skills/help": "d7de17477314673b",
+    ".claude/skills/init": "69285fc491f5ed5c",
+    ".claude/skills/map": "328661bd5948c65b",
+    ".claude/skills/qa": "9f41b30f85849c69",
+    ".claude/skills/refactor": "08840d83f87e73cb",
+    ".claude/skills/refine": "b16cc666218d5417",
+    ".claude/skills/reverse-spec": "4ddb374d1c44142e",
+    ".claude/skills/security-check": "842c7069a5410ad8",
+    ".claude/skills/starter-kit-migration": "e1349ec1d5e9a4a8",
+    ".claude/skills/tasks": "3a9f15c9817c904c",
+    ".claude/skills/verify-setup": "ec228ab6a9acd22f",
+    ".claude/skills/write-spec": "bfe84494d0c129f5",
+    ".claude/rules/general.md": "35a6600b76a9f313",
+    ".claude/rules/security.md": "baf8f6830c11559d",
+    ".claude/agents/qa-engineer.md": "271495ddda55778a",
+    "docs/production/database-optimization.md": "ea25a896ca251692",
+    "docs/production/error-tracking.md": "9a26ae3d0029ae96",
+    "docs/production/performance.md": "c592f2aa3f8eb761",
+    "docs/production/rate-limiting.md": "ae53c1276171f153",
+    "docs/production/security-headers.md": "e0d533266cc33ef2",
+    "docs/stacks/backend-supabase.md": "82fe64de7de1cda7",
+    "docs/stacks/ci-github-actions.md": "44aca56b0c68d1c6",
+    "docs/stacks/deploy-hostinger.md": "e695932a009c76fc",
+    "docs/stacks/deploy-vercel.md": "76675af7e1486260",
+    "docs/stacks/framework-nextjs.md": "58fdf046db275a42",
+    "docs/stacks/tests-vitest-playwright.md": "f5711fd6c50de1cf",
+    "docs/stacks/ui-shadcn.md": "86c2202698f1a17f",
+    "docs/law/ai-act.md": "ab7a959b366afbff",
+    "docs/law/dsg.md": "8521b1d04b8aa0b1",
+    "docs/law/gdpr.md": "4669e4e2e2964833",
+    "docs/kit/guides/auth-design.md": "09897e302aef0306",
+    "docs/kit/guides/checks.md": "aa1e3a05d8cb2995",
+    "docs/kit/guides/design.md": "0cb8f8ce13c4f128",
+    "docs/kit/guides/security.md": "9b79f06306e8bdc8",
+    "docs/kit/checks/plan.cjs": "3e62f8d7dd9c95d4",
+    "docs/kit/CHANGELOG.md": "c7c58d9bd8c2950b"
+  }
+}
