@@ -19,10 +19,10 @@
 
 ## Stufe 3 — Anschluss an macOS
 
-- [ ] T6 [P]  Start beim Anmelden: Schnittstelle zu den macOS-Anmeldeobjekten mit Attrappe, Erststart-Merker, Abbildung der vier macOS-Stände auf Schalter und Problem `autostartUnavailable` (inkl. Prüfung Programme-Ordner); Tests je Stand  · files: Src/System/LoginItemService.swift, Src/System/LoginItemController.swift, Tst/LoginItemControllerTests.swift  · → AC-13, AC-14, AC-15, EC-4
-- [ ] T7 [P]  Alte App: Schnittstelle zur Liste laufender Apps mit Attrappe; Erkennung von `com.innosolv.WhisperDictation` beim Start, bei neu gestarteten und beendeten Apps; Beenden höflich, nach 2 s sofort, nach 5 s Anleitung; Problem `legacyAppRunning`; Tests mit simulierter Zeit  · files: Src/System/RunningApplications.swift, Src/System/LegacyAppGuard.swift, Tst/LegacyAppGuardTests.swift  · → AC-16, AC-17, AC-18, EC-2, EC-3
-- [ ] T8 [P]  Nur eine InnoWhisper und Beenden-Regel: Erkennen eines zweiten Exemplars (eigene, eingesetzte Abfrage), Mitteilung „Einstellungen öffnen“ ohne Inhalt; Beenden sofort bei `ruhend`, Rückfrage bei Diktat, ohne Rückfrage beim Herunterfahren; Tests  · files: Src/System/SingleInstanceGuard.swift, Src/System/QuitPolicy.swift, Tst/SingleInstanceAndQuitTests.swift  · → EC-1, AC-19, AC-20, EC-5
-- [ ] T9 [P]  Problem-Hinweis als gemeinsamer Baustein: Warnsymbol, Satz, Lösungsknopf, VoiceOver-Beschriftung, sichtbarer Fokus  · files: Src/Components/ProblemBanner.swift  · → AC-10, AC-23
+- [x] T6 [P]  Start beim Anmelden: Schnittstelle zu den macOS-Anmeldeobjekten mit Attrappe, Erststart-Merker, Abbildung der vier macOS-Stände auf Schalter und Problem `autostartUnavailable` (inkl. Prüfung Programme-Ordner); Tests je Stand  · files: Src/System/LoginItemService.swift, Src/System/LoginItemController.swift, Tst/LoginItemControllerTests.swift  · → AC-13, AC-14, AC-15, EC-4
+- [x] T7 [P]  Alte App: Schnittstelle zur Liste laufender Apps mit Attrappe; Erkennung von `com.innosolv.WhisperDictation` beim Start, bei neu gestarteten und beendeten Apps; Beenden höflich, nach 2 s sofort, nach 5 s Anleitung; Problem `legacyAppRunning`; Tests mit simulierter Zeit  · files: Src/System/RunningApplications.swift, Src/System/LegacyAppGuard.swift, Tst/LegacyAppGuardTests.swift  · → AC-16, AC-17, AC-18, EC-2, EC-3
+- [x] T8 [P]  Nur eine InnoWhisper und Beenden-Regel: Erkennen eines zweiten Exemplars (eigene, eingesetzte Abfrage), Mitteilung „Einstellungen öffnen“ ohne Inhalt; Beenden sofort bei `ruhend`, Rückfrage bei Diktat, ohne Rückfrage beim Herunterfahren; Tests  · files: Src/System/SingleInstanceGuard.swift, Src/System/QuitPolicy.swift, Tst/SingleInstanceAndQuitTests.swift  · → EC-1, AC-19, AC-20, EC-5
+- [x] T9 [P]  Problem-Hinweis als gemeinsamer Baustein: Warnsymbol, Satz, Lösungsknopf, VoiceOver-Beschriftung, sichtbarer Fokus  · files: Src/Components/ProblemBanner.swift  · → AC-10, AC-23
 
 ## Stufe 4 — Oberflächen
 
