@@ -8,7 +8,7 @@ public struct MenuBarPanel<QuickAccess: View>: View {
     let quit: @MainActor () -> Void
     let quickAccess: QuickAccess
 
-    @Environment(\.dismiss) private var dismiss
+    @State private var closer = PanelWindowCloser()
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     public init(
@@ -33,7 +33,9 @@ public struct MenuBarPanel<QuickAccess: View>: View {
         }
         .padding(16)
         .frame(width: 360)
-        .onExitCommand { dismiss() }
+        .background(WindowReader { [closer] in closer.window = $0 })
+        .onAppear { closer.startListening() }
+        .onDisappear { closer.stopListening() }
     }
 
     @ViewBuilder
@@ -57,7 +59,7 @@ public struct MenuBarPanel<QuickAccess: View>: View {
 
     private var settingsButton: some View {
         Button("Einstellungen …") {
-            dismiss()
+            closer.close()
             openSettings(nil)
         }
         .keyboardShortcut(",", modifiers: .command)
@@ -79,8 +81,8 @@ public struct MenuBarPanel<QuickAccess: View>: View {
             section: section,
             message: problem.message,
             actionTitle: "Einstellungen öffnen",
-            action: { [openSettings, dismiss] in
-                dismiss()
+            action: { [openSettings, closer] in
+                closer.close()
                 openSettings(section)
             }
         )
