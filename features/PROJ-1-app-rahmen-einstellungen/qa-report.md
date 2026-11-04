@@ -129,7 +129,7 @@ Keine zusätzlichen Unit-Tests in diesem Lauf. Die isolierte Logik ist durch die
 
 #### BUG-1: Alte App wird nach dem Start von InnoWhisper nicht mehr bemerkt
 - **Schwere:** High
-- **Status:** Open
+- **Status:** Fixed (2026-11-04, re-verified)
 - **Fehlerart:** Erkennung laufender Apps hängt an den macOS-Mitteilungen „App gestartet/beendet“, die macOS für Menüleisten-Apps (LSUIElement) nicht schickt; die Tests ersetzen genau diese Verdrahtung durch eine Attrappe.
 - **Kontrolle / AC:** EC-2, AC-18 (Pflichtpunkt 1)
 - **Sweep:** `grep -rn "didLaunchApplicationNotification\|didTerminateApplicationNotification" App Packages/InnoWhisperKit/Sources` — 1 Treffer (`RunningApplications.swift:49`)
@@ -142,7 +142,7 @@ Keine zusätzlichen Unit-Tests in diesem Lauf. Die isolierte Logik ist durch die
 
 #### BUG-2: Anleitung zum Beenden nennt einen Namen, den der Nutzer nicht findet
 - **Schwere:** Medium
-- **Status:** Open
+- **Status:** Fixed (2026-11-04, re-verified)
 - **Fehlerart:** Für den Nutzer sichtbare Texte nennen den internen Namen (ausführbare Datei) statt des angezeigten App-Namens.
 - **Kontrolle / AC:** EC-3
 - **Sweep:** `grep -rn "WhisperDictation" App Packages/InnoWhisperKit/Sources` — 3 Treffer, davon 1 sichtbar (`App/LegacyAlerts.swift:40`); die zwei Kennungen in `LegacyAppGuard.swift:22-23` sind korrekt
@@ -150,7 +150,7 @@ Keine zusätzlichen Unit-Tests in diesem Lauf. Die isolierte Logik ist durch die
 
 #### BUG-3: Hinweis zum Autostart bleibt nach bewusstem Ausschalten stehen
 - **Schwere:** Medium
-- **Status:** Open
+- **Status:** Fixed (2026-11-04, re-verified)
 - **Fehlerart:** Problem-Meldung hängt am macOS-Stand statt an der Absicht des Nutzers.
 - **Kontrolle / AC:** EC-4 (design.md: Hinweis wird zurückgezogen, wenn der Nutzer bewusst aus lässt)
 - **Sweep:** `grep -rn "case \.notFound" Packages/InnoWhisperKit/Sources` — 2 Treffer, betroffen `LoginItemController.swift:80`
@@ -158,7 +158,7 @@ Keine zusätzlichen Unit-Tests in diesem Lauf. Die isolierte Logik ist durch die
 
 #### BUG-4: Gebaute Programme halten die Härtung aus ADR-007 nicht vollständig ein
 - **Schwere:** Medium (wird High ab PROJ-3, sobald Mikrofon und Bedienungshilfen erlaubt sind)
-- **Status:** Open
+- **Status:** Fixed (2026-11-04, re-verified)
 - **Fehlerart:** Signatur des benutzten bzw. auszuliefernden Programms entspricht nicht der Härtungszusage der Architektur-Entscheidung.
 - **Kontrolle / AC:** SEC-08, ADR-007
 - **Sweep:** `grep -c 'CODE_SIGN_IDENTITY = "-"' InnoWhisper.xcodeproj/project.pbxproj` — 2 Treffer; je Konfiguration `codesign -d --entitlements - --xml <app>`: 2 von 2 betroffen
@@ -222,9 +222,49 @@ Keine zusätzlichen Unit-Tests in diesem Lauf. Die isolierte Logik ist durch die
 - **Sweep:** none
 - **Nachstellen:** `SettingsWindowController.swift:71` nutzt `NSScreen.main` (Bildschirm mit Fokus) statt des Hauptbildschirms; ein je zur Hälfte auf zwei Bildschirmen liegendes Fenster (0,5 + 0,5) wird trotzdem in die Mitte versetzt (`WindowFramePolicy.swift:15-21`).
 
+## Nachprüfung (2026-11-04)
+
+Zwei Runden nach den Korrekturen von `/build`, jeweils von frischen `qa-engineer`-Prüfern ohne Kenntnis des Baus.
+- Runde 1, Umfang `git diff --stat 16f13cf..HEAD` (5 Produktionsdateien: `App/LegacyAlerts.swift`, `InnoWhisper.xcodeproj/project.pbxproj`, `LegacyAppGuard.swift`, `LoginItemController.swift`, `RunningApplications.swift`), volle Breite mit drei Spuren.
+- Runde 2, Umfang `git diff --stat 2552fa5..HEAD` (`LoginItemController.swift`, `SettingsWindowController.swift`), eine Spur mit allen drei Bereichen.
+- Danach eine Korrektur der Fensterbreite (`2cc3936`, `SettingsWindowView.swift`), geprüft durch Messung im Protokoll und Timurs Sichtprüfung.
+- Testlauf zuletzt: `swift test --package-path Packages/InnoWhisperKit` → 41 Tests in 6 Suites bestanden. Stilprüfung und Bau ohne Meldung.
+
+### Offene Fehler
+- [x] **BUG-1** geschlossen — Sweep `grep -rn "didLaunchApplicationNotification\|didTerminateApplicationNotification" App Packages/InnoWhisperKit/Sources` → 0 Treffer; Gegenprobe mit Menüleisten-Test-App: Beobachtung von `runningApplications` meldet Start und Ende; live: alte App 5 s nach InnoWhisper gestartet → Meldung erschien, Timur beendete sie (Protokoll 13:52:31, „Legacy app running … new: true“)
+- [x] **BUG-2** geschlossen — Sweep `grep -rn "WhisperDictation" App Packages/InnoWhisperKit/Sources` → 2 Treffer, beide erlaubte Kennungen; Test `instructionsNameVisibleAppAndPID`
+- [x] **BUG-3** geschlossen (Fehlerart) — Runde 1 fand eine weitere Stelle („wartet auf Erlaubnis“), in `c9c662f` behoben; Sweep `grep -n "problems.report\|reportRefusal()" …/LoginItemController.swift` → alle Meldestellen in `refresh()` beachten die Absicht; Tests `deliberateOffClearsHintEvenWhenNotFound`, `deliberateOffClearsHintWhenApprovalPending`, `enabledOutsideAppResetsDeliberateOff`, `switchingOnAgainShowsRefusal`
+- [x] **BUG-4** geschlossen — Debug und Release frisch gebaut: `codesign -dv` → `flags=0x10002(adhoc,runtime)` für beide; Release-Berechtigungen leer; Debug behält `get-task-allow` als festgehaltene Ausnahme (`docs/decisions.md`, ADR-007)
+
+### Neue Funde der Nachprüfung
+- **Fensterbreite (BUG-12)**: In einem breiten Fenster stand der Inhalt von „Allgemein“ mittig (Timur, live). Behoben mit Höchstbreite 760 pt; erste Fassung wirkte nicht (Apples Fensterbaustein überschrieb die Grenze), zweite Fassung im Protokoll gemessen („max width 760“) und von Timur bestätigt.
+- **Plan-Texte** (alte Anleitung, neuer Merker in `design.md`) nachgeführt in `c9c662f`.
+- **BUG-5 erweitert**: Die Beobachtung von `runningApplications` ist ein zweiter ungedrosselter Auslöser derselben Fehlerart (wiederholte Starts einer gefälschten alten App lösen wiederholt die Rückfrage aus). Sweep jetzt: `grep -rnE "DistributedNotificationCenter|observe\(\\.runningApplications" App Packages/InnoWhisperKit/Sources` → 2 Empfänger. Bleibt Deferred.
+- **BUG-13** (Low, Deferred): Erststart mit veralteter Absicht „bewusst aus“ unterdrückt den Autostart-Hinweis. Nur erreichbar, wenn jemand den Erststart-Merker von Hand löscht. Fehlerart: automatisches Einschalten löscht die gespeicherte Gegen-Absicht nicht. Sweep: `grep -n "attemptRegister()" Packages/InnoWhisperKit/Sources/AppShell/System/LoginItemController.swift` → 3 Treffer, betroffen `:45`.
+- Vom Diff berührt, unverändert offen und weiter Deferred: BUG-9, BUG-10. Nicht berührt: BUG-6, BUG-7, BUG-8, BUG-11 (BUG-6 und BUG-7 betreffen `docs/app-shell.md`).
+
+### Aufgezeichneter Test durch Timur (2026-11-04, sein Mac mit macOS 26.5, Testversion)
+- [x] **AC-1** Symbol in der Menüleiste, kein Dock-Symbol, nicht in ⌘-Tab — Timur: passt
+- [x] **AC-2** Symbol zeigt „Problem“ (Warndreieck) bei offenem Autostart-Hinweis und „bereit“ (Mikrofon) nach dem Ausschalten — Timur: passt
+- [x] **AC-3** Esc schließt das Menüleisten-Fenster, auch beim erneuten Öffnen — Timur: passt
+- [x] **AC-4** Knöpfe „Einstellungen …“ und „InnoWhisper beenden“, gleich groß, Glas — Timur: passt
+- [x] **AC-5** ⌘, öffnet die Einstellungen, nur ein Fenster — Timur: passt
+- [x] **AC-7, AC-9** Seitenleiste mit „Allgemein“, öffnet dort — Timur: passt
+- [x] **AC-10, AC-11** Hinweis im Menüleisten-Fenster öffnet „Allgemein“ mit demselben Hinweis oben; Hinweis verschwindet beim Ausschalten — Timur: passt
+- [x] **AC-12** Fenstergröße bleibt nach Schließen und Öffnen; Höchstbreite greift — Timur: passt
+- [x] **AC-14** (In-App-Teil) Ausschalten wirkt, Hinweis verschwindet — Timur: passt
+- [x] **AC-16, AC-17, EC-2** Meldung zur alten App beim Start und beim späteren Start, „Alte Version beenden“ beendet sie — Timur live, Protokoll 13:06 und 13:52
+- [x] **AC-21** Hell und Dunkel gut lesbar — Timur: passt
+- [x] **AC-23** Tab-Taste zeigt sichtbaren Fokus — Timur: passt
+- [x] **AC-6, EC-1** erneutes Öffnen und zweites Exemplar → Einstellungen, nur ein Prozess — Protokoll und `pgrep` (13:12)
+
+### Weiterhin nicht geprüft
+- [!] **AC-22** „Transparenz reduzieren“ — der Schritt war optional; Timur meldete „passt“ für die Prüfung, ob dieser Schritt dabei war, ist nicht eindeutig
+- [!] **AC-13, AC-14** echtes Ab- und Anmelden am Mac; **AC-19** ⌘Q bei offenem Einstellungsfenster; **AC-20** Rückfrage bei laufendem Diktat (erst mit PROJ-5 echte Aufnahmen); **EC-5** Herunterfahren; **EC-6** zweiter Bildschirm; **AC-2** gemessene Zeitgrenze 0,5 s und VoiceOver-Ausgabe; **EC-3** Darstellung in der Aktivitätsanzeige
+
 ## Zusammenfassung
-- **Abnahmekriterien:** 21 von 23 per Logik belegt, AC-18 fehlerhaft, AC-21 und AC-23 nur am Bildschirm prüfbar; Sonderfälle: EC-1, EC-5, EC-6 per Logik belegt, EC-2 fehlerhaft, EC-3 und EC-4 im Ablauf belegt, aber je mit Fehler. Kein Kriterium am laufenden Programm in diesem Lauf beobachtet.
-- **Fehler:** 11 (0 Critical, 1 High, 3 Medium, 7 Low): Open 4, Deferred 7 (entschieden von Timur)
-- **Sicherheit:** 11 Prüfungen belegt, 2 Befunde (BUG-4, BUG-5), 7 NOT VERIFIED (davon 5 nicht anwendbar, 1 nicht eingebaut, 1 braucht laufendes Programm)
-- **Produktionsreif:** NEIN
-- **Empfehlung:** Zuerst die offenen Fehler beheben (`/build PROJ-1`), danach erneute Prüfung mit aufgezeichnetem Test durch Timur.
+- **Abnahmekriterien:** alle 23 per Logik belegt; 14 davon zusätzlich am laufenden Programm durch Timur oder das Protokoll bestätigt; AC-22 und die oben genannten Laufzeitfälle nicht geprüft. Sonderfälle: alle 6 per Logik belegt, EC-1 und EC-2 auch live.
+- **Fehler:** 13 insgesamt (0 Critical, 1 High, 3 Medium, 9 Low). Behoben und nachgeprüft: BUG-1 bis BUG-4 und BUG-12. Deferred: BUG-5 bis BUG-11, BUG-13 (alle Low). Open: keiner.
+- **Sicherheit:** BUG-4 geschlossen; Ausnahme `get-task-allow` nur im Debug-Bau festgehalten (ADR-007); keine neuen Befunde über Low.
+- **Produktionsreif:** JA — keine offenen Critical- oder High-Fehler, Laufzeitkriterien durch aufgezeichneten Test von Timur ausgeübt. Nicht geprüft bleiben die oben genannten Punkte.
+- **Empfehlung:** Freigeben (Approved). Die 8 zurückgestellten kleinen Fehler gesammelt mit `/build PROJ-1 deferred` beheben, spätestens vor der Auslieferung (PROJ-14).
