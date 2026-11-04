@@ -79,6 +79,8 @@
 
 ## Offene Fragen
 - [ ] Sollen Einstellungen und Wörterbuch aus der alten App übernommen werden? Klären bei PROJ-9 (Wörterbuch) bzw. PROJ-14 (Auslieferung).
+- [ ] Löst das normale Beenden der alten App eine macOS-Rückfrage aus? Beim Bau prüfen (siehe `design.md`).
+- [ ] Schließt Esc das Menüleisten-Fenster von selbst? Beim Bau prüfen (AC-3 gilt so oder so).
 
 ## Entscheidungsprotokoll
 

@@ -64,14 +64,15 @@ Es gibt keine Anmeldung; der Rahmen unterscheidet stattdessen diese Zustände:
 
 ## Gemeinsame Bausteine des Rahmens
 
-_Dateien legt `/architecture` für PROJ-1 fest; hier wird die Tabelle dann ergänzt._
+_Festgelegt in `features/PROJ-1-app-rahmen-einstellungen/design.md`. Bereichskennungen: `general`, `access`, `hotkeys`, `transcription`, `prompts`, `vocabulary`, `history`, `about`._
 
 | Baustein | Datei | Zweck |
 |----------|-------|-------|
-| Menüleisten-Symbol mit Zustand | _offen_ | Zustand auf einen Blick |
-| Menüleisten-Fenster | _offen_ | Rahmen für Schnellzugriff |
-| Einstellungsfenster mit Seitenleiste | _offen_ | Navigation zwischen den Bereichen |
-| Problem-Hinweis | _offen_ | einheitlicher Hinweis mit Lösungsknopf |
+| Menüleisten-Symbol mit Zustand | `Packages/InnoWhisperKit/Sources/AppShell/MenuBar/` | Zustand auf einen Blick |
+| Menüleisten-Fenster | `Packages/InnoWhisperKit/Sources/AppShell/MenuBar/` | Rahmen für Schnellzugriff (Inhalt PROJ-13) |
+| Einstellungsfenster mit Seitenleiste | `Packages/InnoWhisperKit/Sources/AppShell/Settings/` | Navigation zwischen den Bereichen; Bereiche und Allgemein-Gruppen werden von Features angemeldet |
+| Problem-Hinweis und Problem-Sammlung | `Packages/InnoWhisperKit/Sources/AppShell/State/` | einheitlicher Hinweis mit Lösungsknopf; Features melden Probleme mit fester Kennung |
+| Diktat-Tätigkeit | `Packages/InnoWhisperKit/Sources/AppShell/State/` | `ruhend` / `nimmtAuf` / `wandeltUm`, gesetzt von PROJ-5 und PROJ-6 |
 
 ---
 
