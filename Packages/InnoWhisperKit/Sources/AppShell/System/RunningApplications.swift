@@ -26,7 +26,7 @@ public protocol RunningApplicationsProviding: AnyObject {
 /// The real list, via `NSWorkspace`.
 @MainActor
 public final class SystemRunningApplications: RunningApplicationsProviding {
-    private var observers: [NSObjectProtocol] = []
+    private var observations: [NSKeyValueObservation] = []
 
     public init() {}
 
@@ -44,13 +44,14 @@ public final class SystemRunningApplications: RunningApplicationsProviding {
         NSRunningApplication(processIdentifier: pid)?.forceTerminate() ?? false
     }
 
+    /// Watches the list of running apps itself (key-value observing). The
+    /// launch/terminate notifications of `NSWorkspace` are not sent for
+    /// menu-bar-only apps (LSUIElement) such as the old app (QA BUG-1);
+    /// changes of `runningApplications` are.
     public func observeChanges(_ handler: @escaping @MainActor () -> Void) {
-        let center = NSWorkspace.shared.notificationCenter
-        for name in [NSWorkspace.didLaunchApplicationNotification, NSWorkspace.didTerminateApplicationNotification] {
-            observers.append(
-                center.addObserver(forName: name, object: nil, queue: .main) { _ in
-                    MainActor.assumeIsolated { handler() }
-                })
-        }
+        observations.append(
+            NSWorkspace.shared.observe(\.runningApplications, options: [.new, .old]) { _, _ in
+                Task { @MainActor in handler() }
+            })
     }
 }

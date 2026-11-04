@@ -7,7 +7,7 @@ enum LegacyAlerts {
     static let presenter = LegacyAppGuard.Presenter(
         askWhatToDo: { askWhatToDo() },
         showTerminated: { showTerminated() },
-        showManualInstructions: { showManualInstructions() }
+        showManualInstructions: { showManualInstructions($0) }
     )
 
     static func askWhatToDo() -> LegacyPromptChoice {
@@ -30,16 +30,11 @@ enum LegacyAlerts {
         alert.runModal()
     }
 
-    static func showManualInstructions() {
+    static func showManualInstructions(_ steps: String) {
         let alert = NSAlert()
         alert.alertStyle = .warning
         alert.messageText = "Die alte Version lässt sich nicht beenden."
-        alert.informativeText = """
-            So beendest du sie selbst:
-            1. Öffne das Programm Aktivitätsanzeige.
-            2. Suche nach WhisperDictation.
-            3. Markiere es und klicke oben auf das ⓧ-Symbol, dann auf Sofort beenden.
-            """
+        alert.informativeText = steps
         alert.addButton(withTitle: "OK")
         NSApplication.shared.activate()
         alert.runModal()

@@ -9,6 +9,9 @@ import Observation
 public final class LoginItemController {
     public static let problemID = "autostartUnavailable"
     static let firstLaunchKey = "autostart.firstLaunchDone"
+    /// The user deliberately switched autostart off. Their intent, not the
+    /// macOS state: a refusal hint is never shown against this choice (EC-4).
+    static let userTurnedOffKey = "autostart.userTurnedOff"
 
     /// Mirrors macOS; never stored by the app.
     public private(set) var isEnabled = false
@@ -46,6 +49,7 @@ public final class LoginItemController {
 
     /// Called by the switch in "Allgemein".
     public func setEnabled(_ enabled: Bool) {
+        defaults.set(!enabled, forKey: Self.userTurnedOffKey)
         if enabled {
             attemptRegister()
         } else {
@@ -78,7 +82,11 @@ public final class LoginItemController {
                     action: { [service] in service.openSystemSettings() }
                 ))
         case .notFound:
-            reportRefusal()
+            if defaults.bool(forKey: Self.userTurnedOffKey) {
+                problems.withdraw(id: Self.problemID)
+            } else {
+                reportRefusal()
+            }
         case .notRegistered:
             if lastAttemptFailed {
                 reportRefusal()

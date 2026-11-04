@@ -31,12 +31,13 @@ public final class LegacyAppGuard {
     public struct Presenter {
         public var askWhatToDo: @MainActor () async -> LegacyPromptChoice
         public var showTerminated: @MainActor () -> Void
-        public var showManualInstructions: @MainActor () -> Void
+        /// Receives the ready-made step-by-step text (EC-3).
+        public var showManualInstructions: @MainActor (String) -> Void
 
         public init(
             askWhatToDo: @escaping @MainActor () async -> LegacyPromptChoice,
             showTerminated: @escaping @MainActor () -> Void,
-            showManualInstructions: @escaping @MainActor () -> Void
+            showManualInstructions: @escaping @MainActor (String) -> Void
         ) {
             self.askWhatToDo = askWhatToDo
             self.showTerminated = showTerminated
@@ -143,8 +144,24 @@ public final class LegacyAppGuard {
         }
         AppShellLog.system.notice("Legacy app still running after 5 s")
         reportProblem()
-        presenter.showManualInstructions()
+        presenter.showManualInstructions(Self.manualInstructions(for: legacyApps()))
         return .stillRunning
+    }
+
+    /// Steps to quit the old app by hand (EC-3). Activity Monitor shows the
+    /// old app as "InnoWhisper" — the same name as the new one — so the PID
+    /// tells them apart. Never names the internal executable.
+    public static func manualInstructions(for apps: [RunningApp]) -> String {
+        let pids = apps.map { String($0.pid) }.joined(separator: ", ")
+        let which =
+            apps.count == 1 ? "die Zeile mit der Nummer (PID) \(pids)" : "die Zeilen mit den Nummern (PID) \(pids)"
+        return """
+            So beendest du sie selbst:
+            1. Öffne das Programm Aktivitätsanzeige.
+            2. Tippe oben rechts ins Suchfeld: InnoWhisper
+            3. Markiere \(which). Die neue InnoWhisper hat eine andere Nummer.
+            4. Klicke oben auf das ⓧ-Symbol, dann auf Sofort beenden.
+            """
     }
 
     private func reportProblem() {

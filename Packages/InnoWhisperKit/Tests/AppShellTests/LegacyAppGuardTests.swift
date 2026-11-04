@@ -36,6 +36,7 @@ final class PresenterLog {
     var prompts = 0
     var terminatedShown = 0
     var instructionsShown = 0
+    var instructionsText = ""
     var choice: LegacyPromptChoice = .later
 }
 
@@ -55,7 +56,10 @@ struct LegacyAppGuardTests {
                 return log.choice
             },
             showTerminated: { log.terminatedShown += 1 },
-            showManualInstructions: { log.instructionsShown += 1 })
+            showManualInstructions: { text in
+                log.instructionsShown += 1
+                log.instructionsText = text
+            })
         let guardian = LegacyAppGuard(apps: apps, problems: problems, presenter: presenter, sleep: { slept($0) })
         return (guardian, problems)
     }
@@ -145,5 +149,18 @@ struct LegacyAppGuardTests {
         #expect(log.instructionsShown == 1)
         #expect(log.terminatedShown == 0)
         #expect(problems.isReported(id: LegacyAppGuard.problemID))
+    }
+
+    // BUG-2 (EC-3): instructions name the app as the user sees it and its PID, never the executable name
+    @Test func instructionsNameVisibleAppAndPID() async {
+        let log = PresenterLog()
+        let apps = FakeRunningApps([old])
+        apps.quitsOnTerminate = false
+        apps.quitsOnForce = false
+        let (guardian, _) = make(apps, log: log)
+        await guardian.terminateLegacyApps()
+        #expect(log.instructionsText.contains("InnoWhisper"))
+        #expect(log.instructionsText.contains("100"))
+        #expect(!log.instructionsText.contains("WhisperDictation"))
     }
 }

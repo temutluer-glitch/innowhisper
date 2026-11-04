@@ -7,6 +7,7 @@ import Testing
 final class FakeLoginItemService: LoginItemService {
     var status: LoginItemStatus
     var statusAfterRegister: LoginItemStatus = .enabled
+    var statusAfterUnregister: LoginItemStatus = .notRegistered
     var registerError: Error?
     var registerCalls = 0
     var unregisterCalls = 0
@@ -22,7 +23,7 @@ final class FakeLoginItemService: LoginItemService {
 
     func unregister() throws {
         unregisterCalls += 1
-        status = .notRegistered
+        status = statusAfterUnregister
     }
 
     func openSystemSettings() { openedSettings = true }
@@ -142,5 +143,32 @@ struct LoginItemControllerTests {
         let (inDl, _) = make(service, bundle: inDownloads)
         #expect(inUserApps.isInApplicationsFolder)
         #expect(!inDl.isInApplicationsFolder)
+    }
+
+    // BUG-3 (EC-4): macOS keeps reporting "not found", user deliberately switches off → no hint, also after relaunch
+    @Test func deliberateOffClearsHintEvenWhenNotFound() {
+        let defaults = freshDefaults()
+        let service = FakeLoginItemService(status: .notFound)
+        service.statusAfterUnregister = .notFound
+        let (controller, problems) = make(service, defaults: defaults)
+        controller.refresh()
+        #expect(problems.hasProblems)
+        controller.setEnabled(false)
+        #expect(!problems.hasProblems)
+        let (relaunched, problemsAfter) = make(service, defaults: defaults)
+        relaunched.performFirstLaunchSetup()
+        #expect(!problemsAfter.hasProblems)
+    }
+
+    // BUG-3: switching on again after a deliberate off shows the hint again when macOS refuses
+    @Test func switchingOnAgainShowsRefusal() {
+        let service = FakeLoginItemService(status: .notFound)
+        service.statusAfterUnregister = .notFound
+        service.statusAfterRegister = .notFound
+        let (controller, problems) = make(service)
+        controller.setEnabled(false)
+        #expect(!problems.hasProblems)
+        controller.setEnabled(true)
+        #expect(problems.hasProblems)
     }
 }
