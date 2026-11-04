@@ -9,7 +9,14 @@ public enum LoginItemStatus: Sendable, Equatable, LogValue {
     case requiresApproval
     case notFound
 
-    public var logDescription: String { String(describing: self) }
+    public var logDescription: StaticString {
+        switch self {
+        case .enabled: "enabled"
+        case .notRegistered: "notRegistered"
+        case .requiresApproval: "requiresApproval"
+        case .notFound: "notFound"
+        }
+    }
 }
 
 /// Access to the macOS login items for this app. Replaced by a fake in tests.

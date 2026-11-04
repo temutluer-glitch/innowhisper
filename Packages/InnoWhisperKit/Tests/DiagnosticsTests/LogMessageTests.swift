@@ -5,7 +5,7 @@ import Testing
 
 enum SampleState: LogValue {
     case ready
-    var logDescription: String { "ready" }
+    var logDescription: StaticString { "ready" }
 }
 
 struct LogMessageTests {
@@ -90,17 +90,29 @@ struct LogMessageTests {
         #expect(second.text == "e=<domain>#2")
     }
 
-    // BUG-1 (c): String cannot become a LogValue, an enum with a payload neither
-    @Test func logValueOnlyForPayloadFreeEnums() throws {
+    // BUG-1 (c): a LogValue can only describe itself with fixed text from the
+    // source code; stored text (struct field, enum payload, String itself) is
+    // rejected by the compiler, also with a hand-written allCases.
+    @Test func logValueOnlyFixedText() throws {
         #expect(
-            try typecheckSnippet(#"enum S: LogValue { case a }; func f() { let m: LogMessage = "\(S.a)"; _ = m }"#) == 0
-        )
-        #expect(
-            try typecheckSnippet(#"extension String: LogValue { public var logDescription: String { self } }"#) != 0)
-        #expect(try typecheckSnippet(#"enum P: LogValue { case text(String) }"#) != 0)
+            try typecheckSnippet(
+                #"enum S: LogValue { case a; var logDescription: StaticString { "a" } }; func f() { let m: LogMessage = "\(S.a)"; _ = m }"#
+            ).status == 0)
+        let attempts = [
+            #"struct A: LogValue { let s: String; static var allCases: [A] { [] } }"#,
+            #"struct B: LogValue { let s: String; static var allCases: [B] { [] }; var logDescription: String { s } }"#,
+            #"struct C: LogValue { let s: String; static var allCases: [C] { [] }; var logDescription: StaticString { s } }"#,
+            #"enum P: LogValue { case text(String); static var allCases: [P] { [] }; var logDescription: StaticString { switch self { case .text(let t): t } } }"#,
+            #"extension String: @retroactive CaseIterable { public static var allCases: [String] { [] } }; extension String: LogValue { public var logDescription: String { self } }"#,
+        ]
+        for code in attempts {
+            let result = try typecheckSnippet(code)
+            #expect(result.status != 0, "\(code)")
+            #expect(result.errors.contains("StaticString") || result.errors.contains("LogValue"), "\(result.errors)")
+        }
     }
 
-    private func typecheckSnippet(_ code: String) throws -> Int32 {
+    private func typecheckSnippet(_ code: String) throws -> (status: Int32, errors: String) {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("logval-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: dir) }
@@ -109,6 +121,15 @@ struct LogMessageTests {
             .appendingPathComponent("Sources/Diagnostics/LogMessage.swift")
         let snippet = dir.appendingPathComponent("snippet.swift")
         try code.write(to: snippet, atomically: true, encoding: .utf8)
-        return try typecheck([source, snippet])
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
+        process.arguments = ["swiftc", "-typecheck", "-parse-as-library", source.path, snippet.path]
+        let pipe = Pipe()
+        process.standardError = pipe
+        process.standardOutput = FileHandle.nullDevice
+        try process.run()
+        let errors = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
+        process.waitUntilExit()
+        return (process.terminationStatus, errors)
     }
 }

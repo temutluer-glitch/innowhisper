@@ -14,7 +14,18 @@ public enum SettingsSection: String, CaseIterable, Sendable, Identifiable, LogVa
 
     public var id: String { rawValue }
 
-    public var logDescription: String { rawValue }
+    public var logDescription: StaticString {
+        switch self {
+        case .general: "general"
+        case .access: "access"
+        case .hotkeys: "hotkeys"
+        case .transcription: "transcription"
+        case .prompts: "prompts"
+        case .vocabulary: "vocabulary"
+        case .history: "history"
+        case .about: "about"
+        }
+    }
 
     /// Position in the sidebar (1-based).
     public var order: Int {

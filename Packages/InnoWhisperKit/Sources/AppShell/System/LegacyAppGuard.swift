@@ -7,7 +7,12 @@ public enum LegacyPromptChoice: Sendable, LogValue {
     case terminate
     case later
 
-    public var logDescription: String { String(describing: self) }
+    public var logDescription: StaticString {
+        switch self {
+        case .terminate: "terminate"
+        case .later: "later"
+        }
+    }
 }
 
 /// Result of trying to quit the old app.

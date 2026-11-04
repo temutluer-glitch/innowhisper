@@ -91,18 +91,18 @@ Zwei neue Module im Paket `Packages/InnoWhisperKit` (ADR-008):
 Eine Meldung lässt sich nur bauen aus:
 - festem Text, der im Programm steht,
 - Zahlen, Wahr/Falsch, Dauern,
-- Werten aus festen Aufzählungen (z. B. Autostart-Stand, Art eines Hinweises),
-- Programmkennungen (z. B. `com.apple.TextEdit`),
-- Fehlern, von denen nur Bereich und Nummer übernommen werden, nie der Fehlertext.
+- Werten aus festen Aufzählungen (z. B. Autostart-Stand, Art eines Hinweises); ein solcher Wert beschreibt sich nur mit festem Text aus dem Programm, nie mit gespeichertem Text,
+- Programmkennungen, aber nur von Programmen, die auf diesem Mac installiert sind (sonst `<unknown-app>`),
+- Fehlern, von denen nur Bereich und Nummer übernommen werden, nie der Fehlertext; nur System-Fehlerbereiche (enden auf `ErrorDomain` oder beginnen mit `com.apple.`), sonst `<domain>`. Eigene Fehler späterer Features werden deshalb als eigener Aufzählungswert protokolliert.
 
 Freier Text (eine Zeichenkette aus Variablen) lässt sich in eine Meldung **nicht** einsetzen. Der Übersetzer lehnt das ab. So kann kein Feature versehentlich diktierten Text, Zwischenablage oder den Zugangsschlüssel protokollieren.
 
 ### Aufbewahrung (AC-13)
-- Beim Start und wenn die Datei beim Schreiben 10 MB überschreitet: Einträge älter als 7 Tage entfernen; ist die Datei danach noch über 10 MB, die ältesten entfernen, bis sie unter 8 MB liegt (Puffer, damit nicht bei jedem Eintrag neu geschrieben wird).
+- Beim Start und beim Schreiben, sobald der älteste Eintrag älter als 7 Tage ist oder die Datei 10 MB überschreitet: Einträge älter als 7 Tage entfernen; ist die Datei danach noch über 10 MB, die ältesten entfernen, bis sie unter 8 MB liegt (Puffer, damit nicht bei jedem Eintrag neu geschrieben wird).
 - Schreiben geschieht nacheinander in einer eigenen Warteschlange, nie auf dem Hauptablauf.
 
 ### Nicht schreibbar (EC-3)
-- Schlägt das Anlegen oder Schreiben fehl, merkt sich das Protokoll „nicht verfügbar“ und versucht es beim nächsten Start erneut. Kein Hinweis an den Nutzer, Apples Protokoll erhält weiter alles.
+- Schlägt das Anlegen oder Schreiben fehl, merkt sich das Protokoll „nicht verfügbar“ und versucht es beim nächsten Eintrag erneut (eine gelöschte Datei wird dabei neu angelegt). Kein Hinweis an den Nutzer, Apples Protokoll erhält weiter alles.
 
 ### Knopf (AC-14, EC-4)
 - „Fehlerprotokoll zeigen“: legt die Datei an, falls sie fehlt (leer), und markiert sie im Finder.
@@ -185,3 +185,9 @@ Keine.
 | Gruppen „Töne“ (an) und „Fehlerprotokoll“ in „Allgemein“, Knopf markiert die Datei im Finder (AC-10, AC-14) | bestanden (Timur) |
 | Töne hörbar (AC-9) | nicht live prüfbar vor PROJ-5 (keine Aufnahme), nur Tests |
 | Esc schließt Fehler-Hinweis (AC-4) | nicht live geprüft; braucht Bedienungshilfen (PROJ-3) und einen Fehler-Hinweis |
+
+### Korrekturen nach `/qa` (2026-11-04)
+- **BUG-1:** Protokoll-Meldung ohne Hintertüren: Programmkennung nur für installierte Programme (Launch Services), Fehlerbereich nur System-Bereiche, und ein Aufzählungswert beschreibt sich nur noch mit festem Text (`StaticString`). Übersetzer-Tests belegen, dass Struktur-Felder, Begleitwerte und `String` abgelehnt werden, auch mit selbst geschriebenem `allCases`.
+- **BUG-2:** 7-Tage-Grenze auch beim Schreiben (der älteste Eintrag wird mitgeführt).
+- **BUG-3:** Eine gelöschte Protokolldatei wird beim nächsten Eintrag neu angelegt. Live gemessen: Datei während des Laufs gelöscht, beim Öffnen der Einstellungen neu angelegt mit neuen Einträgen.
+

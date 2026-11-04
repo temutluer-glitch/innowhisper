@@ -7,7 +7,12 @@ public enum SystemSound: String, Sendable, LogValue {
     case start = "Tink"
     case end = "Pop"
 
-    public var logDescription: String { rawValue }
+    public var logDescription: StaticString {
+        switch self {
+        case .start: "Tink"
+        case .end: "Pop"
+        }
+    }
 }
 
 /// Plays sounds. Replaced by a fake in tests.

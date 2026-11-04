@@ -18,7 +18,7 @@ public enum NoticeKind: Sendable, Equatable, LogValue {
     /// Info and success close by themselves (AC-3); errors stay (AC-4).
     public var closesAutomatically: Bool { self != .error }
 
-    public var logDescription: String {
+    public var logDescription: StaticString {
         switch self {
         case .info: "info"
         case .success: "success"

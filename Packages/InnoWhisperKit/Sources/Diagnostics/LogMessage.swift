@@ -1,15 +1,13 @@
 import CoreServices
 import Foundation
 
-/// A value that may appear in a log message: only enums without payloads.
-/// `CaseIterable` cannot be synthesised for cases that carry values and
-/// `String` is not `CaseIterable`, so free text cannot sneak in (QA BUG-1).
-public protocol LogValue: CaseIterable {
-    var logDescription: String { get }
-}
-
-extension LogValue {
-    public var logDescription: String { String(describing: self) }
+/// A value that may appear in a log message, typically a state enum. It can
+/// describe itself only with fixed text from the source code (`StaticString`):
+/// stored text — a struct field, an enum payload, a `String` — cannot be
+/// turned into a `StaticString`, so the compiler rejects every way of
+/// smuggling content into the log (QA BUG-1).
+public protocol LogValue {
+    var logDescription: StaticString { get }
 }
 
 /// A log message that can only be built from fixed text in the source code
@@ -61,7 +59,7 @@ public struct LogMessage: Sendable, ExpressibleByStringInterpolation {
         }
 
         public mutating func appendInterpolation(_ value: some LogValue) {
-            text += value.logDescription
+            text += value.logDescription.description
         }
 
         /// An app identifier such as `com.apple.TextEdit`. Only identifiers of
