@@ -13,9 +13,9 @@
 
 ## Stufe 2 — Innere Logik
 
-- [ ] T3 [P]  Zustand der App: Diktat-Tätigkeit (`ruhend` / `nimmtAuf` / `wandeltUm`), Problem-Sammlung (melden, ersetzen, zurückziehen über feste Kennung), Ableitung des Menüleisten-Symbols mit Vorrangfolge und VoiceOver-Text; Tests  · files: Src/State/DictationActivity.swift, Src/State/ProblemCenter.swift, Src/State/MenuBarStatus.swift, Tst/StateTests.swift  · → AC-2, AC-10, AC-18
-- [ ] T4 [P]  Bereiche: acht Bereichskennungen mit Name, SF Symbol und Reihenfolge; Anmelden von Bereichen und Allgemein-Gruppen; letzter Bereich mit Rückfall auf `general`; Tests  · files: Src/Settings/SettingsSection.swift, Src/Settings/SettingsRegistry.swift, Tst/SettingsRegistryTests.swift  · → AC-7, AC-8, AC-9
-- [ ] T5 [P]  Fensterlage-Regel: liegt das Fenster nicht zu mindestens 80 % auf einem angeschlossenen Bildschirm, mittig auf den Hauptbildschirm; Tests mit erfundenen Bildschirmmaßen  · files: Src/System/WindowFramePolicy.swift, Tst/WindowFramePolicyTests.swift  · → EC-6
+- [x] T3 [P]  Zustand der App: Diktat-Tätigkeit (`ruhend` / `nimmtAuf` / `wandeltUm`), Problem-Sammlung (melden, ersetzen, zurückziehen über feste Kennung), Ableitung des Menüleisten-Symbols mit Vorrangfolge und VoiceOver-Text; Tests  · files: Src/State/DictationActivity.swift, Src/State/ProblemCenter.swift, Src/State/MenuBarStatus.swift, Tst/StateTests.swift  · → AC-2, AC-10, AC-18
+- [x] T4 [P]  Bereiche: acht Bereichskennungen mit Name, SF Symbol und Reihenfolge; Anmelden von Bereichen und Allgemein-Gruppen; letzter Bereich mit Rückfall auf `general`; Tests  · files: Src/Settings/SettingsSection.swift, Src/Settings/SettingsRegistry.swift, Tst/SettingsRegistryTests.swift  · → AC-7, AC-8, AC-9
+- [x] T5 [P]  Fensterlage-Regel: liegt das Fenster nicht zu mindestens 80 % auf einem angeschlossenen Bildschirm, mittig auf den Hauptbildschirm; Tests mit erfundenen Bildschirmmaßen  · files: Src/System/WindowFramePolicy.swift, Tst/WindowFramePolicyTests.swift  · → EC-6
 
 ## Stufe 3 — Anschluss an macOS
 
