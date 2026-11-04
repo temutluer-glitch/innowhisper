@@ -1,4 +1,5 @@
 import AppKit
+import Diagnostics
 import Observation
 import SwiftUI
 
@@ -45,9 +46,9 @@ public final class SettingsWindowController {
         window.setFrame(reachableFrame(for: window.frame), display: false)
         NSApplication.shared.activate()
         window.makeKeyAndOrderFront(nil)
-        AppShellLog.system.notice(
-            "Settings window shown, section \(self.navigation.selection.rawValue, privacy: .public), max width \(Int(window.contentMaxSize.width), privacy: .public)"
-        )
+        Log.write(
+            "Settings window shown, section \(navigation.selection), max width \(Int(window.contentMaxSize.width))",
+            category: .appShell)
     }
 
     private func makeWindow() -> NSWindow {

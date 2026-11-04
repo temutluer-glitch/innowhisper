@@ -20,9 +20,9 @@
 
 ## Stufe 3 — Anschluss und Oberflächen
 
-- [ ] T7 [P]  Protokoll-Zugang für alle Module (in Datei und Apples Protokoll) und Umstellung der Protokollstellen in `AppShell`  · files: Dia/Log.swift, Kit/Sources/AppShell/System/AppShellLog.swift, Kit/Sources/AppShell/System/LoginItemController.swift, Kit/Sources/AppShell/System/LegacyAppGuard.swift, Kit/Sources/AppShell/Settings/SettingsWindowController.swift  · → AC-11, AC-12
-- [ ] T8 [P]  Hinweis-Kapsel: Schwebefenster ohne Fokus über allen Fenstern und Vollbild, auf allen Schreibtischen; Glas-Kapsel mit Symbol und Text; feste Fläche bei „Transparenz reduzieren“, ohne Animation bei „Bewegung reduzieren“; VoiceOver-Ansage; Klick schließt Fehler; Esc-Beobachtung nur während ein Fehler sichtbar ist  · files: Not/NoticePanel.swift, Not/NoticeView.swift, Not/EscapeMonitor.swift  · → AC-1, AC-4, AC-6, AC-7, EC-2
-- [ ] T9 [P]  Gruppen in „Allgemein“: „Töne“ (Schalter, Reihenfolge 20) und „Fehlerprotokoll“ (Erklärsatz, Knopf „Fehlerprotokoll zeigen“ bzw. ausgegraut „Fehlerprotokoll nicht verfügbar“, Reihenfolge 90)  · files: Not/SoundSettingsGroup.swift, Not/LogSettingsGroup.swift  · → AC-10, AC-14, EC-3, EC-4
+- [x] T7 [P]  Protokoll-Zugang für alle Module (in Datei und Apples Protokoll) und Umstellung der Protokollstellen in `AppShell`  · files: Dia/Log.swift, Kit/Sources/AppShell/System/AppShellLog.swift, Kit/Sources/AppShell/System/LoginItemController.swift, Kit/Sources/AppShell/System/LegacyAppGuard.swift, Kit/Sources/AppShell/Settings/SettingsWindowController.swift  · → AC-11, AC-12
+- [x] T8 [P]  Hinweis-Kapsel: Schwebefenster ohne Fokus über allen Fenstern und Vollbild, auf allen Schreibtischen; Glas-Kapsel mit Symbol und Text; feste Fläche bei „Transparenz reduzieren“, ohne Animation bei „Bewegung reduzieren“; VoiceOver-Ansage; Klick schließt Fehler; Esc-Beobachtung nur während ein Fehler sichtbar ist  · files: Not/NoticePanel.swift, Not/NoticeView.swift, Not/EscapeMonitor.swift  · → AC-1, AC-4, AC-6, AC-7, EC-2
+- [x] T9 [P]  Gruppen in „Allgemein“: „Töne“ (Schalter, Reihenfolge 20) und „Fehlerprotokoll“ (Erklärsatz, Knopf „Fehlerprotokoll zeigen“ bzw. ausgegraut „Fehlerprotokoll nicht verfügbar“, Reihenfolge 90)  · files: Not/SoundSettingsGroup.swift, Not/LogSettingsGroup.swift  · → AC-10, AC-14, EC-3, EC-4
 
 ## Stufe 4 — Zusammensetzen und echt prüfen
 

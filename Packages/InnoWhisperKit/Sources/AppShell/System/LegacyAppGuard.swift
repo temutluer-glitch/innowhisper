@@ -1,10 +1,13 @@
+import Diagnostics
 import Foundation
 import Observation
 
 /// What the user chose in the "alte Version läuft noch" dialog.
-public enum LegacyPromptChoice: Sendable {
+public enum LegacyPromptChoice: Sendable, LogValue {
     case terminate
     case later
+
+    public var logDescription: String { String(describing: self) }
 }
 
 /// Result of trying to quit the old app.
@@ -91,14 +94,13 @@ public final class LegacyAppGuard {
             return
         }
         let newlySeen = !pids.subtracting(knownLegacyPIDs).isEmpty
-        AppShellLog.system.notice(
-            "Legacy app running: \(pids.count, privacy: .public) instance(s), new: \(newlySeen, privacy: .public)")
+        Log.write("Legacy app running: \(pids.count) instance(s), new: \(newlySeen)", category: .appShell)
         knownLegacyPIDs = pids
         guard newlySeen, !isPrompting else { return }
 
         isPrompting = true
         let choice = await presenter.askWhatToDo()
-        AppShellLog.system.notice("Legacy prompt answered: \(String(describing: choice), privacy: .public)")
+        Log.write("Legacy prompt answered: \(choice)", category: .appShell)
         isPrompting = false
         switch choice {
         case .terminate:
@@ -129,7 +131,7 @@ public final class LegacyAppGuard {
                 return .terminated
             }
             if !forced, waited >= Self.politeTimeout {
-                AppShellLog.system.notice("Legacy app ignored polite quit, forcing")
+                Log.write("Legacy app ignored polite quit, forcing", category: .appShell)
                 for app in legacyApps() { apps.forceTerminate(pid: app.pid) }
                 forced = true
             }
@@ -142,7 +144,7 @@ public final class LegacyAppGuard {
             presenter.showTerminated()
             return .terminated
         }
-        AppShellLog.system.notice("Legacy app still running after 5 s")
+        Log.write("Legacy app still running after 5 s", category: .appShell)
         reportProblem()
         presenter.showManualInstructions(Self.manualInstructions(for: legacyApps()))
         return .stillRunning

@@ -1,4 +1,5 @@
 import AppKit
+import Diagnostics
 import Foundation
 import Observation
 
@@ -57,7 +58,7 @@ public final class LoginItemController {
             do {
                 try service.unregister()
             } catch {
-                AppShellLog.system.error("Autostart off failed: \(error.localizedDescription, privacy: .public)")
+                Log.write("Autostart off failed: \(error: error)", category: .appShell, level: .error)
             }
         }
         refresh()
@@ -66,7 +67,7 @@ public final class LoginItemController {
     /// Re-reads macOS (AC-15): on opening "Allgemein" and when the app becomes active.
     public func refresh() {
         let status = service.status
-        AppShellLog.system.notice("Login item status: \(String(describing: status), privacy: .public)")
+        Log.write("Login item status: \(status)", category: .appShell)
         isEnabled = status == .enabled
         switch status {
         case .enabled:
@@ -114,7 +115,7 @@ public final class LoginItemController {
             lastAttemptFailed = service.status != .enabled && service.status != .requiresApproval
         } catch {
             lastAttemptFailed = true
-            AppShellLog.system.error("Autostart on failed: \(error.localizedDescription, privacy: .public)")
+            Log.write("Autostart on failed: \(error: error)", category: .appShell, level: .error)
         }
     }
 

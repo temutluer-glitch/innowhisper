@@ -1,12 +1,15 @@
+import Diagnostics
 import Foundation
 import ServiceManagement
 
 /// State of "Start beim Anmelden" as macOS reports it. macOS is the only source of truth.
-public enum LoginItemStatus: Sendable, Equatable {
+public enum LoginItemStatus: Sendable, Equatable, LogValue {
     case enabled
     case notRegistered
     case requiresApproval
     case notFound
+
+    public var logDescription: String { String(describing: self) }
 }
 
 /// Access to the macOS login items for this app. Replaced by a fake in tests.

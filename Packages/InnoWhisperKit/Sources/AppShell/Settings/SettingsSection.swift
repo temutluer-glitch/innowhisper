@@ -1,6 +1,8 @@
+import Diagnostics
+
 /// All settings sections, in the fixed order of `docs/app-shell.md`.
 /// A section only appears in the sidebar once its feature registers it.
-public enum SettingsSection: String, CaseIterable, Sendable, Identifiable {
+public enum SettingsSection: String, CaseIterable, Sendable, Identifiable, LogValue {
     case general
     case access
     case hotkeys
@@ -11,6 +13,8 @@ public enum SettingsSection: String, CaseIterable, Sendable, Identifiable {
     case about
 
     public var id: String { rawValue }
+
+    public var logDescription: String { rawValue }
 
     /// Position in the sidebar (1-based).
     public var order: Int {
