@@ -6,10 +6,16 @@ let package = Package(
     defaultLocalization: "de",
     platforms: [.macOS(.v26)],
     products: [
-        .library(name: "AppShell", targets: ["AppShell"])
+        .library(name: "Diagnostics", targets: ["Diagnostics"]),
+        .library(name: "AppShell", targets: ["AppShell"]),
+        .library(name: "Notices", targets: ["Notices"]),
     ],
     targets: [
-        .target(name: "AppShell"),
+        .target(name: "Diagnostics"),
+        .target(name: "AppShell", dependencies: ["Diagnostics"]),
+        .target(name: "Notices", dependencies: ["AppShell", "Diagnostics"]),
+        .testTarget(name: "DiagnosticsTests", dependencies: ["Diagnostics"]),
         .testTarget(name: "AppShellTests", dependencies: ["AppShell"]),
+        .testTarget(name: "NoticesTests", dependencies: ["Notices"]),
     ]
 )

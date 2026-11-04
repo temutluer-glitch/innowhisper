@@ -8,7 +8,7 @@
 
 ## Stufe 1 — Grundgerüst
 
-- [ ] T1  Module `Diagnostics` und `Notices` samt Testzielen anlegen; `AppShell` hängt von `Diagnostics` ab, `Notices` von `AppShell` und `Diagnostics`; Platzhalter-Quellen und je ein erster Test  · files: Kit/Package.swift, Dia/Diagnostics.swift, Not/Notices.swift, DiaT/SmokeTests.swift, NotT/SmokeTests.swift  · → AC-11
+- [x] T1  Module `Diagnostics` und `Notices` samt Testzielen anlegen; `AppShell` hängt von `Diagnostics` ab, `Notices` von `AppShell` und `Diagnostics`; Platzhalter-Quellen und je ein erster Test  · files: Kit/Package.swift, Dia/Diagnostics.swift, Not/Notices.swift, DiaT/SmokeTests.swift, NotT/SmokeTests.swift  · → AC-11
 
 ## Stufe 2 — Innere Logik
 
