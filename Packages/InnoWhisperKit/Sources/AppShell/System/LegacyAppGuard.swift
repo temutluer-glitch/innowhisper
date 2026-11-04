@@ -113,7 +113,7 @@ public final class LegacyAppGuard {
             problems.withdraw(id: Self.problemID)
             return .terminated
         }
-        targets.forEach { apps.terminate(pid: $0.pid) }
+        for target in targets { apps.terminate(pid: target.pid) }
 
         var waited: Duration = .zero
         var forced = false
@@ -125,7 +125,7 @@ public final class LegacyAppGuard {
                 return .terminated
             }
             if !forced, waited >= Self.politeTimeout {
-                legacyApps().forEach { apps.forceTerminate(pid: $0.pid) }
+                for app in legacyApps() { apps.forceTerminate(pid: app.pid) }
                 forced = true
             }
             await sleep(Self.pollInterval)
