@@ -86,7 +86,7 @@ Keine zusätzlichen Unit-Tests in diesem Lauf; die gefundenen Lücken sind Fehle
 
 #### BUG-1: Protokoll-Meldung hat drei Wege für freien Text
 - **Schwere:** Medium
-- **Status:** Open (Vorschlag)
+- **Status:** Open (entschieden von Timur, 2026-11-04)
 - **Fehlerart:** Die sichere Meldungsart hat freie Textkanäle: Programmkennung wird nach Form statt gegen eine Liste geprüft, Fehlerbereich wird wörtlich übernommen, `LogValue` ist offen für jeden Typ.
 - **Kontrolle / AC:** SEC-01, SEC-02; AC-12
 - **Sweep:** `grep -rnE 'appendInterpolation\((bundleID|error):|\\\((bundleID|error):|extension [A-Za-z.]+ *: *(@retroactive )?LogValue|String\(describing: self\)' Packages/InnoWhisperKit/Sources App --include='*.swift'` — 6 Treffer
@@ -94,7 +94,7 @@ Keine zusätzlichen Unit-Tests in diesem Lauf; die gefundenen Lücken sind Fehle
 
 #### BUG-2: 7-Tage-Grenze gilt nur beim Start
 - **Schwere:** Medium
-- **Status:** Open (Vorschlag)
+- **Status:** Open (entschieden von Timur, 2026-11-04)
 - **Fehlerart:** Aufbewahrungsregel nur an einer von zwei verlangten Stellen angewendet (Spec: „startet oder schreibt“).
 - **Kontrolle / AC:** AC-13
 - **Sweep:** `grep -n "trim()" Packages/InnoWhisperKit/Sources/Diagnostics/LogFile.swift` — 3 Treffer, kein Altersauslöser beim Schreiben
@@ -102,7 +102,7 @@ Keine zusätzlichen Unit-Tests in diesem Lauf; die gefundenen Lücken sind Fehle
 
 #### BUG-3: Gelöschte Protokolldatei schaltet das Protokoll bis zum Neustart ab
 - **Schwere:** Medium
-- **Status:** Open (Vorschlag)
+- **Status:** Open (entschieden von Timur, 2026-11-04)
 - **Fehlerart:** Ein einzelner Schreibfehler setzt „nicht verfügbar“ dauerhaft, statt die Datei neu anzulegen.
 - **Kontrolle / AC:** EC-4, EC-3
 - **Sweep:** `grep -rn "available = false" Packages/InnoWhisperKit/Sources/Diagnostics` — 4 Treffer
@@ -110,67 +110,67 @@ Keine zusätzlichen Unit-Tests in diesem Lauf; die gefundenen Lücken sind Fehle
 
 #### BUG-4: Bildschirm des aktiven Eingabefelds wird nicht berücksichtigt
 - **Schwere:** Medium
-- **Status:** Deferred (Vorschlag: wird mit PROJ-8 gelöst, das das Eingabefeld erkennt)
+- **Status:** Deferred (entschieden von Timur, 2026-11-04; wird mit PROJ-8 gelöst, das das Eingabefeld erkennt)
 - **Fehlerart:** Vertrag (EC-1) und Plan widersprechen sich; der Plan verschiebt den ersten Zweig auf PROJ-8.
 - **Kontrolle / AC:** EC-1
 - **Sweep:** none
 - **Nachstellen:** Eingabefeld auf Bildschirm A, Maus auf B, Hinweis ohne Stelle → erscheint auf B.
 
 #### BUG-5: Protokolldatei folgt Verknüpfungen
-- **Schwere:** Low · **Status:** Deferred (Vorschlag)
+- **Schwere:** Low · **Status:** Deferred (entschieden von Timur, 2026-11-04)
 - **Fehlerart:** Datei-Zugriff am festen Pfad ohne Schutz vor Verknüpfungen, ohne Lesegrenze.
 - **Kontrolle / AC:** SEC-02, SEC-03
 - **Sweep:** `grep -rnE 'FileHandle\(forWritingTo|Data\(contentsOf|\.write\(to:|createFile\(atPath' Packages/InnoWhisperKit/Sources App --include='*.swift'` — 4 Treffer
 - **Nachstellen:** `InnoWhisper.log` durch Verknüpfung auf fremde Datei ersetzen → InnoWhisper schreibt in die fremde Datei bzw. kopiert deren Inhalt beim Kürzen ins Protokoll. Nur durch einen Prozess desselben Nutzers möglich.
 
 #### BUG-6: Wagenrücklauf wird im Protokoll nicht neutralisiert
-- **Schwere:** Low · **Status:** Deferred (Vorschlag)
+- **Schwere:** Low · **Status:** Deferred (entschieden von Timur, 2026-11-04)
 - **Fehlerart:** Steuerzeichen-Neutralisierung unvollständig (nur Zeilenumbruch).
 - **Kontrolle / AC:** SEC-02
 - **Sweep:** `grep -rnF 'replacingOccurrences(of: "\n"' Packages/InnoWhisperKit/Sources App --include='*.swift'` — 2 Treffer, betroffen `LogFile.swift:135`
 - **Nachstellen:** Nur über die Wege aus BUG-1 erreichbar.
 
 #### BUG-7: Esc-Beobachtung kann sich doppelt anmelden
-- **Schwere:** Low · **Status:** Deferred (Vorschlag)
+- **Schwere:** Low · **Status:** Deferred (entschieden von Timur, 2026-11-04)
 - **Fehlerart:** Doppelanmeldung beim Ereignis-Beobachter (Sperre prüft nur den globalen Teil).
 - **Kontrolle / AC:** AC-4
 - **Sweep:** `grep -rn "addGlobalMonitorForEvents\|addLocalMonitorForEvents" Packages App --include='*.swift'` — 2 Treffer in `EscapeMonitor.swift`
 - **Nachstellen:** Liefert die globale Anmeldung nichts (keine Erlaubnis), legt jeder weitere Fehler-Hinweis einen zusätzlichen lokalen Beobachter an.
 
 #### BUG-8: Ungültige Zeichen in der Datei schalten das Kürzen ab
-- **Schwere:** Low · **Status:** Deferred (Vorschlag)
+- **Schwere:** Low · **Status:** Deferred (entschieden von Timur, 2026-11-04)
 - **Fehlerart:** Dekodierfehler schaltet die Aufbewahrung stillschweigend ab.
 - **Kontrolle / AC:** AC-13
 - **Sweep:** `grep -n "String(data:" Packages/InnoWhisperKit/Sources/Diagnostics/*.swift` — 1 Treffer
 - **Nachstellen:** Datei mit ungültigem UTF-8 → wächst über 10 MB hinaus. Nur durch Fremdschreiben erreichbar.
 
 #### BUG-9: Kürzen beim Start blockiert den Hauptablauf
-- **Schwere:** Low · **Status:** Deferred (Vorschlag)
+- **Schwere:** Low · **Status:** Deferred (entschieden von Timur, 2026-11-04)
 - **Fehlerart:** Synchrone Datei-Ein-/Ausgabe auf dem Hauptablauf (Plan: „nie auf dem Hauptablauf“).
 - **Kontrolle / AC:** AC-13 (Plan)
 - **Sweep:** `grep -n "queue.sync" Packages/InnoWhisperKit/Sources/Diagnostics/LogFile.swift` — 4 Treffer
 - **Nachstellen:** 9,8-MB-Datei → Start blockiert 355 ms (Debug).
 
 #### BUG-10: Mauszeiger in Menüleiste oder Dock eines Zweitbildschirms → Hinweis auf dem Hauptbildschirm
-- **Schwere:** Low · **Status:** Deferred (Vorschlag)
+- **Schwere:** Low · **Status:** Deferred (entschieden von Timur, 2026-11-04)
 - **Fehlerart:** Bildschirmwahl über den sichtbaren Bereich statt über den ganzen Bildschirm.
 - **Kontrolle / AC:** EC-1
 - **Sweep:** `grep -rn "visibleFrame" Packages/InnoWhisperKit/Sources/Notices` — 2 Treffer
 
 #### BUG-11: Knopf „Fehlerprotokoll“ merkt späteren Ausfall erst beim Klick
-- **Schwere:** Low · **Status:** Deferred (Vorschlag)
+- **Schwere:** Low · **Status:** Deferred (entschieden von Timur, 2026-11-04)
 - **Fehlerart:** Verfügbarkeit wird einmal abgefragt statt beobachtet.
 - **Kontrolle / AC:** EC-3
 - **Sweep:** `grep -rn "isAvailable" App Packages/InnoWhisperKit/Sources` — 2 Treffer
 
 #### BUG-12: Plan von PROJ-1 nennt gelöschte Datei und altes OK-Fenster
-- **Schwere:** Low · **Status:** Deferred (Vorschlag)
+- **Schwere:** Low · **Status:** Deferred (entschieden von Timur, 2026-11-04)
 - **Fehlerart:** Architektur-Doku eines Nachbar-Features nicht nachgeführt.
 - **Kontrolle / AC:** Regression PROJ-1
 - **Sweep:** `grep -rn "AppShellLog" features/*/design.md docs` — 3 Treffer, betroffen `PROJ-1…/design.md:214` (dazu `:210` OK-Fenster)
 
 #### BUG-13: Zweites Exemplar kürzt die gemeinsame Protokolldatei
-- **Schwere:** Low · **Status:** Deferred (Vorschlag)
+- **Schwere:** Low · **Status:** Deferred (entschieden von Timur, 2026-11-04)
 - **Fehlerart:** Protokoll wird vor der Prüfung auf ein zweites Exemplar geöffnet.
 - **Kontrolle / AC:** AC-11
 - **Sweep:** none
@@ -181,7 +181,7 @@ Im selben Ordner `~/Library/Logs/InnoWhisper/` liegt `debug.log` der **alten** A
 
 ## Zusammenfassung
 - **Abnahmekriterien:** 11 von 14 per Logik belegt, AC-12 und AC-13 fehlerhaft; Sonderfälle: EC-2, EC-3, EC-5 belegt, EC-1 und EC-4 fehlerhaft. Kein Kriterium in diesem Lauf am laufenden Programm beobachtet.
-- **Fehler:** 13 (0 Critical, 0 High, 4 Medium, 9 Low) — Vorschlag: Open 3 (BUG-1 bis BUG-3), Deferred 10
+- **Fehler:** 13 (0 Critical, 0 High, 4 Medium, 9 Low) — Open 3 (BUG-1 bis BUG-3), Deferred 10 (entschieden von Timur)
 - **Sicherheit:** 8 Prüfungen belegt, 4 Befunde (BUG-1, BUG-5 bis BUG-7), 6 NOT VERIFIED (davon 5 nicht anwendbar)
 - **Produktionsreif:** NEIN, solange BUG-1 bis BUG-3 offen sind und der aufgezeichnete Test fehlt
 - **Empfehlung:** BUG-1 bis BUG-3 mit `/build PROJ-2` beheben, danach Nachprüfung mit kurzem Test durch Timur
