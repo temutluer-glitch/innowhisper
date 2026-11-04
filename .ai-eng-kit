@@ -11,23 +11,23 @@
   "stack": {
     "framework": "swiftui",
     "backend": "localstorage",
-    "test": null,
+    "test": "swift-testing",
     "e2e": null,
     "ui": "swiftui",
     "deploy": "github-releases",
     "packageManager": "spm"
   },
   "commands": {
-    "dev": null,
-    "build": null,
-    "test": null,
-    "lint": null,
+    "dev": "xcodebuild -project InnoWhisper.xcodeproj -scheme InnoWhisper -configuration Debug -derivedDataPath \"$HOME/Library/Developer/Xcode/DerivedData/InnoWhisper\" build && open \"$HOME/Library/Developer/Xcode/DerivedData/InnoWhisper/Build/Products/Debug/InnoWhisper.app\"",
+    "build": "xcodebuild -project InnoWhisper.xcodeproj -scheme InnoWhisper -configuration Debug -derivedDataPath \"$HOME/Library/Developer/Xcode/DerivedData/InnoWhisper\" build",
+    "test": "swift test --package-path Packages/InnoWhisperKit",
+    "lint": "swift format lint --strict --recursive App Packages",
     "check": null
   },
   "checkLayers": [],
   "checkCoverage": null,
   "probe": {
-    "kind": null,
+    "kind": "none",
     "baseUrl": null
   },
   "layers": [],

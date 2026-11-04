@@ -35,11 +35,11 @@ specialist guidance in `docs/kit/guides/` and matching `docs/stacks/` packs is r
 _Recorded by `/init` on 2026-11-04._
 
 - **Platform:** desktop (native macOS menu bar app, macOS 26+)
-- **Stack:** Swift/SwiftUI (`MenuBarExtra`), Xcode 26, Swift Package Manager; no backend, data local on the Mac (settings, history, vocabulary; Groq key in Keychain); Groq Whisper + Groq LLM as external service; updates via Sparkle; deploy via public GitHub Releases + notarization. Tests: open, decided at `/architecture` PROJ-1
-- **Start:** open, decided when the Xcode project is created (PROJ-1)
-- **Verify:** open, decided at `/architecture` PROJ-1
+- **Stack:** Swift/SwiftUI (`MenuBarExtra`), Xcode 26, Swift Package Manager; no backend, data local on the Mac (settings, history, vocabulary; Groq key in Keychain); Groq Whisper + Groq LLM as external service; updates via Sparkle; deploy via public GitHub Releases + notarization. Tests: Swift Testing in `Packages/InnoWhisperKit` (ADR-008)
+- **Start:** `commands.dev` in `.ai-eng-kit` (build with `xcodebuild` into `~/Library/Developer/Xcode/DerivedData/InnoWhisper`, then `open` the app). Never build into the Desktop folder: `codesign` rejects it (extended attributes)
+- **Verify:** probe `none`. Logic via `swift test`; live behaviour via the unified log (`/usr/bin/log show --predicate 'subsystem == "com.innosolv.InnoWhisper"'`) plus a visual check by the user — the computer-use tools cannot capture menu-bar-only apps. In zsh use `/usr/bin/log`, `log` is a shell builtin
 - **Layers:** none
-- **Closing check:** open, recorded once the Xcode project exists (`/init checks`)
+- **Closing check:** no aggregate; individual `commands.lint` (swift-format, ships with Xcode), `commands.test` (Swift Testing), `commands.build` (xcodebuild; also the type check). Recorded 2026-11-04
 - **Codebase map:** `docs/codebase/` — written by `/map`, read before designing anything; `/map` again after large changes
 
 ## Product Context
