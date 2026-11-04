@@ -12,11 +12,11 @@
 
 ## Stufe 2 — Innere Logik
 
-- [ ] T2 [P]  Protokoll-Meldung: nur feste Texte, Zahlen, Wahr/Falsch, Dauern, Aufzählungswerte, Programmkennungen und Fehler (nur Bereich und Nummer); freier Text lässt sich nicht einsetzen; Tests einschließlich Nachweis, dass ein Beispiel mit freiem Text nicht baut  · files: Dia/LogMessage.swift, DiaT/LogMessageTests.swift  · → AC-12
-- [ ] T3 [P]  Protokolldatei: Ort `~/Library/Logs/InnoWhisper/InnoWhisper.log` (im Test ein Testordner), Zeilenformat, Schreiben in eigener Warteschlange, Kürzen (7 Tage, ab 10 MB auf unter 8 MB), Zustand „nicht verfügbar“, leere Datei anlegen; Tests mit erfundenen Zeitpunkten  · files: Dia/LogFile.swift, Dia/LogRetention.swift, DiaT/LogFileTests.swift  · → AC-11, AC-13, EC-3, EC-4
-- [ ] T4 [P]  Hinweis-Zentrale: Hinweis (Art, Text ≤ 120 Zeichen), höchstens einer sichtbar, Ersetzen, Zeitgeber je Hinweis 2,0 s für Info/Erfolg, Fehler bleibt, Schließen per Klick/Esc/Aufnahmebeginn; Tests mit simulierter Zeit  · files: Not/Notice.swift, Not/NoticeCenter.swift, NotT/NoticeCenterTests.swift  · → AC-2, AC-3, AC-4, AC-5
-- [ ] T5 [P]  Platzierungs-Rechnung: unter gemeldeter Stelle (8 pt), im Bildschirm halten, sonst darüber; ohne Stelle oben mittig (12 pt) auf dem Bildschirm mit dem Mauszeiger; Tests mit erfundenen Bildschirmmaßen  · files: Not/NoticePlacement.swift, NotT/NoticePlacementTests.swift  · → AC-1, EC-1
-- [ ] T6 [P]  Töne: Schnittstelle zum Abspielen mit Attrappe, Start `Tink`, Ende `Pop`, Lautstärke 0,4, stoppt vorherigen Klang, Einstellung `sounds.enabled` Standard an; Tests  · files: Not/SoundPlayer.swift, NotT/SoundPlayerTests.swift  · → AC-9, AC-10, EC-5
+- [x] T2 [P]  Protokoll-Meldung: nur feste Texte, Zahlen, Wahr/Falsch, Dauern, Aufzählungswerte, Programmkennungen und Fehler (nur Bereich und Nummer); freier Text lässt sich nicht einsetzen; Tests einschließlich Nachweis, dass ein Beispiel mit freiem Text nicht baut  · files: Dia/LogMessage.swift, DiaT/LogMessageTests.swift  · → AC-12
+- [x] T3 [P]  Protokolldatei: Ort `~/Library/Logs/InnoWhisper/InnoWhisper.log` (im Test ein Testordner), Zeilenformat, Schreiben in eigener Warteschlange, Kürzen (7 Tage, ab 10 MB auf unter 8 MB), Zustand „nicht verfügbar“, leere Datei anlegen; Tests mit erfundenen Zeitpunkten  · files: Dia/LogFile.swift, Dia/LogRetention.swift, DiaT/LogFileTests.swift  · → AC-11, AC-13, EC-3, EC-4
+- [x] T4 [P]  Hinweis-Zentrale: Hinweis (Art, Text ≤ 120 Zeichen), höchstens einer sichtbar, Ersetzen, Zeitgeber je Hinweis 2,0 s für Info/Erfolg, Fehler bleibt, Schließen per Klick/Esc/Aufnahmebeginn; Tests mit simulierter Zeit  · files: Not/Notice.swift, Not/NoticeCenter.swift, NotT/NoticeCenterTests.swift  · → AC-2, AC-3, AC-4, AC-5
+- [x] T5 [P]  Platzierungs-Rechnung: unter gemeldeter Stelle (8 pt), im Bildschirm halten, sonst darüber; ohne Stelle oben mittig (12 pt) auf dem Bildschirm mit dem Mauszeiger; Tests mit erfundenen Bildschirmmaßen  · files: Not/NoticePlacement.swift, NotT/NoticePlacementTests.swift  · → AC-1, EC-1
+- [x] T6 [P]  Töne: Schnittstelle zum Abspielen mit Attrappe, Start `Tink`, Ende `Pop`, Lautstärke 0,4, stoppt vorherigen Klang, Einstellung `sounds.enabled` Standard an; Tests  · files: Not/SoundPlayer.swift, NotT/SoundPlayerTests.swift  · → AC-9, AC-10, EC-5
 
 ## Stufe 3 — Anschluss und Oberflächen
 
