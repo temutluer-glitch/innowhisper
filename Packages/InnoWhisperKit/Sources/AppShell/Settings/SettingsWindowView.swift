@@ -17,6 +17,14 @@ struct SettingsWindowView: View {
         } detail: {
             detail(for: navigation.selection)
         }
+        // NSHostingController derives the window's min/max size from these
+        // SwiftUI limits and overrides `contentMaxSize` set on the window.
+        .frame(
+            minWidth: SettingsWindowController.minimumSize.width,
+            maxWidth: SettingsWindowController.maximumWidth,
+            minHeight: SettingsWindowController.minimumSize.height,
+            maxHeight: .infinity
+        )
         .onChange(of: navigation.selection, initial: true) { _, section in
             registry.rememberSelection(section)
         }
