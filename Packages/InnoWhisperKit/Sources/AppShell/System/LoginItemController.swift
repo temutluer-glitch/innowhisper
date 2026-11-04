@@ -71,8 +71,13 @@ public final class LoginItemController {
         switch status {
         case .enabled:
             lastAttemptFailed = false
+            defaults.set(false, forKey: Self.userTurnedOffKey)
             problems.withdraw(id: Self.problemID)
         case .requiresApproval:
+            guard !defaults.bool(forKey: Self.userTurnedOffKey) else {
+                problems.withdraw(id: Self.problemID)
+                return
+            }
             problems.report(
                 Problem(
                     id: Self.problemID,

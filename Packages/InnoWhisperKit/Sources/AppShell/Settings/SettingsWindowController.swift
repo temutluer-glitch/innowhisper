@@ -16,6 +16,10 @@ public final class SettingsWindowController {
     static let frameAutosaveName = "InnoWhisperSettings"
     static let defaultSize = CGSize(width: 760, height: 520)
     static let minimumSize = CGSize(width: 680, height: 460)
+    /// Wider than this, the grouped form stops growing and its content sits
+    /// centered (found in the live test). Like System Settings, the window
+    /// therefore only grows in height beyond the default width.
+    static let maximumWidth: CGFloat = 760
 
     private let registry: SettingsRegistry
     private let problems: ProblemCenter
@@ -37,6 +41,7 @@ public final class SettingsWindowController {
         }
         let window = self.window ?? makeWindow()
         self.window = window
+        clampWidth(of: window)
         window.setFrame(reachableFrame(for: window.frame), display: false)
         NSApplication.shared.activate()
         window.makeKeyAndOrderFront(nil)
@@ -54,6 +59,7 @@ public final class SettingsWindowController {
         window.title = "InnoWhisper Einstellungen"
         window.isReleasedWhenClosed = false
         window.contentMinSize = Self.minimumSize
+        window.contentMaxSize = CGSize(width: Self.maximumWidth, height: .greatestFiniteMagnitude)
         window.toolbarStyle = .unified
         window.contentViewController = NSHostingController(
             rootView: SettingsWindowView(registry: registry, problems: problems, navigation: navigation)
@@ -64,6 +70,13 @@ public final class SettingsWindowController {
         }
         window.setFrameAutosaveName(Self.frameAutosaveName)
         return window
+    }
+
+    /// A frame saved before the width limit existed may be wider; shrink it.
+    private func clampWidth(of window: NSWindow) {
+        let content = window.contentRect(forFrameRect: window.frame)
+        guard content.width > Self.maximumWidth else { return }
+        window.setContentSize(CGSize(width: Self.maximumWidth, height: content.height))
     }
 
     private func reachableFrame(for frame: CGRect) -> CGRect {

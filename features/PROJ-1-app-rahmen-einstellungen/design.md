@@ -101,7 +101,7 @@ Beim Öffnen wird der gespeicherte letzte Bereich gezeigt; ist er nicht (mehr) a
 
 ### Einstellungsfenster
 - Genau ein Fenster (Fensterszene mit fester Kennung). Öffnen holt die App nach vorne und das Fenster vor alle anderen (AC-5).
-- Standardgröße 760 × 520 pt, Mindestgröße 680 × 460 pt; Größe und Lage speichert macOS über einen festen Fensternamen (AC-12).
+- Standardgröße 760 × 520 pt, Mindestgröße 680 × 460 pt, Höchstbreite 760 pt (breiter bleibt der Formular-Inhalt sonst mittig stehen; nur die Höhe wächst weiter, wie bei den Systemeinstellungen); Größe und Lage speichert macOS über einen festen Fensternamen (AC-12).
 - Liegt das Fenster beim Öffnen nicht mindestens zu 80 % auf einem angeschlossenen Bildschirm, wird es mittig auf den Hauptbildschirm gesetzt (EC-6).
 - Problem-Hinweis-Leiste: zeigt alle Probleme dieses Bereichs untereinander; verschwindet von selbst, wenn sie zurückgezogen werden (AC-10).
 
@@ -117,12 +117,12 @@ Beim Öffnen wird der gespeicherte letzte Bereich gezeigt; ist er nicht (mehr) a
 | wartet auf Erlaubnis | aus | „macOS muss den automatischen Start noch erlauben.“ Knopf „Anmeldeobjekte öffnen“ öffnet die passende Stelle der Systemeinstellungen |
 | nicht gefunden / Anmeldung scheitert | aus | Liegt die App nicht in `/Programme` oder `~/Programme`: „Verschiebe InnoWhisper in den Ordner Programme, dann klappt der automatische Start.“ Sonst: „macOS hat den automatischen Start abgelehnt. Bitte schalte ihn später erneut ein.“ |
 
-Der Hinweis wird als Problem `autostartUnavailable` im Bereich `general` gemeldet und zurückgezogen, sobald der Stand „eingeschaltet“ ist oder der Nutzer den Schalter bewusst auf aus lässt.
+Der Hinweis wird als Problem `autostartUnavailable` im Bereich `general` gemeldet und zurückgezogen, sobald der Stand „eingeschaltet“ ist oder der Nutzer den Schalter bewusst auf aus lässt. Das bewusste Aus wird als Absicht gespeichert und gilt für alle Stände, auch „wartet auf Erlaubnis“ und „nicht gefunden“.
 
 ### Alte App (AC-16 bis AC-18, EC-2, EC-3)
 - Erkennung an der Kennung `com.innosolv.WhisperDictation` in der Liste laufender Apps: beim Start und bei jeder neu gestarteten App (EC-2); beim Beenden einer App wird erneut geprüft.
 - Meldung als System-Dialog mit „Alte Version beenden“ (Hauptknopf) und „Später“.
-- „Alte Version beenden“: zuerst normal beenden lassen; läuft sie nach 2 Sekunden noch, sofort beenden; läuft sie nach insgesamt 5 Sekunden noch, erscheint die Anleitung aus EC-3: „1. Öffne das Programm Aktivitätsanzeige. 2. Suche nach WhisperDictation. 3. Markiere es und klicke oben auf das ⓧ-Symbol, dann auf Sofort beenden.“ Erfolg: kurze Bestätigung „Die alte Version wurde beendet.“ (vorläufig als kurzer Text im Menüleisten-Fenster, später über die Hinweise aus PROJ-2).
+- „Alte Version beenden“: zuerst normal beenden lassen; läuft sie nach 2 Sekunden noch, sofort beenden; läuft sie nach insgesamt 5 Sekunden noch, erscheint die Anleitung aus EC-3. Sie nennt die alte App so, wie die Aktivitätsanzeige sie zeigt („InnoWhisper“), und ihre Nummer (PID), weil die neue App denselben Namen trägt; den internen Programmnamen nennt sie nie (QA BUG-2). Erfolg: kurze Bestätigung „Die alte Version wurde beendet.“ (vorläufig als kurzer Text im Menüleisten-Fenster, später über die Hinweise aus PROJ-2).
 - „Später“ oder Scheitern: Problem `legacyAppRunning` ohne Bereich, mit Knopf „Alte Version beenden“; wird zurückgezogen, sobald keine alte App mehr läuft (AC-18).
 - Gibt es mehrere laufende Exemplare der alten App, gilt alles für alle.
 
@@ -163,6 +163,7 @@ Passt zum Ding „Einstellungen“ in `docs/data-model.md`; die Übersicht muss 
 
 - Letzter Bereich: Text, einer der acht Kennungen aus der Bereichstabelle, Standard `general`; ungültige Werte werden wie `general` behandelt
 - Erststart erledigt: Ja/Nein, Standard Nein
+- Bewusst ausgeschaltet: Ja/Nein, Standard Nein. Absicht des Nutzers, nicht der macOS-Stand: Solange Ja, zeigt die App keinen Autostart-Hinweis; zurück auf Nein, sobald macOS „eingeschaltet“ meldet (QA BUG-3)
 - Lage und Größe des Einstellungsfensters: verwaltet von macOS über den festen Fensternamen `InnoWhisperSettings`
 - Der Stand „Start beim Anmelden“ wird nicht selbst gespeichert, macOS hält ihn
 - Probleme und Diktat-Tätigkeit: nur im Speicher, nicht dauerhaft
@@ -226,3 +227,9 @@ Abweichungen und Funde beim Bau. Verhalten laut `spec.md` unverändert.
 | Dunkelmodus, „Transparenz reduzieren“, VoiceOver, nur Tastatur, zweiter Bildschirm (AC-22, AC-23, EC-6) | nicht live geprüft; Bildschirmfoto-Werkzeug erfasst Menüleisten-Apps nicht. Für `/qa` |
 | Rückfrage beim Beenden während Diktat (AC-20) | nur Logik-Test; live erst prüfbar, wenn PROJ-5 Aufnahmen liefert |
 | Alte App startet, während InnoWhisper läuft (EC-2) | nur Logik-Test |
+
+### Korrekturen nach `/qa` (2026-11-04)
+- **BUG-1:** Erkennung laufender Apps über die Beobachtung der Liste `runningApplications` statt über die Start-/Beenden-Mitteilungen von `NSWorkspace`, die macOS für Menüleisten-Apps nicht schickt (mit Test-App nachgewiesen). Live bestätigt: alte App 5 s nach InnoWhisper gestartet, Meldung erschien.
+- **BUG-4:** Hardened Runtime in Debug und Release (`--options=runtime`), in Release keine eingeschleuste Debug-Berechtigung. Debug baut ohne getrennte Debug-Bibliothek (`ENABLE_DEBUG_DYLIB = NO`), weil die Bibliotheksprüfung der Hardened Runtime sie bei lokaler Signatur ablehnt und die App sonst nicht startet. Debug behält `get-task-allow` zum Entwickeln, siehe Ausnahme in ADR-007.
+- **Fensterbreite:** Live-Test von Timur: In einem breiteren Fenster stand der Inhalt von „Allgemein“ mittig. Lösung nach Timurs Wahl: Höchstbreite 760 pt.
+

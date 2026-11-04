@@ -45,6 +45,7 @@
 - **Entscheidung:** Hardened Runtime eingeschaltet (Voraussetzung für die Beglaubigung durch Apple), App Sandbox ausgeschaltet. Zusätzliche Berechtigungen nur, wenn ein Feature sie nachweislich braucht, und dann im Feature-Plan begründet.
 - **Alternativen:** App Sandbox (abgelehnt: blockiert das Steuern und Auslesen anderer Apps über die Bedienungshilfen, das Kern der App ist).
 - **Folgen:** Kein App-Store-Vertrieb. Die App hat die Rechte des angemeldeten Nutzers; umso wichtiger, dass sie keine Diktat-Inhalte protokolliert und keine fremden Eingaben annimmt.
+- **Ausnahme (2026-11-04, PROJ-1 QA):** Der lokale Entwicklungsbau (Debug) trägt die Berechtigung `get-task-allow`, damit Xcodes Fehlersuche andocken kann. Gilt nur für Debug auf dem Entwickler-Mac; ausgeliefert wird nur Release ohne diese Berechtigung. Prüfanlass: Wer mit PROJ-3 Mikrofon und Bedienungshilfen für den Debug-Bau erlaubt, nimmt in Kauf, dass ein anderer Prozess desselben Nutzers diese Rechte über die Fehlersuche mitbenutzen könnte.
 
 ## ADR-008 Projektaufbau: Xcode-Projekt plus lokales Swift-Paket, Swift Testing, swift-format
 - **Status:** Accepted · **Datum:** 2026-11-04 · **Betrifft:** alle Features

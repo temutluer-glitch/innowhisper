@@ -171,4 +171,29 @@ struct LoginItemControllerTests {
         controller.setEnabled(true)
         #expect(problems.hasProblems)
     }
+
+    // BUG-3 class (re-verification NEU-1): "waiting for approval" must not override a deliberate off either
+    @Test func deliberateOffClearsHintWhenApprovalPending() {
+        let service = FakeLoginItemService(status: .requiresApproval)
+        service.statusAfterUnregister = .requiresApproval
+        let (controller, problems) = make(service)
+        controller.refresh()
+        #expect(problems.hasProblems)
+        controller.setEnabled(false)
+        #expect(!problems.hasProblems)
+    }
+
+    // BUG-3 class: switched on again outside the app → the deliberate off no longer suppresses hints
+    @Test func enabledOutsideAppResetsDeliberateOff() {
+        let defaults = freshDefaults()
+        let service = FakeLoginItemService(status: .enabled)
+        service.statusAfterUnregister = .notRegistered
+        let (controller, problems) = make(service, defaults: defaults)
+        controller.setEnabled(false)
+        service.status = .enabled
+        controller.refresh()
+        service.status = .notFound
+        controller.refresh()
+        #expect(problems.hasProblems)
+    }
 }
