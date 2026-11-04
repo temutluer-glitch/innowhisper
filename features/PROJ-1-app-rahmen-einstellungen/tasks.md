@@ -32,7 +32,7 @@
 ## Stufe 5 — Zusammensetzen und echt prüfen
 
 - [x] T12  App verdrahten: Szenen (Menüleiste, Einstellungsfenster), App-Delegate mit Start (zweite Instanz, alte App, Erststart-Autostart), erneutem Öffnen (Einstellungen), Beenden (Beenden-Regel) und Herunterfahren; Empfang der Mitteilung „Einstellungen öffnen“; Bereich „Allgemein“ anmelden  · files: App/InnoWhisperApp.swift, App/AppDelegate.swift  · → AC-1, AC-3, AC-4, AC-5, AC-6, AC-16, AC-19, AC-20, EC-1, EC-2, EC-5
-- [ ] T13  Im laufenden Programm prüfen: Hell/Dunkel, „Transparenz reduzieren“, VoiceOver, nur Tastatur, Doppelstart, Wechsel auf zweiten Bildschirm, alte App (falls auf dem Mac vorhanden); offene Fragen klären (Rückfrage beim Beenden der alten App, Esc) und Ergebnis im Plan festhalten  · files: features/PROJ-1-app-rahmen-einstellungen/design.md  · → AC-2, AC-21, AC-22, AC-23
+- [x] T13  Im laufenden Programm prüfen: Hell/Dunkel, „Transparenz reduzieren“, VoiceOver, nur Tastatur, Doppelstart, Wechsel auf zweiten Bildschirm, alte App (falls auf dem Mac vorhanden); offene Fragen klären (Rückfrage beim Beenden der alten App, Esc) und Ergebnis im Plan festhalten  · files: features/PROJ-1-app-rahmen-einstellungen/design.md  · → AC-2, AC-21, AC-22, AC-23
 
 ## Parallelisierung
 

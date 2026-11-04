@@ -200,3 +200,29 @@ Keine. (Signieren für die Auslieferung kommt in PROJ-14; für PROJ-1 reicht lok
 
 - [ ] Löst das normale Beenden der alten App eine macOS-Rückfrage aus? Beim Bau prüfen (siehe Entscheidung oben).
 - [ ] Schließt Esc das Menüleisten-Fenster von selbst, oder braucht es eine eigene Tastenbelegung? Beim Bau prüfen; AC-3 verlangt es so oder so.
+
+## Umsetzungsnotizen (`/build`, 2026-11-04)
+
+Abweichungen und Funde beim Bau. Verhalten laut `spec.md` unverändert.
+
+- **Einstellungsfenster** wird von AppKit verwaltet (ein `NSWindow` mit SwiftUI-Inhalt) statt als SwiftUI-Fensterszene. Grund: Es muss auch aus dem App-Delegate geöffnet werden (erneutes Öffnen, zweite Instanz), wo es keine SwiftUI-Umgebung gibt. Genau ein Fenster bleibt garantiert.
+- **Bestätigung „Die alte Version wurde beendet.“** erscheint als kleines System-Fenster mit OK statt als Text im Menüleisten-Fenster, weil dieses beim Beenden meist geschlossen ist. Ersatz durch kurze Hinweise mit PROJ-2.
+- **Alte App** wird an zwei Kennungen erkannt: `com.innosolv.WhisperDictation` und `com.innosolv.WhisperDictation.beta`. Beide sind auf Team-Macs als „InnoWhisper“ bzw. „InnoWhisper Beta“ in `/Programme` installiert.
+- **Esc im Menüleisten-Fenster:** Apples Schließen-Funktionen (`dismiss`, `onExitCommand`) wirken bei `MenuBarExtra`-Fenstern nicht (Live-Test). Eine Tastenbeobachtung, die nur für das Fenster des Menüleisten-Fensters gilt, schließt es (`MenuBar/PanelWindowCloser.swift`). Offene Frage aus dem Plan damit beantwortet.
+- **Normales Beenden der alten App** löst keine macOS-Rückfrage aus (Live-Test: alte App 8 s nach Start sauber beendet). Offene Frage aus dem Plan damit beantwortet.
+- **Zusätzliche Dateien:** `App/AppEnvironment.swift` (Zusammensetzung), `App/LegacyAlerts.swift` (System-Dialoge), `Sources/AppShell/System/AppShellLog.swift` (Protokoll). Protokolleinträge auf Stufe „notice“ für Startprüfung, alte App, Autostart-Stand und Öffnen der Einstellungen; nie Diktat-Inhalte.
+- **Bau-Ausgabe** liegt in `~/Library/Developer/Xcode/DerivedData/InnoWhisper`. Im Schreibtisch-Ordner lehnt `codesign` das App-Paket wegen erweiterter Dateiattribute ab („resource fork, Finder information, or similar detritus not allowed“).
+- **Für PROJ-14 vormerken:** (1) Die lokale Signatur ohne Zertifikat setzt die Hardened Runtime nicht (Signatur-Flags nur `adhoc`); bei der Release-Signatur prüfen, dass `runtime` gesetzt ist. (2) Die alte App liegt als `/Applications/InnoWhisper.app` vor; die neue App hat denselben Dateinamen. Die Umzugsanleitung muss das Ersetzen bzw. vorherige Löschen regeln.
+
+### Live-Prüfung (T13)
+| Prüfung | Ergebnis |
+| --- | --- |
+| Meldung alte App beim Start, „Alte Version beenden“ (AC-16, AC-17) | bestanden (Protokoll + Timur) |
+| Erneutes Öffnen zeigt Einstellungen (AC-6) | bestanden (Protokoll) |
+| Zweites Exemplar aus anderem Ordner (EC-1) | bestanden (Protokoll, nur ein Prozess) |
+| Start beim Anmelden ein beim Erststart, aus bleibt aus (AC-13, AC-14) | bestanden (Protokoll + Timur) |
+| Menüleisten-Fenster, Glas-Knöpfe gleich groß, Einstellungen mit „Allgemein“ (AC-4, AC-5, AC-7, AC-21) | bestanden (Timur, Sichtprüfung) |
+| Esc schließt Menüleisten-Fenster (AC-3) | nach Fix bestanden (Timur) |
+| Dunkelmodus, „Transparenz reduzieren“, VoiceOver, nur Tastatur, zweiter Bildschirm (AC-22, AC-23, EC-6) | nicht live geprüft; Bildschirmfoto-Werkzeug erfasst Menüleisten-Apps nicht. Für `/qa` |
+| Rückfrage beim Beenden während Diktat (AC-20) | nur Logik-Test; live erst prüfbar, wenn PROJ-5 Aufnahmen liefert |
+| Alte App startet, während InnoWhisper läuft (EC-2) | nur Logik-Test |
