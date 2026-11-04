@@ -168,3 +168,20 @@ Keine.
 
 ## Offene Fragen
 - (keine)
+
+## Umsetzungsnotizen (`/build`, 2026-11-04)
+
+- **Protokoll-Zugang:** `Diagnostics/Log.swift` schreibt in Datei und Apples Protokoll; `AppShellLog` aus PROJ-1 entfällt, alle 9 Stellen laufen darüber. Zustände, die protokolliert werden, erfüllen `LogValue` (Autostart-Stand, Antwort zur alten App, Bereich, Art eines Hinweises, Klang).
+- **Zeitangabe** im Protokoll in Ortszeit mit Abweichung (`2026-11-04T14:48:00.112+01:00`); die erste Fassung schrieb UTC und wurde beim Selbsttest korrigiert.
+- **Zusätzliche Test-Datei** `DiagnosticsTests/LogTests.swift` für den Protokoll-Zugang.
+- **Start-Eintrag:** Build-Nummer und macOS-Version als Zahlen (eine Versions-Zeichenkette ist absichtlich nicht protokollierbar).
+
+### Live-Prüfung (T11)
+| Prüfung | Ergebnis |
+| --- | --- |
+| Protokolldatei unter `~/Library/Logs/InnoWhisper/InnoWhisper.log`, nur technische Zeilen (AC-11, AC-12) | bestanden (selbst gelesen; Suche nach Diktat/Zwischenablage/Schlüssel: 0 Treffer) |
+| Hinweis „Die alte Version wurde beendet.“ (AC-8), oben mittig, Glas, nach 2 s weg (AC-1, AC-3) | bestanden (Protokoll „Notice shown: success“ + Timur) |
+| Hinweis übernimmt die Tastatur nicht (AC-6) | bestanden (Protokoll „key: false“) |
+| Gruppen „Töne“ (an) und „Fehlerprotokoll“ in „Allgemein“, Knopf markiert die Datei im Finder (AC-10, AC-14) | bestanden (Timur) |
+| Töne hörbar (AC-9) | nicht live prüfbar vor PROJ-5 (keine Aufnahme), nur Tests |
+| Esc schließt Fehler-Hinweis (AC-4) | nicht live geprüft; braucht Bedienungshilfen (PROJ-3) und einen Fehler-Hinweis |

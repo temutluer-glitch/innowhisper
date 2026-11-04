@@ -27,7 +27,7 @@
 ## Stufe 4 — Zusammensetzen und echt prüfen
 
 - [x] T10  App verdrahten: Hinweis-Zentrale und Gruppen anmelden, Aufnahmebeginn schließt Fehler-Hinweis, „alte Version beendet“ als Erfolgs-Hinweis, Start-Eintrag ins Protokoll, `launchLog` im App-Delegate auf das neue Protokoll umstellen  · files: App/AppEnvironment.swift, App/LegacyAlerts.swift, App/AppDelegate.swift  · → AC-4, AC-8, AC-11
-- [ ] T11  Am laufenden Programm prüfen, erst selbst messen (Protokolldatei lesen, Fenster-Eigenschaften der Kapsel ins Protokoll), dann Timur: Hinweis zur alten App, Weitertippen während eines Hinweises, Knopf im Finder, Protokoll ohne Inhalte; Ergebnisse im Plan festhalten  · files: features/PROJ-2-hinweise-fehlerprotokoll/design.md  · → AC-1, AC-6, AC-8, AC-14
+- [x] T11  Am laufenden Programm prüfen, erst selbst messen (Protokolldatei lesen, Fenster-Eigenschaften der Kapsel ins Protokoll), dann Timur: Hinweis zur alten App, Weitertippen während eines Hinweises, Knopf im Finder, Protokoll ohne Inhalte; Ergebnisse im Plan festhalten  · files: features/PROJ-2-hinweise-fehlerprotokoll/design.md  · → AC-1, AC-6, AC-8, AC-14
 
 ## Parallelisierung
 
