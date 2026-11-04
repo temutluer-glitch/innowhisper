@@ -1,38 +1,50 @@
-# Data Model
+# Datenmodell
 
-> The app-wide map of **what data this product stores and how it connects** — the shared blueprint every feature's tables conform to.
+> Die app-weite Übersicht, **welche Daten das Produkt speichert und wie sie zusammenhängen**. Alle Features richten sich danach.
 >
-> - Created by `/init` (the first holistic pass: entities + relationships).
-> - Refined by `/architecture` as each feature is designed.
-> - **Altitude:** entities, relationships, and ownership live here (product-level, anyone can read them). Column types, indexes, and exact foreign keys are decided per feature in that feature's `design.md` — not here.
+> - Angelegt durch `/init` am 2026-11-04.
+> - Verfeinert durch `/architecture`, sobald ein Feature geplant wird.
+> - **Flughöhe:** hier nur Dinge, Zusammenhänge und Zuständigkeit. Speicherformat, Felder und Schlüssel entscheidet das `design.md` des jeweiligen Features.
 
-## Entities
+Es gibt keinen Server (ADR-002). Alle Daten liegen nur auf dem jeweiligen Mac und gehören dem dort angemeldeten Nutzer; nichts wird zwischen Macs abgeglichen.
 
-_Each entity is a kind of thing the app stores (a real-world noun). List the ones you know so far with a one-line purpose and who owns or can see it. No column types — just the thing and what it's for._
+## Dinge, die gespeichert werden
 
-| Entity | What it represents | Owned by / who can see it |
-|--------|--------------------|---------------------------|
-| _profiles_ | _A user's account profile_ | _the user themselves_ |
-| _..._ | _..._ | _..._ |
+| Ding | Was es darstellt | Gehört / sichtbar für |
+|------|------------------|-----------------------|
+| Einstellungen | Modell, Sprachhinweis, Ausgabe (einfügen oder Zwischenablage), Mikrofon, Töne, Start beim Anmelden | Nutzer des Macs |
+| Zugangsschlüssel | Der eigene Groq-Schlüssel; liegt ausschließlich im Schlüsselbund | Nutzer des Macs |
+| Tastenkürzel | Taste oder Tastenkombination, Modus (halten oder ein/aus) und die verknüpfte KI-Vorlage | Nutzer des Macs |
+| KI-Vorlage | Anweisung, wie die KI den Text überarbeitet; „Ohne KI“ ist fest eingebaut und nicht löschbar | Nutzer des Macs |
+| Wörterbuch-Eintrag | Ein Name oder Fachbegriff, der richtig geschrieben werden soll | Nutzer des Macs |
+| Ersetzung | Regel „aus X wird Y“, inklusive gesprochener Satzzeichen | Nutzer des Macs |
+| Verlaufs-Eintrag | Ein fertiges Diktat mit Zeitpunkt, Text und benutzter Vorlage; höchstens 50 | Nutzer des Macs |
+| Aufnahme | Tonaufnahme zu einem Verlaufs-Eintrag, damit „noch einmal umwandeln“ möglich ist | Nutzer des Macs |
+| Protokoll-Eintrag | Technischer Ablauf und Fehler, nie der gesprochene oder umgewandelte Inhalt | Nutzer des Macs |
 
-## Relationships
+## Zusammenhänge
 
-_How the entities connect, in plain language. This is where coherence comes from — get the connections right once, up front._
+- Es gibt genau einen Satz Einstellungen und höchstens einen Zugangsschlüssel pro Nutzer.
+- Jedes Tastenkürzel benutzt genau eine KI-Vorlage; eine Vorlage kann von mehreren Kürzeln benutzt werden.
+- Wird eine Vorlage gelöscht, fallen die Kürzel, die sie benutzt haben, auf „Ohne KI“ zurück.
+- Jeder Verlaufs-Eintrag hat höchstens eine Aufnahme; wird der Eintrag gelöscht, wird die Aufnahme mitgelöscht.
+- Kommt der 51. Verlaufs-Eintrag dazu, fällt der älteste samt Aufnahme automatisch weg.
+- Wörterbuch-Einträge und Ersetzungen gelten für jedes Diktat; beide lassen sich gemeinsam als Datei weitergeben und einlesen.
+- Protokoll-Einträge hängen an keinem anderen Ding und enthalten keine Diktat-Inhalte.
 
-- _A profile has many ..._
-- _Each ... belongs to exactly one ..._
-- _A ... can have many ..._
-
-## Diagram (optional)
-
-_A simple text sketch of the model, filled in as it firms up._
+## Skizze
 
 ```
-profiles
-  └─ owns many ...
-        └─ has many ...
+Einstellungen (1)
+Zugangsschlüssel (0..1, Schlüsselbund)
+KI-Vorlage (viele, „Ohne KI“ fest)
+  └─ wird benutzt von vielen Tastenkürzeln
+Wörterbuch-Einträge + Ersetzungen (viele) ──► Weitergabe als Datei
+Verlaufs-Eintrag (max. 50)
+  └─ hat höchstens eine Aufnahme (wird mitgelöscht)
+Protokoll-Einträge (ohne Inhalte)
 ```
 
 ---
 
-_This is a living document. When `/architecture` designs a feature that introduces or changes an entity, it updates this map first, so later features build against an accurate picture. Run `/init` to create the first version from your feature map._
+_Lebendes Dokument. Wenn `/architecture` ein Feature plant, das ein Ding einführt oder ändert, wird zuerst diese Übersicht angepasst._

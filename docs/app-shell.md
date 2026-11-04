@@ -1,64 +1,78 @@
-# App Shell & Navigation
+# App-Rahmen & Navigation
 
-> The app-wide map of **the frame every feature is shown inside** — navigation, layout regions, and the patterns each page repeats.
+> Die app-weite Übersicht über **den Rahmen, in dem jedes Feature erscheint**: wo die App sichtbar ist, wie man zwischen den Stellen wechselt und welche Muster jede Seite wiederholt.
 >
-> - Created by `/init` (the first holistic pass: top-level areas + layout).
-> - Refined by `/architecture` as each feature is designed.
-> - **Altitude:** structure, not styling. Which areas exist, where they live, who sees them, what every page shares. Colors, fonts, and component styling belong in `docs/design-system.md`; a single page's internals belong in that feature's `design.md`.
->
-> Without this map the shell grows by accretion — every feature adds a nav item and a header variant in its own `design.md`, and nobody owns the whole. Rebuilding it later is then expensive, because no acceptance criterion says what it is supposed to do.
+> - Angelegt durch `/init` am 2026-11-04.
+> - Verfeinert durch `/architecture`, sobald ein Feature geplant wird.
+> - **Flughöhe:** Aufbau, nicht Gestaltung. Farben, Schrift und Bausteine stehen in `docs/design-system.md`; das Innere einer einzelnen Seite steht im `design.md` des Features.
 
-## Owning feature
+## Zuständiges Feature
 
-_The feature whose `spec.md` carries the shell's acceptance criteria (e.g. `PROJ-1 App Shell & Navigation`), or "none — shell is trivial" for a single-screen app. Changes to the shell are refined there, not invented per feature._
+Owner: PROJ-1 App-Rahmen & Einstellungen. Änderungen am Rahmen laufen über `/refine PROJ-1`.
 
-Owner: _PROJ-X — always a feature: the App Shell feature if one exists, otherwise the feature that builds the screen the frame sits on. Changes to the frame go through `/refine` on this feature._
+## Stellen, an denen die App erscheint
 
-## Top-Level Areas
+InnoWhisper ist eine Menüleisten-App ohne Dock-Symbol. Es gibt kein Hauptfenster; diktiert wird per Tastenkürzel, ohne ein Fenster zu öffnen.
 
-_The places a user can navigate to. One row per nav entry — not one row per page._
+| Stelle | Was der Nutzer dort macht | Sichtbar | Zuständiges Feature |
+|--------|---------------------------|----------|---------------------|
+| Menüleisten-Symbol | Sieht den Zustand: bereit, nimmt auf, wandelt um, Problem | immer | PROJ-1 |
+| Menüleisten-Fenster | Letztes Diktat, Schnellwahl Mikrofon und Sprache, Einstellungen öffnen, Beenden | beim Klick aufs Symbol | PROJ-1 (Rahmen), PROJ-13 (Inhalt) |
+| Einstellungsfenster | Alles einstellen | über Menüleisten-Fenster oder ⌘, | PROJ-1 (Rahmen) |
+| Sprechblase | Zeigt während der Aufnahme die Tonwelle am aktiven Eingabefeld | während Aufnahme und Umwandlung | PROJ-8 |
+| Einführung | Führt beim ersten Start durch Erlaubnisse und Zugangsschlüssel | beim ersten Start oder bei fehlender Erlaubnis | PROJ-3 |
+| Hinweise | Kurze Meldungen („Text eingefügt“, „Kein Internet“) | nach Ereignissen | PROJ-2 |
 
-| Area | What the user does there | Visible to | Owning feature |
-|------|--------------------------|------------|----------------|
-| _Dashboard_ | _Overview after login_ | _signed-in users_ | _PROJ-2_ |
-| _..._ | _..._ | _..._ | _..._ |
+### Bereiche im Einstellungsfenster
 
-## Layout Regions
+| Bereich | Inhalt | Zuständiges Feature |
+|---------|--------|---------------------|
+| Allgemein | Start beim Anmelden, Töne, Ausgabe (einfügen oder Zwischenablage) | PROJ-1, PROJ-2, PROJ-7 |
+| Zugang & Erlaubnisse | Groq-Schlüssel, Mikrofon, Bedienungshilfen | PROJ-4, PROJ-3 |
+| Tastenkürzel | Kürzel, Modus, verknüpfte Vorlage | PROJ-5, PROJ-12 |
+| Umwandlung | Modell, Sprachhinweis | PROJ-6 |
+| KI-Vorlagen | Vorlagen anlegen, ändern, löschen | PROJ-11 |
+| Wörterbuch | Begriffe, Ersetzungen, gesprochene Satzzeichen, Weitergabe als Datei | PROJ-9 |
+| Verlauf | Die letzten 50 Diktate | PROJ-10 |
+| Info & Updates | Version, nach Updates suchen | PROJ-14 |
 
-_The fixed frame. Name each region and what belongs in it._
+## Aufteilung des Einstellungsfensters
 
-- **Sidebar:** _the top-level areas, logo at the top, account menu at the bottom_
-- **Header:** _page title, primary action for that page_
-- **Content:** _the feature's own UI_
-- **Mobile:** _how the sidebar behaves below `md` (burger / drawer / bottom bar)_
+- **Seitenleiste (links):** Liste der Bereiche mit SF-Symbol und Namen, Reihenfolge wie oben, aufgebaut wie die macOS-Systemeinstellungen.
+- **Inhalt (rechts):** der gewählte Bereich.
+- **Fenstergröße:** veränderbar mit sinnvoller Mindestgröße; kein Mobil-Fall (reine Mac-App).
 
-## Page Pattern
+## Seitenmuster
 
-_What every page repeats, so features don't each invent their own. `/build` follows this instead of guessing._
+Jeder Bereich im Einstellungsfenster wiederholt dieses Muster; `/build` hält sich daran.
 
-- **Page header:** _title, optional subtitle, primary action on the right_
-- **Loading state:** _skeleton / spinner, and where_
-- **Empty state:** _what an area with no data shows_
-- **Error state:** _how a failed load is presented_
-- **Toasts / feedback:** _where confirmations appear_
+- **Kopf:** Titel des Bereichs oben, darunter die Einstellungen in Gruppen wie in den macOS-Systemeinstellungen.
+- **Problem-Hinweis:** Fehlt etwas Wichtiges (Erlaubnis, Schlüssel, Internet), steht oben im Bereich ein gut sichtbarer Hinweis mit einem Knopf, der direkt zur Lösung führt.
+- **Laden:** kleine Fortschrittsanzeige direkt an der Stelle, die lädt (z. B. beim Prüfen des Schlüssels), nie ein blockierendes Fenster.
+- **Leer:** ein kurzer Satz, was hier später erscheint, plus die nächste sinnvolle Handlung.
+- **Fehler:** verständliche Worte und ein Lösungsweg, nie ein technischer Code allein.
+- **Bestätigungen:** über die app-weiten Hinweise (PROJ-2), nicht pro Bereich neu erfunden.
 
-## Auth States
+## Zustände der App
 
-_The shell usually differs by who is looking. Say how._
+Es gibt keine Anmeldung; der Rahmen unterscheidet stattdessen diese Zustände:
 
-- **Signed out:** _which areas are reachable, what the shell shows_
-- **Signed in:** _..._
-- **Roles (if any):** _which areas each role sees_
+- **Erster Start:** Die Einführung erscheint.
+- **Erlaubnis oder Schlüssel fehlt:** Das Menüleisten-Symbol zeigt ein Warnzeichen; Menüleisten-Fenster und Einstellungen führen zum passenden Bereich.
+- **Bereit:** Diktieren per Tastenkürzel, ohne ein Fenster zu öffnen.
+- **Nimmt auf / wandelt um:** Symbol und Sprechblase zeigen den Zustand.
 
-## Shell Components
+## Gemeinsame Bausteine des Rahmens
 
-_The shared building blocks and where they live, so nothing gets rebuilt per feature._
+_Dateien legt `/architecture` für PROJ-1 fest; hier wird die Tabelle dann ergänzt._
 
-| Component | File | Purpose |
-|-----------|------|---------|
-| _AppSidebar_ | _`src/components/app-sidebar.tsx`_ | _top-level navigation_ |
-| _..._ | _..._ | _..._ |
+| Baustein | Datei | Zweck |
+|----------|-------|-------|
+| Menüleisten-Symbol mit Zustand | _offen_ | Zustand auf einen Blick |
+| Menüleisten-Fenster | _offen_ | Rahmen für Schnellzugriff |
+| Einstellungsfenster mit Seitenleiste | _offen_ | Navigation zwischen den Bereichen |
+| Problem-Hinweis | _offen_ | einheitlicher Hinweis mit Lösungsknopf |
 
 ---
 
-_This is a living document. When `/architecture` designs a feature that adds a nav entry, a layout region, or a new page pattern, it updates this map first, so later features build against an accurate frame. Behavior changes to the shell go through `/refine` on the owning feature — never straight into a feature's `design.md`._
+_Lebendes Dokument. Fügt ein Feature einen Bereich, eine Stelle oder ein neues Seitenmuster hinzu, wird zuerst diese Übersicht angepasst. Verhaltensänderungen am Rahmen laufen über `/refine PROJ-1`._

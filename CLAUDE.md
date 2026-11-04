@@ -32,14 +32,14 @@ specialist guidance in `docs/kit/guides/` and matching `docs/stacks/` packs is r
 
 ## How This Project Runs
 
-_Recorded by `/init`. Until then, do not guess these — ask._
+_Recorded by `/init` on 2026-11-04._
 
-- **Platform:** _web / mobile / desktop / mcp / cli / extension / other_
-- **Stack:** _framework, backend, tests, deploy_
-- **Start:** _the command that runs the app locally_
-- **Verify:** _how to probe a running instance (HTTP, stdio/JSON-RPC, …)_
-- **Layers:** _additional runtimes beside the app — name → root, start, test, packs under `docs/stacks/`; or "none"_
-- **Closing check:** _aggregate or individual commands; confirmed stages per runtime (`checkCoverage`)_
+- **Platform:** desktop (native macOS menu bar app, macOS 26+)
+- **Stack:** Swift/SwiftUI (`MenuBarExtra`), Xcode 26, Swift Package Manager; no backend, data local on the Mac (settings, history, vocabulary; Groq key in Keychain); Groq Whisper + Groq LLM as external service; updates via Sparkle; deploy via public GitHub Releases + notarization. Tests: open, decided at `/architecture` PROJ-1
+- **Start:** open, decided when the Xcode project is created (PROJ-1)
+- **Verify:** open, decided at `/architecture` PROJ-1
+- **Layers:** none
+- **Closing check:** open, recorded once the Xcode project exists (`/init checks`)
 - **Codebase map:** `docs/codebase/` — written by `/map`, read before designing anything; `/map` again after large changes
 
 ## Product Context

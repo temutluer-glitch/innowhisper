@@ -9,13 +9,13 @@
   "createdWith": "create-ai-eng-app",
   "platform": "desktop",
   "stack": {
-    "framework": null,
-    "backend": null,
+    "framework": "swiftui",
+    "backend": "localstorage",
     "test": null,
     "e2e": null,
-    "ui": null,
-    "deploy": null,
-    "packageManager": null
+    "ui": "swiftui",
+    "deploy": "github-releases",
+    "packageManager": "spm"
   },
   "commands": {
     "dev": null,
@@ -31,8 +31,8 @@
     "baseUrl": null
   },
   "layers": [],
-  "law": null,
-  "quality": null,
+  "law": [],
+  "quality": "standard",
   "featurePrefix": "PROJ",
   "managed": {
     ".claude/skills": [

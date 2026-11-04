@@ -25,8 +25,22 @@
 
 | ID | Feature | Description | Status | Spec | Created |
 |----|---------|-------------|--------|------|---------|
+| PROJ-1 | App-Rahmen & Einstellungen | Menüleisten-Symbol, Einstellungsfenster mit allen Bereichen und Start beim Anmelden. | Roadmap | — | 2026-11-04 |
+| PROJ-2 | Hinweise & Fehlerprotokoll | Kurze Hinweise, Töne und ein Fehlerprotokoll ohne Diktat-Inhalte. | Roadmap | — | 2026-11-04 |
+| PROJ-3 | Erlaubnisse & Einführung | Führt beim ersten Start durch Mikrofon und Bedienungshilfen und warnt, wenn eine Erlaubnis fehlt. | Roadmap | — | 2026-11-04 |
+| PROJ-4 | Groq-Zugang | Zugangsschlüssel eintragen, prüfen und im Schlüsselbund ablegen. | Roadmap | — | 2026-11-04 |
+| PROJ-5 | Aufnahme per Tastenkürzel | Startet und stoppt die Aufnahme (halten oder ein/aus), Mikrofonwahl, Abbruch mit Esc, stille Aufnahmen werden verworfen. | Roadmap | — | 2026-11-04 |
+| PROJ-6 | Umwandlung in Text | Wandelt die Aufnahme über Groq in Text um, mit Modell- und Sprachwahl, langen Aufnahmen und Filter gegen Erfundenes. | Roadmap | — | 2026-11-04 |
+| PROJ-7 | Text einfügen | Fügt den Text ins aktive Eingabefeld ein oder legt ihn nur in die Zwischenablage und stellt die alte Zwischenablage wieder her. | Roadmap | — | 2026-11-04 |
+| PROJ-8 | Sprechblase am Eingabefeld | Zeigt während der Aufnahme eine Sprechblase mit Tonwelle direkt am aktiven Eingabefeld. | Roadmap | — | 2026-11-04 |
+| PROJ-9 | Wörterbuch & Ersetzungen | Namen und Fachbegriffe, Textersetzungen und gesprochene Satzzeichen, Weitergabe als Datei. | Roadmap | — | 2026-11-04 |
+| PROJ-10 | Verlauf | Die letzten 50 Diktate mit Kopieren, Löschen und erneutem Umwandeln. | Roadmap | — | 2026-11-04 |
+| PROJ-11 | KI-Nachbearbeitung | Überarbeitet den Text optional mit KI-Vorlagen, Standard ist „Ohne KI“. | Roadmap | — | 2026-11-04 |
+| PROJ-12 | Mehrere Tastenkürzel | Mehrere Kürzel mit je eigener Vorlage, auch einzelne Tasten wie rechte ⌥ oder Fn. | Roadmap | — | 2026-11-04 |
+| PROJ-13 | Schnellzugriff Menüleiste | Menüleisten-Fenster mit letztem Diktat und Schnellwahl von Mikrofon und Sprache. | Roadmap | — | 2026-11-04 |
+| PROJ-14 | Updates & Auslieferung | Beglaubigte App zum Herunterladen, automatische Updates über Sparkle und Umzugsanleitung fürs Team. | Roadmap | — | 2026-11-04 |
 
-**Build order:** _P0 (MVP): PROJ-1 → PROJ-2 · P1: PROJ-3 (needs PROJ-2) · P2: PROJ-4 (needs PROJ-2) — written by `/init`, kept current by `/refine`_
+**Build order:** P0 (MVP, alle in der ersten Version): PROJ-1 → PROJ-2 (needs PROJ-1) → PROJ-3 (needs PROJ-1, PROJ-2) → PROJ-4 (needs PROJ-1) → PROJ-5 (needs PROJ-3) → PROJ-6 (needs PROJ-4, PROJ-5) → PROJ-7 (needs PROJ-3, PROJ-6) → PROJ-8 (needs PROJ-3, PROJ-5) → PROJ-9 (needs PROJ-6) → PROJ-10 (needs PROJ-6) → PROJ-11 (needs PROJ-4, PROJ-6) → PROJ-12 (needs PROJ-5, PROJ-11) → PROJ-13 (needs PROJ-5, PROJ-10) → PROJ-14 (needs PROJ-1) · Nach PROJ-7 ist echtes Diktieren testbar; Umzug des Teams erst nach PROJ-14
 
 <!-- Add features above this line -->
 
@@ -36,4 +50,4 @@
 
 - _v1.0.0 · 2026-01-31 · https://app.example.com · PROJ-1, PROJ-2_
 
-## Next Available ID: PROJ-1
+## Next Available ID: PROJ-15
