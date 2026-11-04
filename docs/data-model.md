@@ -20,7 +20,7 @@ Es gibt keinen Server (ADR-002). Alle Daten liegen nur auf dem jeweiligen Mac un
 | Ersetzung | Regel „aus X wird Y“, inklusive gesprochener Satzzeichen | Nutzer des Macs |
 | Verlaufs-Eintrag | Ein fertiges Diktat mit Zeitpunkt, Text und benutzter Vorlage; höchstens 50 | Nutzer des Macs |
 | Aufnahme | Tonaufnahme zu einem Verlaufs-Eintrag, damit „noch einmal umwandeln“ möglich ist | Nutzer des Macs |
-| Protokoll-Eintrag | Technischer Ablauf und Fehler, nie der gesprochene oder umgewandelte Inhalt | Nutzer des Macs |
+| Protokoll-Eintrag | Technischer Ablauf und Fehler, nie der gesprochene oder umgewandelte Inhalt; aufbewahrt höchstens 7 Tage und insgesamt höchstens 10 MB (PROJ-2) | Nutzer des Macs |
 
 ## Zusammenhänge
 

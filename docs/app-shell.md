@@ -27,7 +27,7 @@ InnoWhisper ist eine Menüleisten-App ohne Dock-Symbol. Es gibt kein Hauptfenste
 
 | Bereich | Inhalt | Zuständiges Feature |
 |---------|--------|---------------------|
-| Allgemein | Start beim Anmelden, Töne, Ausgabe (einfügen oder Zwischenablage) | PROJ-1, PROJ-2, PROJ-7 |
+| Allgemein | Start beim Anmelden, Töne, Ausgabe (einfügen oder Zwischenablage), Fehlerprotokoll | PROJ-1, PROJ-2, PROJ-7 |
 | Zugang & Erlaubnisse | Groq-Schlüssel, Mikrofon, Bedienungshilfen | PROJ-4, PROJ-3 |
 | Tastenkürzel | Kürzel, Modus, verknüpfte Vorlage | PROJ-5, PROJ-12 |
 | Umwandlung | Modell, Sprachhinweis | PROJ-6 |
@@ -73,6 +73,8 @@ _Festgelegt in `features/PROJ-1-app-rahmen-einstellungen/design.md`. Bereichsken
 | Einstellungsfenster mit Seitenleiste | `Packages/InnoWhisperKit/Sources/AppShell/Settings/` | Navigation zwischen den Bereichen; Bereiche und Allgemein-Gruppen werden von Features angemeldet |
 | Problem-Hinweis und Problem-Sammlung | `Packages/InnoWhisperKit/Sources/AppShell/State/` | einheitlicher Hinweis mit Lösungsknopf; Features melden Probleme mit fester Kennung |
 | Diktat-Tätigkeit | `Packages/InnoWhisperKit/Sources/AppShell/State/` | `ruhend` / `nimmtAuf` / `wandeltUm`, gesetzt von PROJ-5 und PROJ-6 |
+| Hinweis-Kapsel | `Packages/InnoWhisperKit/Sources/Notices/` | eine Rückmeldung (Info, Erfolg, Fehler) am Eingabefeld oder oben mittig; jedes Feature zeigt seine Hinweise darüber (PROJ-2) |
+| Fehlerprotokoll | `Packages/InnoWhisperKit/Sources/Diagnostics/` | Protokoll ohne Diktat-Inhalte; jedes Feature protokolliert darüber (PROJ-2) |
 
 ---
 
