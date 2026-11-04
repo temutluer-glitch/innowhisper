@@ -168,7 +168,7 @@ Keine zusätzlichen Unit-Tests in diesem Lauf. Die isolierte Logik ist durch die
 
 #### BUG-5: Mitteilung „Einstellungen öffnen“ ohne Drosselung
 - **Schwere:** Low
-- **Status:** Deferred (Vorschlag)
+- **Status:** Deferred (entschieden von Timur, 2026-11-04)
 - **Fehlerart:** Signal von außen löst ohne Drosselung eine Bedien-Aktion aus.
 - **Kontrolle / AC:** SEC-02, EC-1
 - **Sweep:** `grep -rn "DistributedNotificationCenter" App Packages/InnoWhisperKit/Sources` — 2 Treffer, betroffen nur der Empfänger (`SingleInstanceGuard.swift:21`)
@@ -176,7 +176,7 @@ Keine zusätzlichen Unit-Tests in diesem Lauf. Die isolierte Logik ist durch die
 
 #### BUG-6: Ordner des Problem-Hinweises fehlt in `docs/app-shell.md`
 - **Schwere:** Low
-- **Status:** Deferred (Vorschlag)
+- **Status:** Deferred (entschieden von Timur, 2026-11-04)
 - **Fehlerart:** Code-Ordner gemeinsamer Bausteine nicht in der Rahmen-Doku nachgeführt.
 - **Kontrolle / AC:** AC-10
 - **Sweep:** `for d in Packages/InnoWhisperKit/Sources/AppShell/*/; do grep -q "$d" docs/app-shell.md || echo $d; done` — 2 Treffer, betroffen `Components/`
@@ -184,7 +184,7 @@ Keine zusätzlichen Unit-Tests in diesem Lauf. Die isolierte Logik ist durch die
 
 #### BUG-7: Namen der Diktat-Tätigkeit in der Doku passen nicht zum Code
 - **Schwere:** Low
-- **Status:** Deferred (Vorschlag)
+- **Status:** Deferred (entschieden von Timur, 2026-11-04)
 - **Fehlerart:** Deutsche Bezeichnungen in Code-Schreibweise in gemeinsamen Verträgen, die nicht zum Code passen.
 - **Kontrolle / AC:** Vertrag für PROJ-5/PROJ-6
 - **Sweep:** `grep -rn 'ruhend\|nimmtAuf\|wandeltUm' docs features/*/design.md` — 5 Treffer
@@ -192,7 +192,7 @@ Keine zusätzlichen Unit-Tests in diesem Lauf. Die isolierte Logik ist durch die
 
 #### BUG-8: Merker „Mac fährt herunter“ wird nie zurückgesetzt
 - **Schwere:** Low
-- **Status:** Deferred (Vorschlag)
+- **Status:** Deferred (entschieden von Timur, 2026-11-04)
 - **Fehlerart:** Einmal gesetzter Zustandsmerker ohne Rücksetzung.
 - **Kontrolle / AC:** AC-20, EC-5
 - **Sweep:** `grep -rn "systemIsShuttingDown = " App` — 1 Treffer (nur `= true`, `AppDelegate.swift:35`)
@@ -200,7 +200,7 @@ Keine zusätzlichen Unit-Tests in diesem Lauf. Die isolierte Logik ist durch die
 
 #### BUG-9: „Später“ meldet ein Problem, obwohl die alte App inzwischen beendet ist
 - **Schwere:** Low
-- **Status:** Deferred (Vorschlag)
+- **Status:** Deferred (entschieden von Timur, 2026-11-04)
 - **Fehlerart:** Zustand nach einem Dialog wird nicht neu geprüft.
 - **Kontrolle / AC:** AC-18
 - **Sweep:** none
@@ -208,7 +208,7 @@ Keine zusätzlichen Unit-Tests in diesem Lauf. Die isolierte Logik ist durch die
 
 #### BUG-10: Doppelklick auf „Alte Version beenden“ startet zwei Beenden-Abläufe
 - **Schwere:** Low
-- **Status:** Deferred (Vorschlag)
+- **Status:** Deferred (entschieden von Timur, 2026-11-04)
 - **Fehlerart:** Wiederholbare Aktion ohne Sperre gegen paralleles Auslösen.
 - **Kontrolle / AC:** AC-17, EC-3
 - **Sweep:** none
@@ -216,7 +216,7 @@ Keine zusätzlichen Unit-Tests in diesem Lauf. Die isolierte Logik ist durch die
 
 #### BUG-11: Fensterlage-Regel nimmt den Bildschirm mit Tastaturfokus und rechnet geteilte Fenster nicht zusammen
 - **Schwere:** Low
-- **Status:** Deferred (Vorschlag)
+- **Status:** Deferred (entschieden von Timur, 2026-11-04)
 - **Fehlerart:** Bildschirmwahl und Sichtbarkeits-Anteil nicht wie im Plan beschrieben.
 - **Kontrolle / AC:** EC-6
 - **Sweep:** none
@@ -224,7 +224,7 @@ Keine zusätzlichen Unit-Tests in diesem Lauf. Die isolierte Logik ist durch die
 
 ## Zusammenfassung
 - **Abnahmekriterien:** 21 von 23 per Logik belegt, AC-18 fehlerhaft, AC-21 und AC-23 nur am Bildschirm prüfbar; Sonderfälle: EC-1, EC-5, EC-6 per Logik belegt, EC-2 fehlerhaft, EC-3 und EC-4 im Ablauf belegt, aber je mit Fehler. Kein Kriterium am laufenden Programm in diesem Lauf beobachtet.
-- **Fehler:** 11 (0 Critical, 1 High, 3 Medium, 7 Low): Open 4, Deferred 7 (Vorschlag)
+- **Fehler:** 11 (0 Critical, 1 High, 3 Medium, 7 Low): Open 4, Deferred 7 (entschieden von Timur)
 - **Sicherheit:** 11 Prüfungen belegt, 2 Befunde (BUG-4, BUG-5), 7 NOT VERIFIED (davon 5 nicht anwendbar, 1 nicht eingebaut, 1 braucht laufendes Programm)
 - **Produktionsreif:** NEIN
 - **Empfehlung:** Zuerst die offenen Fehler beheben (`/build PROJ-1`), danach erneute Prüfung mit aufgezeichnetem Test durch Timur.
