@@ -167,6 +167,16 @@ Gemessen am 2026-11-05 auf Timurs Mac (macOS 26.5.1), Entwicklungsbau, Protokoll
   - Bedienungshilfen ausgeschaltet: macOS 16:16:23,849, erkannt 16:16:23,865.
   - Mit der fertigen Fassung, Mikrofon im Hintergrund: eingeschaltet bei macOS 16:25:38,052, erkannt 16:25:39,078 (1 s); ausgeschaltet 16:28:00,464, erkannt 16:28:02,450 (2 s). Grenze aus AC-15/AC-16: 5 s.
   - Messfalle: `tccutil reset` erreicht eine laufende App nicht, erst nach Neustart. Für Entzugs-Tests nur echte Schalter in den Systemeinstellungen verwenden.
+- **Zweite Runde nach der QA-Nachprüfung (BUG-7 und Rest von BUG-1, gemessen 2026-11-05 abends, Tests durch Timur):**
+  - BUG-7: Nach dem Wechsel auf `AVAudioApplication` wurde ein in der Einführung erteiltes Mikrofon nicht mehr erkannt, weil die Anfrage noch über `AVCaptureDevice` lief (macOS speicherte 16:41:55, App blieb 108 s bei „noch nie gefragt“). Abhilfe: Anfrage ebenfalls über `AVAudioApplication`; steht dort „noch nie gefragt“, aber `AVCaptureDevice` meldet „erlaubt“, gilt erlaubt. Danach: erlaubt bei macOS 17:39:45,406, erkannt 17:39:45,405.
+  - Bedienungshilfen in der laufenden App: Drei Wege mit Mess-Versionen verglichen, Timur schaltete jeweils mehrfach um.
+    1. `AXIsProcessTrusted()`: hing nach einzelnen Wechseln einen Schritt hinterher (z. B. ausgeschaltet 16:58:54, App blieb bei „erlaubt“ bis zum nächsten Wechsel).
+    2. Bedienungshilfen-Aufruf nach dem vorderen Programm: liefert „erlaubt“, sobald InnoWhisper selbst vorne ist, auch ohne Erlaubnis (17:14:49, Timur: Häkchen wechselt mit dem Fenster).
+    3. Bedienungshilfen-Aufruf beim Dock: 8 von 8 Wechseln richtig, unabhängig vom vorderen Fenster; im Schlusstest aber den ersten Wechsel nach einem Start ohne Erlaubnis verpasst (17:23:22).
+    Ein frisch gestartetes Programm las dagegen jedes Mal richtig (Starts 16:56:07, 16:59:55, 17:24:49).
+  - **Gewählt (Timurs Entscheidung „Kleiner Prüfer“):** Ändert sich die Bedienungshilfen-Liste, startet InnoWhisper sein eigenes Programm unsichtbar mit `--check-accessibility` (nach 0,5 s und nach 2 s). Es antwortet vor allem anderen (kein Fenster, kein Menüleisten-Symbol, kein Protokolleintrag) und beendet sich. Dauer 43 bis 73 ms. Ohne Antwort binnen 2 s bleibt die eigene Lesung (Dock-Aufruf plus `AXIsProcessTrusted()`).
+  - Schlusstest mit dem fertigen Bau, Einführung von vorn: Esc und ⌘W ohne Wirkung, Mikrofon sofort erkannt, Bedienungshilfen 17:40:36,774 bei macOS, erkannt 17:40:36,772, Häkchen blieb beim Fensterwechsel stabil. Danach im Hintergrund sechs Wechsel, alle richtig erkannt, jeweils 0,55 bis 0,6 s nach macOS (z. B. aus 17:42:40,644, erkannt 17:42:41,212; ein 17:42:54,059, erkannt 17:42:54,634). Grenze laut AC-15/AC-16: 5 s.
+  - Die Messung „Bedienungshilfen ausgeschaltet 16:16:23“ weiter oben stammt von einem älteren Bau (Prozess seit 12:16) und gilt nur als Hinweis.
 
 ## Offene Fragen
 

@@ -37,6 +37,8 @@ public final class PermissionMonitor {
     @ObservationIgnored private let keepChecksRunning: @MainActor () -> NSObjectProtocol
     @ObservationIgnored private var backgroundActivity: NSObjectProtocol?
     @ObservationIgnored private var accessibilityListObserver: AccessibilityListObserver?
+    /// When to check Accessibility again outside the app after the list changed.
+    @ObservationIgnored var recheckDelays: [Duration] = [.milliseconds(500), .seconds(2)]
 
     public init(
         checker: PermissionChecking,
@@ -95,7 +97,21 @@ public final class PermissionMonitor {
             ) { [weak self] _ in
                 MainActor.assumeIsolated { self?.appBecameActive() }
             })
-        accessibilityListObserver = AccessibilityListObserver { [weak self] in self?.refresh() }
+        accessibilityListObserver = AccessibilityListObserver { [weak self] in
+            Task { await self?.accessibilityListChanged() }
+        }
+    }
+
+    /// The Accessibility list changed. Inside the running app macOS sometimes
+    /// keeps the old answer (measured 05.11.2026, design.md → Bau-Notizen), so
+    /// a fresh check outside the app follows shortly after (QA BUG-1).
+    func accessibilityListChanged() async {
+        refresh()
+        for delay in recheckDelays {
+            try? await Task.sleep(for: delay)
+            await checker.recheckAccessibility()
+            refresh()
+        }
     }
 
     /// Reads every permission from macOS once.

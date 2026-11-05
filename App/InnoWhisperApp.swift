@@ -1,8 +1,18 @@
 import AppKit
 import AppShell
+import Permissions
 import SwiftUI
 
+/// Entry point. Answers the invisible Accessibility check first (PROJ-3,
+/// QA BUG-1), then starts the app as usual.
 @main
+enum InnoWhisperMain {
+    static func main() {
+        SystemPermissionChecker.answerAccessibilityCheckIfAsked()
+        InnoWhisperApp.main()
+    }
+}
+
 struct InnoWhisperApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 

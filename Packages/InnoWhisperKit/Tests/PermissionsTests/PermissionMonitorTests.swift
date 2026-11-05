@@ -16,6 +16,14 @@ final class FakeChecker: PermissionChecking {
         states[.microphone] = .granted
     }
     func registerForAccessibility() { accessibilityRegistrations += 1 }
+
+    /// What a fresh check outside the app reports; nil = no change.
+    var freshAccessibility: PermissionState?
+    var accessibilityRechecks = 0
+    func recheckAccessibility() async {
+        accessibilityRechecks += 1
+        if let freshAccessibility { states[.accessibility] = freshAccessibility }
+    }
 }
 
 @MainActor
@@ -161,5 +169,19 @@ final class FakeClock {
         monitor.start()
         monitor.start()
         #expect(activities == 1)
+    }
+
+    // BUG-1 (QA 05.11., live): inside the running app macOS sometimes keeps
+    // the old Accessibility answer after the switch changes. A change of the
+    // list therefore triggers a fresh check outside the app.
+    @Test func listChangeTriggersAFreshAccessibilityCheck() async {
+        checker.states = [.microphone: .granted, .accessibility: .granted]
+        let monitor = makeMonitor(finished: true)
+        monitor.recheckDelays = [.zero]
+        checker.freshAccessibility = .denied
+        await monitor.accessibilityListChanged()
+        #expect(checker.accessibilityRechecks == 1)
+        #expect(monitor.state(of: .accessibility) == .denied)
+        #expect(problems.isReported(id: PermissionKind.accessibility.problemID))
     }
 }

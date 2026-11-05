@@ -1,3 +1,4 @@
+import ApplicationServices
 import Foundation
 import Testing
 
@@ -43,5 +44,20 @@ import Testing
         #expect(PermissionKind.accessibility.missingMessage == "Bedienungshilfen nicht erlaubt.")
         #expect(PermissionKind.microphone.problemID == "permission.microphone")
         #expect(PermissionKind.accessibility.problemID == "permission.accessibility")
+    }
+
+    /// Asking the Dock (never our own app, always running) follows the switch
+    /// in System Settings at once, whatever window is in front (measured
+    /// 05.11.2026, design.md → Bau-Notizen). Without a usable answer the
+    /// system's own flag decides.
+    @Test func accessibilityFollowsTheDocksAnswer() {
+        typealias Checker = SystemPermissionChecker
+        #expect(Checker.accessibilityState(dockAnswer: .success, trusted: false) == .granted)
+        #expect(Checker.accessibilityState(dockAnswer: .noValue, trusted: false) == .granted)
+        #expect(Checker.accessibilityState(dockAnswer: .apiDisabled, trusted: true) == .denied)
+        #expect(Checker.accessibilityState(dockAnswer: .cannotComplete, trusted: true) == .granted)
+        #expect(Checker.accessibilityState(dockAnswer: .cannotComplete, trusted: false) == .denied)
+        #expect(Checker.accessibilityState(dockAnswer: nil, trusted: true) == .granted)
+        #expect(Checker.accessibilityState(dockAnswer: nil, trusted: false) == .denied)
     }
 }
