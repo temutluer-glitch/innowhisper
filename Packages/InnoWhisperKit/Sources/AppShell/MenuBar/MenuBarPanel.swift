@@ -73,9 +73,10 @@ public struct MenuBarPanel<QuickAccess: View>: View {
     }
 
     /// A problem that belongs to a settings section is solved there (AC-11);
-    /// one without a section keeps its own action (AC-18).
+    /// one without a section, or one that asks for it, keeps its own action
+    /// (AC-18, PROJ-3 AC-16).
     private func panelVersion(of problem: Problem) -> Problem {
-        guard let section = problem.section else { return problem }
+        guard problem.opensSettingsFromPanel, let section = problem.section else { return problem }
         return Problem(
             id: problem.id,
             section: section,

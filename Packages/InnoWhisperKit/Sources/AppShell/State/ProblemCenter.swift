@@ -15,19 +15,31 @@ public struct Problem: Identifiable, Sendable {
     public let actionTitle: String
     /// What the button does.
     public let action: @MainActor @Sendable () -> Void
+    /// The menu bar panel normally replaces the button of a problem with a
+    /// section by "Einstellungen öffnen". With `true` it keeps this button,
+    /// e.g. "Jetzt erlauben" straight into System Settings (PROJ-3 AC-16).
+    public let keepsOwnActionInPanel: Bool
 
     public init(
         id: String,
         section: SettingsSection?,
         message: String,
         actionTitle: String,
+        keepsOwnActionInPanel: Bool = false,
         action: @escaping @MainActor @Sendable () -> Void
     ) {
         self.id = id
         self.section = section
         self.message = message
         self.actionTitle = actionTitle
+        self.keepsOwnActionInPanel = keepsOwnActionInPanel
         self.action = action
+    }
+
+    /// Whether the menu bar panel shows "Einstellungen öffnen" instead of the
+    /// problem's own button (PROJ-1 AC-11).
+    public var opensSettingsFromPanel: Bool {
+        section != nil && !keepsOwnActionInPanel
     }
 }
 
