@@ -76,8 +76,8 @@
 - Personenbezogene Daten: keine. Gespeichert wird nur, welche Schritte erledigt sind. Datenschutzrecht laut Projekt: keins eingetragen (ADR-006), daher keine `/dsgvo`-Prüfung.
 
 ## Offene Fragen
-- [ ] AC-14 ändert für die Dauer der Einführung das Verhalten aus PROJ-1 (AC-5 und AC-6: „Einstellungen …“ bzw. erneutes Öffnen zeigt sonst das Einstellungsfenster). In `/architecture` klären, ob das über einen Andockpunkt im Rahmen geht oder eine kleine Änderung an PROJ-1 (`/refine PROJ-1`) braucht.
-- [ ] `docs/app-shell.md` nennt die Einführung noch „beim ersten Start oder bei fehlender Erlaubnis“; nach der Entscheidung „Warnung + Hinweis“ gilt nur noch „beim ersten Start und bei neuen Schritten“. In `/architecture` anpassen.
+- [x] AC-14 ändert für die Dauer der Einführung das Verhalten aus PROJ-1 (AC-5 und AC-6: „Einstellungen …“ bzw. erneutes Öffnen zeigt sonst das Einstellungsfenster). In `/architecture` klären, ob das über einen Andockpunkt im Rahmen geht oder eine kleine Änderung an PROJ-1 (`/refine PROJ-1`) braucht. → Gelöst in `design.md`: eine Stelle im App-Zusammenbau, `AppShell` bleibt unverändert; PROJ-1 bekommt dazu einen Satz.
+- [x] `docs/app-shell.md` nennt die Einführung noch „beim ersten Start oder bei fehlender Erlaubnis“; nach der Entscheidung „Warnung + Hinweis“ gilt nur noch „beim ersten Start und bei neuen Schritten“. In `/architecture` anpassen. → Angepasst.
 
 ## Entscheidungsprotokoll
 

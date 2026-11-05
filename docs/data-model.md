@@ -20,6 +20,7 @@ Es gibt keinen Server (ADR-002). Alle Daten liegen nur auf dem jeweiligen Mac un
 | Ersetzung | Regel „aus X wird Y“, inklusive gesprochener Satzzeichen | Nutzer des Macs |
 | Verlaufs-Eintrag | Ein fertiges Diktat mit Zeitpunkt, Text und benutzter Vorlage; höchstens 50 | Nutzer des Macs |
 | Aufnahme | Tonaufnahme zu einem Verlaufs-Eintrag, damit „noch einmal umwandeln“ möglich ist | Nutzer des Macs |
+| Einführungs-Fortschritt | Welche Einführungs-Schritte erledigt sind und ob die Einführung schon einmal abgeschlossen wurde (PROJ-3); Erlaubnis-Stände werden nicht gespeichert, sondern bei macOS abgefragt | Nutzer des Macs |
 | Protokoll-Eintrag | Technischer Ablauf und Fehler, nie der gesprochene oder umgewandelte Inhalt; aufbewahrt höchstens 7 Tage und insgesamt höchstens 10 MB (PROJ-2) | Nutzer des Macs |
 
 ## Zusammenhänge
@@ -30,6 +31,7 @@ Es gibt keinen Server (ADR-002). Alle Daten liegen nur auf dem jeweiligen Mac un
 - Jeder Verlaufs-Eintrag hat höchstens eine Aufnahme; wird der Eintrag gelöscht, wird die Aufnahme mitgelöscht.
 - Kommt der 51. Verlaufs-Eintrag dazu, fällt der älteste samt Aufnahme automatisch weg.
 - Wörterbuch-Einträge und Ersetzungen gelten für jedes Diktat; beide lassen sich gemeinsam als Datei weitergeben und einlesen.
+- Es gibt genau einen Einführungs-Fortschritt pro Nutzer; er merkt sich Schritt-Kennungen, die von den Features stammen, die Schritte einfügen (PROJ-3, PROJ-4, PROJ-5, PROJ-7).
 - Protokoll-Einträge hängen an keinem anderen Ding und enthalten keine Diktat-Inhalte.
 
 ## Skizze
@@ -42,6 +44,7 @@ KI-Vorlage (viele, „Ohne KI“ fest)
 Wörterbuch-Einträge + Ersetzungen (viele) ──► Weitergabe als Datei
 Verlaufs-Eintrag (max. 50)
   └─ hat höchstens eine Aufnahme (wird mitgelöscht)
+Einführungs-Fortschritt (1)
 Protokoll-Einträge (ohne Inhalte)
 ```
 

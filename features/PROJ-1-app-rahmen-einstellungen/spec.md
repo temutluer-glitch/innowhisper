@@ -37,6 +37,7 @@
 ### Einstellungsfenster
 - [ ] **AC-5** — Angenommen das Einstellungsfenster ist geschlossen, wenn der Nutzer „Einstellungen …“ klickt oder bei offenem Menüleisten-Fenster ⌘, drückt, dann öffnet sich das Einstellungsfenster; ist es bereits offen, dann kommt es nach vorne, und es gibt nie zwei Einstellungsfenster.
 - [ ] **AC-6** — Angenommen InnoWhisper läuft bereits, wenn der Nutzer die App erneut über den Programme-Ordner oder Spotlight öffnet, dann öffnet sich das Einstellungsfenster.
+  _Ausnahme für AC-5 und AC-6 (ergänzt 2026-11-05 mit PROJ-3): Solange die Einführung offen ist, kommt stattdessen die Einführung nach vorne, siehe PROJ-3 AC-14._
 - [ ] **AC-7** — Angenommen das Einstellungsfenster ist offen, wenn der Nutzer links in der Seitenleiste einen Bereich anklickt, dann zeigt der rechte Teil diesen Bereich; die Seitenleiste zeigt jeden Bereich mit SF-Symbol und Namen in der Reihenfolge aus `docs/app-shell.md`.
 - [ ] **AC-8** — Angenommen das Feature eines Bereichs ist noch nicht gebaut, wenn der Nutzer das Einstellungsfenster öffnet, dann erscheint dieser Bereich nicht in der Seitenleiste; PROJ-1 liefert den Bereich „Allgemein“.
 - [ ] **AC-9** — Angenommen der Nutzer hat zuletzt einen bestimmten Bereich benutzt, wenn er das Einstellungsfenster erneut öffnet, dann zeigt es diesen Bereich; beim allerersten Öffnen zeigt es „Allgemein“.

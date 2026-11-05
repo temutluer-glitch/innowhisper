@@ -20,7 +20,7 @@ InnoWhisper ist eine Menüleisten-App ohne Dock-Symbol. Es gibt kein Hauptfenste
 | Menüleisten-Fenster | Letztes Diktat, Schnellwahl Mikrofon und Sprache, Einstellungen öffnen, Beenden | beim Klick aufs Symbol | PROJ-1 (Rahmen), PROJ-13 (Inhalt) |
 | Einstellungsfenster | Alles einstellen | über Menüleisten-Fenster oder ⌘, | PROJ-1 (Rahmen) |
 | Sprechblase | Zeigt während der Aufnahme die Tonwelle am aktiven Eingabefeld | während Aufnahme und Umwandlung | PROJ-8 |
-| Einführung | Führt beim ersten Start durch Erlaubnisse und Zugangsschlüssel | beim ersten Start oder bei fehlender Erlaubnis | PROJ-3 |
+| Einführung | Eigenes Fenster ohne Schließen-Knopf; führt durch Erlaubnisse, später auch Zugangsschlüssel, Tastenkürzel und Probe-Diktat | beim ersten Start, bis sie abgeschlossen ist, und wenn ein Update neue Schritte bringt | PROJ-3 (Rahmen), PROJ-4, PROJ-5, PROJ-7 (Schritte) |
 | Hinweise | Kurze Meldungen („Text eingefügt“, „Kein Internet“) | nach Ereignissen | PROJ-2 |
 
 ### Bereiche im Einstellungsfenster
@@ -57,8 +57,8 @@ Jeder Bereich im Einstellungsfenster wiederholt dieses Muster; `/build` hält si
 
 Es gibt keine Anmeldung; der Rahmen unterscheidet stattdessen diese Zustände:
 
-- **Erster Start:** Die Einführung erscheint.
-- **Erlaubnis oder Schlüssel fehlt:** Das Menüleisten-Symbol zeigt ein Warnzeichen; Menüleisten-Fenster und Einstellungen führen zum passenden Bereich.
+- **Erster Start:** Die Einführung erscheint. Solange sie offen ist, holen „Einstellungen …“, erneutes Öffnen der App und ein Zweitstart die Einführung nach vorne statt des Einstellungsfensters; „Beenden“ geht immer.
+- **Erlaubnis oder Schlüssel fehlt (nach der Einführung):** Das Menüleisten-Symbol zeigt ein Warnzeichen; Menüleisten-Fenster und Einstellungen führen zum passenden Bereich bzw. bei Erlaubnissen direkt in die Systemeinstellungen. Die Einführung erscheint dafür nicht erneut.
 - **Bereit:** Diktieren per Tastenkürzel, ohne ein Fenster zu öffnen.
 - **Nimmt auf / wandelt um:** Symbol und Sprechblase zeigen den Zustand.
 
@@ -74,6 +74,8 @@ _Festgelegt in `features/PROJ-1-app-rahmen-einstellungen/design.md`. Bereichsken
 | Problem-Hinweis und Problem-Sammlung | `Packages/InnoWhisperKit/Sources/AppShell/State/` | einheitlicher Hinweis mit Lösungsknopf; Features melden Probleme mit fester Kennung |
 | Diktat-Tätigkeit | `Packages/InnoWhisperKit/Sources/AppShell/State/` | `ruhend` / `nimmtAuf` / `wandeltUm`, gesetzt von PROJ-5 und PROJ-6 |
 | Hinweis-Kapsel | `Packages/InnoWhisperKit/Sources/Notices/` | eine Rückmeldung (Info, Erfolg, Fehler) am Eingabefeld oder oben mittig; jedes Feature zeigt seine Hinweise darüber (PROJ-2) |
+| Einführungs-Rahmen | `Packages/InnoWhisperKit/Sources/Onboarding/` | Einführungsfenster; Features melden ihre Schritte nach dem Schritt-Vertrag in `features/PROJ-3-erlaubnisse-einfuehrung/design.md` an (PROJ-3) |
+| Erlaubnis-Wächter | `Packages/InnoWhisperKit/Sources/Permissions/` | Stand von Mikrofon und Bedienungshilfen, Problem-Meldung bei Fehlen (PROJ-3) |
 | Fehlerprotokoll | `Packages/InnoWhisperKit/Sources/Diagnostics/` | Protokoll ohne Diktat-Inhalte; jedes Feature protokolliert darüber (PROJ-2) |
 
 ---
