@@ -16,7 +16,7 @@ struct InnoWhisperApp: App {
         ) {
             MenuBarPanel(
                 problems: environment.problems,
-                openSettings: { environment.settingsWindow.open(section: $0) },
+                openSettings: { environment.openSettings($0) },
                 quit: { NSApplication.shared.terminate(nil) }
             ) {
                 EmptyView()

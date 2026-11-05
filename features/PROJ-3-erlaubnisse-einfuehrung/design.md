@@ -145,8 +145,24 @@ Keine neuen Pakete.
 
 **Sicherheit (ADR-007):** Die App bekommt genau zwei Erlaubnisse, keine weiteren. Debug trägt weiter `get-task-allow` (Ausnahme in ADR-007): Wer Mikrofon und Bedienungshilfen für den Debug-Bau erlaubt, nimmt in Kauf, dass ein anderer Prozess desselben Nutzers sie über die Fehlersuche mitbenutzen könnte. Das gilt nur für Timurs Entwickler-Mac; ausgeliefert wird nur Release. Der private Schlüssel des Zertifikats bleibt im Schlüsselbund; ins Projekt kommt nur der Zertifikatsname und die Team-Kennung (beides nicht geheim).
 
+## Bau-Notizen
+
+Gemessen am 2026-11-05 auf Timurs Mac (macOS 26.5.1), Entwicklungsbau, Protokoll plus Sichtprüfung durch Timur.
+
+- **Erster Start (AC-1, AC-12):** Fenster „InnoWhisper einrichten“ ohne Schließen-Knopf, „Schritt 1 von 4“. Zweites Öffnen der App holt die Einführung nach vorne statt der Einstellungen (AC-14, Protokoll „Settings requested during onboarding“).
+- **Mikrofon (AC-8):** Klick 10:53:12, Erlaubnis im Protokoll 10:53:14, also binnen 2 s ohne Neustart.
+- **Bedienungshilfen ohne Neustart (AC-10, EC-3):** Erteilte Erlaubnis wird sofort erkannt (10:54:02 und 11:33:44, jeweils ohne Neustart). Das Neustart-Angebot bleibt als Rückfall eingebaut.
+- **Alte App (EC-4):** Die Meldung zur alten Version kam erst nach „Fertig“ (10:54:11 fertig, 10:54:11 Meldung).
+- **Später entzogen (AC-15, AC-16):** Nach dem Entziehen keine neue Einführung, sondern Warndreieck und „Bedienungshilfen nicht erlaubt.“ mit „Jetzt erlauben“ im Menüleisten-Fenster; nach dem Einschalten verschwand es.
+- **Ein Fenster bei den Bedienungshilfen (Messfrage 2), drei Versuche:**
+  1. macOS-Frage plus Systemeinstellungen öffnen: zwei Fenster gleichzeitig (Timur).
+  2. Nur macOS-Frage, Systemeinstellungen als Rückfall, wenn InnoWhisper vorne bleibt: Die macOS-Frage holt InnoWhisper nicht aus dem Vordergrund, der Rückfall griff jedes Mal, wieder zwei Fenster.
+  3. **Gewählt:** InnoWhisper meldet sich still an (Abfrage ohne Frage-Fenster plus ein von macOS abgelehnter Bedienungshilfen-Aufruf) und öffnet nur die Systemeinstellungen. Nach `tccutil reset` stand InnoWhisper danach wieder in der Liste (Bildschirmfoto von Timur), Einschalten wurde sofort erkannt. Timurs Wunsch: „am besten öffnet sich nur und direkt das Einstellungsfenster selbst“.
+- **Hinweis für Tests:** Der Entwicklungsbau hat noch kein App-Symbol; in der Liste steht er als „InnoWhisper“ mit leerem Symbol neben dem Eintrag der alten App.
+- **Nicht live geprüft:** Mikrofon „Nicht erlauben“ und Fortsetzen nach Beenden mittendrin. Beides ist durch Tests abgedeckt (PermissionMonitorTests, OnboardingFlowTests), die Sichtprüfung übernimmt `/qa`.
+
 ## Offene Fragen
 
-- [ ] Vermutung, beim Bau messen: Erkennt macOS 26 eine in den Systemeinstellungen erteilte Mikrofon- bzw. Bedienungshilfen-Erlaubnis ohne Neustart? Falls nicht, greift EC-3; das Ergebnis kommt in die Bau-Notizen.
-- [ ] Vermutung, beim Bau messen: Welche Kombination aus „bei macOS eintragen“ und „Systemeinstellungen öffnen“ ergibt für die Bedienungshilfen genau ein verständliches Fenster und nicht zwei?
+- [x] Vermutung, beim Bau messen (ja, ohne Neustart, siehe Bau-Notizen): Erkennt macOS 26 eine in den Systemeinstellungen erteilte Mikrofon- bzw. Bedienungshilfen-Erlaubnis ohne Neustart? Falls nicht, greift EC-3; das Ergebnis kommt in die Bau-Notizen.
+- [x] Vermutung, beim Bau messen (stille Anmeldung plus nur Systemeinstellungen, siehe Bau-Notizen): Welche Kombination aus „bei macOS eintragen“ und „Systemeinstellungen öffnen“ ergibt für die Bedienungshilfen genau ein verständliches Fenster und nicht zwei?
 - [ ] Wie PROJ-4 seine Gruppe „Zugangsschlüssel“ in den Bereich „Zugang & Erlaubnisse“ bringt, entscheidet PROJ-4 (der Bereich gehört dann zwei Features).

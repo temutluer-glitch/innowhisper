@@ -30,8 +30,8 @@
 
 ## Stufe 5 — Zusammensetzen und echt prüfen
 
-- [ ] T11  App verdrahten: Wächter und Einführung erzeugen, Schritte und Bereich anmelden; ein Weg zum Öffnen der Einstellungen (offene Einführung kommt stattdessen nach vorne) für Menüleisten-Fenster, erneutes Öffnen und Zweitstart; Einführung beim Start zeigen, falls nötig; Prüfung auf die alte App erst nach der Einführung  · files: App/AppEnvironment.swift, App/AppDelegate.swift, App/InnoWhisperApp.swift  · → AC-1, AC-13, AC-14, AC-15, EC-4
-- [ ] T12  Am laufenden Programm prüfen, erst selbst messen (Protokoll, Erlaubnisse für die App zurücksetzen, Fortschritt löschen), dann Timur: erster Start, Mikrofon erlauben und ablehnen, Bedienungshilfen, mittendrin beenden, „Einstellungen …“ während der Einführung, Erlaubnis nachher entziehen und wieder erteilen; Ergebnisse und die zwei Mess-Fragen aus `design.md` in den Bau-Notizen festhalten  · files: features/PROJ-3-erlaubnisse-einfuehrung/design.md  · → AC-1, AC-8, AC-10, AC-11, AC-12, AC-13, AC-14, AC-15, AC-16, EC-3, EC-4
+- [x] T11  App verdrahten: Wächter und Einführung erzeugen, Schritte und Bereich anmelden; ein Weg zum Öffnen der Einstellungen (offene Einführung kommt stattdessen nach vorne) für Menüleisten-Fenster, erneutes Öffnen und Zweitstart; Einführung beim Start zeigen, falls nötig; Prüfung auf die alte App erst nach der Einführung  · files: App/AppEnvironment.swift, App/AppDelegate.swift, App/InnoWhisperApp.swift  · → AC-1, AC-13, AC-14, AC-15, EC-4
+- [x] T12  Am laufenden Programm prüfen, erst selbst messen (Protokoll, Erlaubnisse für die App zurücksetzen, Fortschritt löschen), dann Timur: erster Start, Mikrofon erlauben und ablehnen, Bedienungshilfen, mittendrin beenden, „Einstellungen …“ während der Einführung, Erlaubnis nachher entziehen und wieder erteilen; Ergebnisse und die zwei Mess-Fragen aus `design.md` in den Bau-Notizen festhalten  · files: features/PROJ-3-erlaubnisse-einfuehrung/design.md  · → AC-1, AC-8, AC-10, AC-11, AC-12, AC-13, AC-14, AC-15, AC-16, EC-3, EC-4
 
 ## Parallelisierung
 

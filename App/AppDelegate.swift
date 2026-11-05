@@ -27,7 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         logStart()
         environment.start()
         observers.append(
-            SingleInstanceGuard.observeOpenSettingsRequests { [environment] in environment.settingsWindow.open() })
+            SingleInstanceGuard.observeOpenSettingsRequests { [environment] in environment.openSettings() })
         observers.append(
             NSWorkspace.shared.notificationCenter.addObserver(
                 forName: NSWorkspace.willPowerOffNotification, object: nil, queue: .main
@@ -35,11 +35,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 MainActor.assumeIsolated { self?.systemIsShuttingDown = true }
             })
         environment.loginItems.performFirstLaunchSetup()
-        environment.legacyGuard.start()
+        // The check for the old app waits until the onboarding is done (PROJ-3 EC-4).
+        environment.startOnboardingIfNeeded { [environment] in environment.legacyGuard.start() }
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        environment.settingsWindow.open()
+        environment.openSettings()
         return false
     }
 

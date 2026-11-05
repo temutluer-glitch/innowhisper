@@ -10,6 +10,8 @@
 		A1000000000000000000F001 /* AppShell in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000D001 /* AppShell */; };
 		A1000000000000000000F002 /* Notices in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000D002 /* Notices */; };
 		A1000000000000000000F003 /* Diagnostics in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000D003 /* Diagnostics */; };
+		A1000000000000000000F004 /* Onboarding in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000D004 /* Onboarding */; };
+		A1000000000000000000F005 /* Permissions in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000D005 /* Permissions */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,6 +47,8 @@
 				A1000000000000000000F001 /* AppShell in Frameworks */,
 				A1000000000000000000F002 /* Notices in Frameworks */,
 				A1000000000000000000F003 /* Diagnostics in Frameworks */,
+				A1000000000000000000F004 /* Onboarding in Frameworks */,
+				A1000000000000000000F005 /* Permissions in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -90,6 +94,8 @@
 				A1000000000000000000D001 /* AppShell */,
 				A1000000000000000000D002 /* Notices */,
 				A1000000000000000000D003 /* Diagnostics */,
+				A1000000000000000000D004 /* Onboarding */,
+				A1000000000000000000D005 /* Permissions */,
 			);
 			productName = InnoWhisper;
 			productReference = A10000000000000000000P01 /* InnoWhisper.app */;
@@ -284,6 +290,14 @@
 		A1000000000000000000D003 /* Diagnostics */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Diagnostics;
+		};
+		A1000000000000000000D004 /* Onboarding */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Onboarding;
+		};
+		A1000000000000000000D005 /* Permissions */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Permissions;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

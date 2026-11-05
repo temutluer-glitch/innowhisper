@@ -35,8 +35,15 @@ public final class SystemPermissionChecker: PermissionChecking {
         _ = await AVCaptureDevice.requestAccess(for: .audio)
     }
 
+    /// Makes InnoWhisper appear in the Accessibility list without the macOS
+    /// question window: that window would open next to System Settings, which
+    /// open anyway (design.md → Bau-Notizen). An Accessibility call that macOS
+    /// refuses is what puts the app on the list.
     public func registerForAccessibility() {
-        let options = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
+        let options = ["AXTrustedCheckOptionPrompt": false] as CFDictionary
         _ = AXIsProcessTrustedWithOptions(options)
+        var value: CFTypeRef?
+        _ = AXUIElementCopyAttributeValue(
+            AXUIElementCreateSystemWide(), kAXFocusedApplicationAttribute as CFString, &value)
     }
 }
