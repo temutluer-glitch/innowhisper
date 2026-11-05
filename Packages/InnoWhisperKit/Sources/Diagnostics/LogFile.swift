@@ -11,6 +11,8 @@ public struct LogCategory: Sendable, Equatable {
     public static let app = LogCategory("app")
     public static let appShell = LogCategory("appshell")
     public static let notices = LogCategory("notices")
+    public static let onboarding = LogCategory("onboarding")
+    public static let permissions = LogCategory("permissions")
 }
 
 /// The log file on this Mac (AC-11, AC-13, EC-3, EC-4). All file access runs

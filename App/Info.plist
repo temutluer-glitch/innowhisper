@@ -12,5 +12,7 @@
 	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2026 InnoSolv GmbH</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>InnoWhisper nimmt deine Stimme auf, um sie in Text umzuwandeln.</string>
 </dict>
 </plist>

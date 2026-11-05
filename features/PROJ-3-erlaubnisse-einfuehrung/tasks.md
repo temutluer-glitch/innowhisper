@@ -8,8 +8,8 @@
 
 ## Stufe 1 — Grundgerüst und Unterschrift
 
-- [ ] T1 [P]  Module `Onboarding` (hängt von `AppShell`, `Diagnostics` ab) und `Permissions` (hängt von `AppShell`, `Diagnostics`, `Onboarding` ab) samt Testzielen anlegen, Platzhalter-Quellen und je ein erster Test; Protokoll-Bereiche `permissions` und `onboarding`  · files: Kit/Package.swift, Onb/Onboarding.swift, Perm/Permissions.swift, OnbT/SmokeTests.swift, PermT/SmokeTests.swift, Kit/Sources/Diagnostics/LogFile.swift  · → AC-20
-- [ ] T2 [P]  Entwicklungsbau fest unterschreiben: Debug mit „Developer ID Application“, Team N5QKANW6QY, Hardened Runtime bleibt; Berechtigung „Audio-Eingang“; Mikrofon-Begründungstext „InnoWhisper nimmt deine Stimme auf, um sie in Text umzuwandeln.“; vor dem ersten Bau den Schlüsselbund-Hinweis im Chat ankündigen; danach prüfen, dass zwei Bauten dieselbe Unterschrift-Kennung haben  · files: InnoWhisper.xcodeproj/project.pbxproj, App/InnoWhisper.entitlements, App/Info.plist  · → AC-8, AC-10
+- [x] T1 [P]  Module `Onboarding` (hängt von `AppShell`, `Diagnostics` ab) und `Permissions` (hängt von `AppShell`, `Diagnostics`, `Onboarding` ab) samt Testzielen anlegen, Platzhalter-Quellen und je ein erster Test; Protokoll-Bereiche `permissions` und `onboarding`  · files: Kit/Package.swift, Onb/Onboarding.swift, Perm/Permissions.swift, OnbT/SmokeTests.swift, PermT/SmokeTests.swift, Kit/Sources/Diagnostics/LogFile.swift  · → AC-20
+- [x] T2 [P]  Entwicklungsbau fest unterschreiben: Debug mit „Developer ID Application“, Team N5QKANW6QY, Hardened Runtime bleibt; Berechtigung „Audio-Eingang“; Mikrofon-Begründungstext „InnoWhisper nimmt deine Stimme auf, um sie in Text umzuwandeln.“; vor dem ersten Bau den Schlüsselbund-Hinweis im Chat ankündigen; danach prüfen, dass zwei Bauten dieselbe Unterschrift-Kennung haben  · files: InnoWhisper.xcodeproj/project.pbxproj, App/InnoWhisper.entitlements, App/Info.plist  · → AC-8, AC-10
 - [ ] T3 [user]  Beim ersten Bau im Fenster vom Schlüsselbund („codesign möchte auf … zugreifen“) auf „Immer erlauben“ klicken  · where: Fenster vom Schlüsselbund, erscheint beim Bau nach Ankündigung im Chat  · → AC-8, AC-10
 
 ## Stufe 2 — Innere Logik
