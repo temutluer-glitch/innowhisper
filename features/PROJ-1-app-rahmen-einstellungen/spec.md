@@ -52,6 +52,7 @@
 
 ### Alte App
 - [ ] **AC-16** — Angenommen die alte App läuft, wenn InnoWhisper startet, dann erscheint die Meldung „Die alte Version läuft noch und stört das Diktieren.“ mit den Knöpfen „Alte Version beenden“ und „Später“.
+  _Ausnahme für AC-16, EC-2 und AC-18 (ergänzt 2026-11-05 mit PROJ-3): Beim ersten Start, solange die Einführung offen ist, beginnt die Prüfung auf die alte App erst nach „Fertig“, siehe PROJ-3 EC-4._
 - [ ] **AC-17** — Angenommen die Meldung aus AC-16 ist zu sehen, wenn der Nutzer „Alte Version beenden“ klickt, dann wird die alte App beendet, und eine kurze Bestätigung erscheint.
 - [ ] **AC-18** — Angenommen der Nutzer hat „Später“ gewählt, solange die alte App läuft, dann zeigt das Menüleisten-Symbol den Zustand „Problem“, und im Menüleisten-Fenster steht ein Hinweis mit dem Knopf „Alte Version beenden“; sobald die alte App nicht mehr läuft, verschwinden beide.
 

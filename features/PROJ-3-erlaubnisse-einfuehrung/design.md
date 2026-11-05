@@ -160,6 +160,13 @@ Gemessen am 2026-11-05 auf Timurs Mac (macOS 26.5.1), Entwicklungsbau, Protokoll
   3. **Gewählt:** InnoWhisper meldet sich still an (Abfrage ohne Frage-Fenster plus ein von macOS abgelehnter Bedienungshilfen-Aufruf) und öffnet nur die Systemeinstellungen. Nach `tccutil reset` stand InnoWhisper danach wieder in der Liste (Bildschirmfoto von Timur), Einschalten wurde sofort erkannt. Timurs Wunsch: „am besten öffnet sich nur und direkt das Einstellungsfenster selbst“.
 - **Hinweis für Tests:** Der Entwicklungsbau hat noch kein App-Symbol; in der Liste steht er als „InnoWhisper“ mit leerem Symbol neben dem Eintrag der alten App.
 - **Nicht live geprüft:** Mikrofon „Nicht erlauben“ und Fortsetzen nach Beenden mittendrin. Beides ist durch Tests abgedeckt (PermissionMonitorTests, OnboardingFlowTests), die Sichtprüfung übernimmt `/qa`.
+- **Erkennung im Hintergrund nach QA (BUG-1, gemessen 2026-11-05 nachmittags):**
+  - Ursache 1: macOS legt die Prüfschleife einer reinen Menüleisten-App im Hintergrund schlafen (App Nap). Nach dem Start kamen keine Abfragen mehr bei macOS an. Abhilfe: Der Wächter meldet für seine Laufzeit eine Nutzer-Aktivität an (schlafender Mac bleibt erlaubt). Danach im Systemprotokoll eine Abfrage etwa alle 3,2 s, auch im Hintergrund.
+  - Ursache 2: Die Meldung „Bedienungshilfen-Liste geändert“ wurde zurückgehalten, solange InnoWhisper nicht vorne war. Abhilfe: sofortige Zustellung angefordert.
+  - Ursache 3: `AVCaptureDevice` merkt sich den Mikrofon-Stand vom Start. Mess-Version mit drei Abfragen nebeneinander, Timur schaltete ein und aus: `AVCaptureDevice` blieb bei „abgelehnt“, auch die interne TCC-Abfrage blieb stehen, nur `AVAudioApplication` folgte (Einschalten 16:21:51,652 bei macOS, erkannt 16:21:52,348; Ausschalten 16:22:58,492, erkannt 16:22:59,350). Abhilfe: Mikrofon-Stand über `AVAudioApplication`; „eingeschränkt“ (Vorgabe der IT) liefert nur `AVCaptureDevice`, das bleibt dafür.
+  - Bedienungshilfen ausgeschaltet: macOS 16:16:23,849, erkannt 16:16:23,865.
+  - Mit der fertigen Fassung, Mikrofon im Hintergrund: eingeschaltet bei macOS 16:25:38,052, erkannt 16:25:39,078 (1 s); ausgeschaltet 16:28:00,464, erkannt 16:28:02,450 (2 s). Grenze aus AC-15/AC-16: 5 s.
+  - Messfalle: `tccutil reset` erreicht eine laufende App nicht, erst nach Neustart. Für Entzugs-Tests nur echte Schalter in den Systemeinstellungen verwenden.
 
 ## Offene Fragen
 

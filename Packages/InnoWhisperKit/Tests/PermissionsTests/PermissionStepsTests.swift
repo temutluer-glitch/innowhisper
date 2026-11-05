@@ -37,7 +37,10 @@ import Testing
     @Test func hintsExplainWhatToDo() {
         #expect(PermissionKind.microphone.hint(for: .notDetermined) == nil)
         #expect(PermissionKind.microphone.hint(for: .denied)?.range(of: "nur noch in den Systemeinstellungen") != nil)
-        #expect(PermissionKind.microphone.hint(for: .restricted) != nil)
+        // BUG-2 (QA 05.11.): a microphone locked by the IT was explained as "you declined".
+        let restricted = PermissionKind.microphone.hint(for: .restricted) ?? ""
+        #expect(restricted.range(of: "gesperrt") != nil)
+        #expect(restricted.range(of: "abgelehnt") == nil)
         #expect(PermissionKind.accessibility.hint(for: .denied) == "Schalte dort InnoWhisper ein.")
         #expect(PermissionKind.accessibility.hint(for: .granted) == nil)
     }

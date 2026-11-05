@@ -50,6 +50,7 @@ struct PermissionStatusLabel: View {
             Text(granted ? "Erlaubt" : "Nicht erlaubt")
         } icon: {
             Image(systemName: granted ? "checkmark.circle.fill" : "xmark.circle")
+                .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(granted ? .green : .secondary)
         }
         .font(.headline)

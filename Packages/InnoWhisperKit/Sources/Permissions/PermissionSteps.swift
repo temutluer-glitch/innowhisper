@@ -47,6 +47,8 @@ extension PermissionKind {
     func hint(for state: PermissionState) -> String? {
         switch (self, state) {
         case (_, .granted), (.microphone, .notDetermined): nil
+        case (.microphone, .restricted):
+            "Das Mikrofon ist auf diesem Mac gesperrt, zum Beispiel durch eine Vorgabe der IT. Wende dich an die Person, die deinen Mac verwaltet."
         case (.microphone, _):
             "Du hast die Abfrage abgelehnt. Die Erlaubnis lässt sich jetzt nur noch in den Systemeinstellungen erteilen."
         case (.accessibility, _): "Schalte dort InnoWhisper ein."

@@ -43,6 +43,7 @@ public struct OnboardingPageLayout<Extra: View>: View {
     public var body: some View {
         VStack(spacing: 16) {
             Image(systemName: symbol)
+                .symbolRenderingMode(.hierarchical)
                 .font(.system(size: 44))
                 .foregroundStyle(.tint)
                 .accessibilityHidden(true)

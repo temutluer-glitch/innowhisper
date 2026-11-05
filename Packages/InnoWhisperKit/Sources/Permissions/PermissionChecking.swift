@@ -1,3 +1,4 @@
+import AVFAudio
 import AVFoundation
 import ApplicationServices
 
@@ -19,11 +20,15 @@ public final class SystemPermissionChecker: PermissionChecking {
     public func state(of kind: PermissionKind) -> PermissionState {
         switch kind {
         case .microphone:
-            switch AVCaptureDevice.authorizationStatus(for: .audio) {
-            case .authorized: return .granted
-            case .notDetermined: return .notDetermined
-            case .restricted: return .restricted
-            case .denied: return .denied
+            // AVAudioApplication asks macOS every time. AVCaptureDevice keeps the
+            // answer it had at launch, so a switch flipped in System Settings
+            // would go unnoticed until a restart (measured, design.md → Bau-Notizen).
+            switch AVAudioApplication.shared.recordPermission {
+            case .granted: return .granted
+            case .undetermined: return .notDetermined
+            case .denied:
+                // Only AVCaptureDevice knows "restricted" (a rule set by the Mac's admin).
+                return AVCaptureDevice.authorizationStatus(for: .audio) == .restricted ? .restricted : .denied
             @unknown default: return .denied
             }
         case .accessibility:

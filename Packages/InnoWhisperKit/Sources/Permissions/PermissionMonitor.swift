@@ -34,19 +34,24 @@ public final class PermissionMonitor {
     @ObservationIgnored private var returnedAt: ContinuousClock.Instant?
     @ObservationIgnored private var loop: Task<Void, Never>?
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
+    @ObservationIgnored private let keepChecksRunning: @MainActor () -> NSObjectProtocol
+    @ObservationIgnored private var backgroundActivity: NSObjectProtocol?
+    @ObservationIgnored private var accessibilityListObserver: AccessibilityListObserver?
 
     public init(
         checker: PermissionChecking,
         problems: ProblemCenter,
         links: SystemSettingsLinks = SystemSettingsLinks(),
         onboardingFinishedOnce: @escaping @MainActor () -> Bool,
-        now: @escaping @MainActor () -> ContinuousClock.Instant = { ContinuousClock.now }
+        now: @escaping @MainActor () -> ContinuousClock.Instant = { ContinuousClock.now },
+        keepChecksRunning: @escaping @MainActor () -> NSObjectProtocol = PermissionMonitor.preventAppNap
     ) {
         self.checker = checker
         self.problems = problems
         self.links = links
         self.onboardingFinishedOnce = onboardingFinishedOnce
         self.now = now
+        self.keepChecksRunning = keepChecksRunning
         refresh()
     }
 
@@ -63,10 +68,20 @@ public final class PermissionMonitor {
         onboardingIsOpen ? PermissionsInfo.onboardingInterval : PermissionsInfo.backgroundInterval
     }
 
+    /// A menu bar app sits in the background almost all the time. Without this,
+    /// macOS puts it to sleep (App Nap) and the checks stop, so a revoked
+    /// permission went unnoticed for minutes (AC-15, AC-16; QA BUG-1).
+    /// Idle system sleep stays allowed; a check costs next to nothing.
+    public static func preventAppNap() -> NSObjectProtocol {
+        ProcessInfo.processInfo.beginActivity(
+            options: .userInitiatedAllowingIdleSystemSleep, reason: "Watching microphone and accessibility permissions")
+    }
+
     /// Starts the regular checks plus the immediate ones on app activation and
     /// on changes to the Accessibility list.
     public func start() {
         guard loop == nil else { return }
+        backgroundActivity = keepChecksRunning()
         loop = Task { [weak self] in
             while !Task.isCancelled {
                 guard let interval = self?.interval else { return }
@@ -80,12 +95,7 @@ public final class PermissionMonitor {
             ) { [weak self] _ in
                 MainActor.assumeIsolated { self?.appBecameActive() }
             })
-        observers.append(
-            DistributedNotificationCenter.default().addObserver(
-                forName: Notification.Name("com.apple.accessibility.api"), object: nil, queue: .main
-            ) { [weak self] _ in
-                MainActor.assumeIsolated { self?.refresh() }
-            })
+        accessibilityListObserver = AccessibilityListObserver { [weak self] in self?.refresh() }
     }
 
     /// Reads every permission from macOS once.
@@ -167,5 +177,25 @@ public final class PermissionMonitor {
                 problems.withdraw(id: kind.problemID)
             }
         }
+    }
+}
+
+/// Listens for changes to the Accessibility list. AppKit holds distributed
+/// notifications back while the app is not in front; this one has to arrive
+/// immediately, because InnoWhisper is almost never in front (QA BUG-1).
+@MainActor
+private final class AccessibilityListObserver: NSObject {
+    private let onChange: @MainActor () -> Void
+
+    init(onChange: @escaping @MainActor () -> Void) {
+        self.onChange = onChange
+        super.init()
+        DistributedNotificationCenter.default().addObserver(
+            self, selector: #selector(listChanged), name: Notification.Name("com.apple.accessibility.api"),
+            object: nil, suspensionBehavior: .deliverImmediately)
+    }
+
+    @objc private func listChanged(_ notification: Notification) {
+        onChange()
     }
 }

@@ -31,7 +31,11 @@ final class FakeClock {
     let clock = FakeClock()
     var opened: [URL] = []
 
-    func makeMonitor(finished: Bool, opened: @escaping @MainActor (URL) -> Void = { _ in }) -> PermissionMonitor {
+    func makeMonitor(
+        finished: Bool,
+        keepAwake: @escaping @MainActor () -> NSObjectProtocol = { NSObject() },
+        opened: @escaping @MainActor (URL) -> Void = { _ in }
+    ) -> PermissionMonitor {
         PermissionMonitor(
             checker: checker,
             problems: problems,
@@ -40,7 +44,8 @@ final class FakeClock {
                 return true
             },
             onboardingFinishedOnce: { finished },
-            now: { [clock] in clock.instant })
+            now: { [clock] in clock.instant },
+            keepChecksRunning: keepAwake)
     }
 
     @Test func intervalIsOneSecondDuringOnboardingElseThree() {
@@ -103,7 +108,7 @@ final class FakeClock {
     @Test func deniedMicrophoneOpensSystemSettings() {
         checker.states[.microphone] = .denied
         var urls: [URL] = []
-        let monitor = makeMonitor(finished: false) { urls.append($0) }
+        let monitor = makeMonitor(finished: false, opened: { urls.append($0) })
         monitor.requestPermission(.microphone)
         #expect(checker.microphoneRequests == 0)
         #expect(
@@ -113,7 +118,7 @@ final class FakeClock {
 
     @Test func accessibilityRegistersAndOpensSystemSettings() {
         var urls: [URL] = []
-        let monitor = makeMonitor(finished: false) { urls.append($0) }
+        let monitor = makeMonitor(finished: false, opened: { urls.append($0) })
         monitor.requestPermission(.accessibility)
         #expect(checker.accessibilityRegistrations == 1)
         #expect(urls.count == 1)
@@ -140,5 +145,21 @@ final class FakeClock {
         clock.advance(.seconds(30))
         monitor.refresh()
         #expect(monitor.restartOffered.isEmpty)
+    }
+
+    // BUG-1 (QA 05.11.): in the background macOS throttled the checks, so a
+    // revoked permission went unnoticed. Starting the watcher keeps them running.
+    @Test func startKeepsTheChecksRunningInTheBackground() {
+        var activities = 0
+        let monitor = makeMonitor(
+            finished: true,
+            keepAwake: {
+                activities += 1
+                return NSObject()
+            })
+        #expect(activities == 0)
+        monitor.start()
+        monitor.start()
+        #expect(activities == 1)
     }
 }
