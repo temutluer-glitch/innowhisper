@@ -25,8 +25,8 @@
 
 ## Stufe 4 — Erlaubnis-Oberflächen
 
-- [ ] T9 [P]  Erlaubnis-Schritte „Mikrofon“ (Reihenfolge 30) und „Bedienungshilfen“ (40): Erklärsatz, Stand mit grünem Häkchen, Knöpfe je Stand, Satz „Schalte dort InnoWhisper ein.“, Neustart-Knopf und Neustart (macOS öffnet die App nach 1 s wieder), VoiceOver-Ansage „Erlaubt“  · files: Perm/PermissionSteps.swift, Perm/PermissionStepView.swift, Perm/AppRelauncher.swift  · → AC-6, AC-7, AC-8, AC-9, AC-10, AC-11, AC-21, AC-22, EC-1, EC-3
-- [ ] T10 [P]  Bereich „Zugang & Erlaubnisse“ mit Gruppe „Erlaubnisse“: je Zeile Stand und „Jetzt erlauben“; der Problem-Hinweis kommt aus dem Rahmen  · files: Perm/AccessPane.swift  · → AC-16, AC-17, AC-22
+- [x] T9 [P]  Erlaubnis-Schritte „Mikrofon“ (Reihenfolge 30) und „Bedienungshilfen“ (40): Erklärsatz, Stand mit grünem Häkchen, Knöpfe je Stand, Satz „Schalte dort InnoWhisper ein.“, Neustart-Knopf und Neustart (macOS öffnet die App nach 1 s wieder), VoiceOver-Ansage „Erlaubt“  · files: Perm/PermissionSteps.swift, Perm/PermissionStepView.swift, Perm/AppRelauncher.swift  · → AC-6, AC-7, AC-8, AC-9, AC-10, AC-11, AC-21, AC-22, EC-1, EC-3
+- [x] T10 [P]  Bereich „Zugang & Erlaubnisse“ mit Gruppe „Erlaubnisse“: je Zeile Stand und „Jetzt erlauben“; der Problem-Hinweis kommt aus dem Rahmen  · files: Perm/AccessPane.swift  · → AC-16, AC-17, AC-22
 
 ## Stufe 5 — Zusammensetzen und echt prüfen
 
