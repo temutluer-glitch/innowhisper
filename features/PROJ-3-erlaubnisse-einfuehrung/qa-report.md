@@ -1,108 +1,96 @@
 # QA-Ergebnisse PROJ-3: Erlaubnisse & Einführung
 
-**Geprüft:** 2026-11-05 (Nachprüfung nach der Korrektur von BUG-1 bis BUG-6)
-**App-Adresse:** nicht hier lauffähig (`probe.kind: none`, native Menüleisten-App). Laufzeitkriterien sind `[!] NOT VERIFIED`, außer wo ein Test durch Timur aufgezeichnet ist (Protokollzeilen der App gegen Zeitstempel von macOS/tccd).
-**Prüfer:** QA Engineer (KI). Drei unabhängige `qa-engineer`-Prüfer (Abnahme, Sicherheit, Regression) ohne Kenntnis des Baus; zusammengeführt vom Owner, dazu ein Test durch Timur mit dem fertigen Bau.
-**Umfang:** Nachprüfung in der Breite der Korrektur. Grundlage `git diff --stat f2154a4..HEAD` (f2154a4 = Commit des vorigen Berichts, HEAD = 3c1d11b). Geänderte Produktionsdateien:
+**Geprüft:** 2026-11-05 (zweite Nachprüfung, nach der Korrektur von BUG-7 und dem Rest von BUG-1)
+**App-Adresse:** nicht hier lauffähig (`probe.kind: none`, native Menüleisten-App). Laufzeitkriterien gelten nur dort als belegt, wo ein Test durch Timur aufgezeichnet ist: Protokollzeilen der App neben Zeitstempeln von macOS (tccd), dazu Timurs Sichtprüfung.
+**Prüfer:** QA Engineer (KI). Ein unabhängiger `qa-engineer`-Prüfer mit allen drei Bereichen (Abnahme, Sicherheit, Regression) ohne Kenntnis des Baus; zusammengeführt vom Owner, dazu Tests durch Timur mit dem fertigen Bau.
+**Umfang:** Nachprüfung in der Breite der Korrektur. Grundlage `git diff --stat d573a64..HEAD` (d573a64 = Commit des vorigen Berichts, HEAD = fcd5b6c). Geänderte Produktionsdateien:
+- `App/InnoWhisperApp.swift`
 - `Packages/InnoWhisperKit/Sources/Permissions/PermissionChecking.swift`
 - `Packages/InnoWhisperKit/Sources/Permissions/PermissionMonitor.swift`
-- `Packages/InnoWhisperKit/Sources/Permissions/PermissionSteps.swift`
-- `Packages/InnoWhisperKit/Sources/Permissions/PermissionStepView.swift`
-- `Packages/InnoWhisperKit/Sources/Onboarding/WelcomeAndDoneViews.swift`
-- dazu geteilte Dokumente `docs/decisions.md` und `features/PROJ-1-app-rahmen-einstellungen/spec.md`, deshalb volle Aufteilung auf drei Prüfer
-**Testlauf:** `swift test --package-path Packages/InnoWhisperKit` einmal vor der Aufteilung (16:33): 119 Tests in 18 Suites bestanden, 0 Fehlschläge.
-**Geprüfter Bau:** Debug-Bau vom 05.11. 16:23:48 (Codestand von 3c1d11b, `stat` der Binärdatei), Prozess gestartet 16:40:19 nach Zurücksetzen von Mikrofon, Bedienungshilfen und Einführungs-Fortschritt.
+**Testlauf:** `swift test --package-path Packages/InnoWhisperKit` einmal durch den Prüfer: 121 Tests in 18 Suites bestanden, 0 Fehlschläge. Lint Exit 0. Bau ohne Signatur: BUILD SUCCEEDED, keine Compiler-Warnung.
+**Geprüfter Bau:** Debug-Bau vom 05.11. 17:31:34, entspricht fcd5b6c (Quelldateien zuletzt 17:31:30, `git status` sauber, `strings` findet `--check-accessibility`). Prozesse 85970 (Start 17:32:04) und 94552 (Start 17:44:30) sowie der Neustart 17:52:29.
 
-> Legende: `[x]` in diesem Lauf belegt (mit Nachweis) · `[ ] BUG` als fehlerhaft belegt · `[!] NOT VERIFIED` nicht prüfbar (mit Grund) · „übernommen“ = unverändert seit dem Bericht vom 05.11. vormittags, in diesem Lauf nicht neu geprüft, weil der Diff die Dateien nicht berührt.
+> Legende: `[x]` in diesem Lauf belegt (mit Nachweis) · `[ ] BUG` als fehlerhaft belegt · `[!] NOT VERIFIED` nicht prüfbar (mit Grund) · „übernommen“ = unverändert seit dem vorigen Bericht (05.11.), in diesem Lauf nicht neu geprüft, weil der Diff die Dateien nicht berührt. „Timur, 05.11.“ = Test durch Timur auf seinem Mac (macOS 26.5.1, dunkles und helles Erscheinungsbild).
 
 ## Abnahmekriterien
 
 ### Ablauf der Einführung
-- AC-1, AC-2, AC-5, AC-7 — übernommen (Diff berührt `OnboardingFlow.swift`, `OnboardingView.swift`, `OnboardingWindowController.swift` nicht)
-- [x] **AC-3** Text wortgleich zur Spec — `WelcomeAndDoneViews.swift:8-11`; im Diff nur `.symbolRenderingMode` (`:46`)
-- [x] **AC-4** Text wortgleich — `WelcomeAndDoneViews.swift:22-23`; Test `fertigStoresFinishAndCallsBack` im Testlauf bestanden
-- [x] **AC-6** Erklärsätze — `PermissionSteps.swift:25-30`; Test `explanationsSayWhyItIsNeeded` bestanden
+- [x] **AC-1** Neuer Einstieg ruft zuerst die Prüfung, dann die App (`App/InnoWhisperApp.swift:8-14`); Starts 17:32:04 und 17:44:30 mit „Launch checks passed“ und „Onboarding window shown, page 1 of 4, closable false“
+- AC-2, AC-3, AC-4, AC-5, AC-6 — übernommen (Diff berührt Einführung und Texte nicht)
+- [x] **AC-7** Sperre nicht im Diff; „Weiter“ wurde nach der Erlaubnis frei: „Onboarding step completed: microphone“ 17:39:48,671, „accessibility“ 17:40:52,376 (Timur, 05.11.)
 
 ### Erlaubnisse in der Einführung
-- [ ] **BUG-7 AC-8** Mikrofon in der Einführung erlaubt, App erkennt es nicht. Test durch Timur, 05.11.: macOS meldet die Erlaubnis 16:41:55,413 (tccd „Create kTCCServiceMicrophone“), bis 16:43:43 (108 s) keine Zeile „Permission changed“, kein grünes Häkchen; weitere Klicks lösen nur „Microphone permission requested“ aus (16:42:16 bis 16:43:07). Die Abnahme-Lane hatte das Risiko vorab benannt: Anfrage über `AVCaptureDevice.requestAccess` (`PermissionChecking.swift:39-41`), Stand über `AVAudioApplication` (`:26-33`). Siehe BUG-7.
-- [x] **AC-9** Satz „Schalte dort InnoWhisper ein.“ — `PermissionSteps.swift:54`; Test `settingsOpenAtTheRightPage` bestanden
-- [!] **AC-10** Bedienungshilfen mit dem fertigen Bau — durch BUG-7 nicht erreicht (Einführung bleibt beim Mikrofon stehen); Mikrofon über die Systemeinstellungen mit dem fertigen Bau erteilt und nach 1,03 s erkannt (tccd 16:25:38,052, Protokoll 16:25:39,078)
-- [x] **AC-11** Logik: Hinweistexte für abgelehnt und gesperrt — `PermissionSteps.swift:50-53`; Test `hintsExplainWhatToDo` bestanden
-  - [!] echter Klick auf „Nicht erlauben“ — no way to run and probe this project was recorded; Test durch Timur folgt nach BUG-7
+- [x] **AC-8** Mikrofon: Anfrage 17:39:39,866, macOS speichert 17:39:45,406, App erkennt 17:39:45,405 (Grenze 2 s ab Antwort); Anfrage und Lesung über dieselbe Schnittstelle (`PermissionChecking.swift:40,137`); grünes Häkchen gesehen, Timur, 05.11.
+- [x] **AC-9** Eintrag in die Liste über den Dock-Aufruf (`PermissionChecking.swift:144-148`), „System Settings opened at accessibility“ 17:40:23,559; InnoWhisper stand in der Liste, Timur, 05.11.
+- [x] **AC-10** Bedienungshilfen in der Einführung: macOS 17:40:36,774, App 17:40:36,772; Häkchen blieb beim Wechsel zwischen den Fenstern stabil (keine weitere Zeile „Permission changed“ bis 17:42:41), Timur, 05.11.
+- [x] **AC-11** „Nicht erlauben“ geklickt: 17:52:12,252 Anfrage, 17:52:14,031 „microphone notDetermined -> denied“; Hinweis und Knopf „In den Systemeinstellungen erlauben“ gesehen, Knopf öffnet die Seite Mikrofon (17:52:42,056), Einschalten erkannt 17:52:47,525; Timur, 05.11.
 
 ### Fenster, Beenden, Einstellungen
-- AC-12, AC-13, AC-14 — übernommen
-  - [!] AC-12 echte Tasten Esc und ⌘W: Timur hat Runde 1 vor diesem Schritt begonnen, Ergebnis nicht gemeldet
-  - [!] AC-13 Beenden mitten in der Einführung am echten Programm — noch nicht getestet
+- [x] **AC-12** Esc und ⌘W ohne Wirkung, Timur, 05.11. (Durchgang ab 17:32)
+- [x] **AC-13** ⌘Q mitten in der Einführung im Schritt Mikrofon, Neustart 17:52:29 „Onboarding window shown, page 2 of 4“, Fortsetzen am Mikrofon-Schritt; Timur, 05.11.
+- AC-14 — übernommen
+  - [!] mit dem neuen Einstieg nicht gezielt getestet; Code-Pfad in `AppDelegate.swift` unverändert, Prüfkind endet vor `applicationDidFinishLaunching` (14 Kind-Starts, 0 Zeilen „Second instance detected“)
 
 ### Später entzogene Erlaubnis
-- [ ] **BUG-1 AC-15** Mikrofon-Hälfte belegt mit dem fertigen Bau: im Hintergrund ausgeschaltet 16:28:00,464 (tccd), erkannt 16:28:02,450 (1,99 s, Grenze 5 s); Test durch Timur, 05.11. Bedienungshilfen-Hälfte `[!] NOT VERIFIED`: Die Messung 16:16:23 in `design.md` stammt von Prozess 52130 (Start 12:16:26), also einem früheren Bau; der Test mit dem fertigen Bau wurde durch BUG-7 nicht erreicht. Keine erneute Einführung: Test `revokedPermissionAfterFinishDoesNotReopen` bestanden.
-- [ ] **BUG-1 AC-16** Mikrofon wieder erteilt im Hintergrund nach 1,03 s erkannt (siehe AC-10). Bedienungshilfen offen wie AC-15. Tests `missingPermissionsAreReportedAfterOnboardingWithOwnButton`, `problemDisappearsWhenPermissionComesBack` bestanden.
-- [x] **AC-17** Stand „Erlaubt“/„Nicht erlaubt“ — `PermissionStepView.swift:45-60`; im Diff nur `.symbolRenderingMode`
-  - [!] Darstellung — no way to run and probe this project was recorded
+- [x] **AC-15** Einführung fertig 17:40:57; drei Entzüge im Hintergrund, erkannt 0,57 s / 0,55 s / 0,57 s nach macOS (17:42:40,644 → 17:42:41,212; 17:42:59,922 → 17:43:00,471; 17:43:08,368 → 17:43:08,941); keine erneute Einführung; Warndreieck gesehen, Timur, 05.11. Einschränkung siehe BUG-11.
+- [x] **AC-16** drei Wiedererteilungen erkannt 0,58 s / 0,54 s / 0,56 s (17:42:54,059 → 54,634; 17:43:04,844 → 05,388; 17:43:11,357 → 11,919); Warndreieck verschwand, Timur, 05.11.; Tests `problemDisappearsWhenPermissionComesBack`, `listChangeTriggersAFreshAccessibilityCheck`
+- [x] **AC-17** Stände aus `state(of:)`, Ansicht nicht im Diff; Darstellung übernommen
 
 ### Wachsende Einführung, Protokoll, Bedienbarkeit
-- AC-18, AC-19 — übernommen
-- [x] **AC-20** Protokollzeilen bei Änderungen — `PermissionMonitor.swift:107,110`; mit dem fertigen Bau gesehen 16:25:39,078 und 16:28:02,450 in `~/Library/Logs/InnoWhisper/InnoWhisper.log`
-- [x] **AC-21** Logik: Überschrift `.isHeader`, Symbol vor VoiceOver verborgen, Ansage „Erlaubt“ — `WelcomeAndDoneViews.swift:49,53`, `PermissionStepView.swift:37-40,58`
-  - [!] Tastatur und echte VoiceOver-Ausgabe — no way to run and probe this project was recorded
-- [x] **AC-22** Symbole jetzt hierarchisch (`WelcomeAndDoneViews.swift:46`, `PermissionStepView.swift:53`), Knopfgröße `.regular` (`PermissionStepView.swift:18,32`)
-  - [ ] BUG-3 Rest (Low): Knopfstile, siehe unten
-  - [!] Hell- und Dunkelmodus — no way to run and probe this project was recorded
+- AC-18, AC-21 — übernommen
+- [x] **AC-19** Start ohne Prüfung außerhalb liest richtig (17:44:30,761 „accessibility granted“ passt zur letzten Erteilung 17:43:11)
+- [x] **AC-20** Zeilen „Permission changed“ wie oben; neue Zeile „Accessibility checked outside the app: <Stand>, took <Dauer>“ nur mit Aufzählungswert und Dauer (`PermissionChecking.swift:77,79`)
+- [x] **AC-22** Dunkel: Bildschirmfotos von Timur (Einführung Schritt 3), Hell: Sichtprüfung Timur, 05.11. 17:54 („alles klappt“)
 
 ## Grenzfälle
-- [x] **EC-1** erste Prüfung im Konstruktor `PermissionMonitor.swift:55`; Test `alreadyGrantedStepsAreShownOnFirstStart` bestanden
-- [x] **EC-2** Test `revokedEarlierPermissionJumpsBack` bestanden; Ablauf nicht im Diff
-- [x] **EC-3** Logik unverändert `PermissionMonitor.swift:148-161`; Test `restartIsOfferedTenSecondsAfterReturningWithoutGrant` bestanden
+- [x] **EC-1** Start 17:31:45 beide „granted“; Test `alreadyGrantedStepsAreShownOnFirstStart`
+- [x] **EC-2** Test `revokedEarlierPermissionJumpsBack` (Logik)
+  - [!] live — no way to run and probe this project was recorded
+- [x] **EC-3** Test `restartIsOfferedTenSecondsAfterReturningWithoutGrant`; Neustart-Weg nicht im Diff
   - [!] echter Neustart — no way to run and probe this project was recorded
-- [x] **EC-4** Vermerk jetzt in PROJ-1 (`features/PROJ-1-app-rahmen-einstellungen/spec.md:55`); Umfang siehe BUG-9
-- EC-5 — übernommen
+- EC-4, EC-5 — übernommen
 
 ## Sicherheitsprüfung
 
-Angewendet nach `docs/kit/guides/security.md`: SEC-01, SEC-02, SEC-08 (Diff berührt SEC-03 nicht).
+Angewendet nach `docs/kit/guides/security.md`: SEC-01, SEC-02, SEC-08 (SEC-03 bis SEC-07 entfallen: kein Konto, kein HTTP, keine KI).
 
-- [x] Keine Geheimnisse in git (SEC-01): `git log -p f2154a4..HEAD | grep -nE "gsk_|sk-[A-Za-z0-9]{10}|api_key|PRIVATE KEY|ghp_|github_pat_|AKIA|password *=|secret *=|token *="` — 0 Treffer
-- [x] Keine Geheimnisse im Programm: `strings` über den Debug-Bau 16:23, `gsk_|sk-|PRIVATE KEY` — 0 Treffer
-- [x] Protokoll ohne Inhalte: Diff fügt keine Protokollzeile hinzu (grep über `^\+` nach Log-Aufrufen, 0 Treffer); bestehende Zeilen setzen nur Aufzählungswerte ein (`PermissionMonitor.swift:107,110,123,157`)
-- [x] Kein nachgeladener Code: `grep -rnE "dlopen|dlsym|NSClassFromString|Bundle\(path|performSelector|@_spi" App Packages/InnoWhisperKit/Sources` — 0 Treffer; `otool -L` nur Systemframeworks
-- [x] Nur öffentliche Schnittstellen neu: `AVAudioApplication.recordPermission`, `ProcessInfo.beginActivity`, `DistributedNotificationCenter.addObserver(…suspensionBehavior:)`. Undokumentiert ist nur der Mitteilungsname `com.apple.accessibility.api` (schon vor dem Diff), mit der 3-s-Abfrage als Rückfall
-- [x] Mitteilung von außen (SEC-02): `listChanged` liest keinen Inhalt, löst nur `refresh()` aus (`PermissionMonitor.swift:198-200`), kein falscher Stand möglich. Fehlende Drosselung siehe BUG-8
-- [x] Berechtigungen und Unterschrift: Entitlements nur `audio-input`; Hardened Runtime in beiden Konfigurationen (`project.pbxproj:211,237`); Diff ändert keine dieser Dateien
-- [x] Keine abgeschwächten Prüfungen (SEC-08): eine Erwartung ersetzt durch zwei strengere (`PermissionStepsTests.swift`), keine abgeschalteten Tests (`grep -rnE "\.disabled|withKnownIssue|\.enabled\(if"` 0 Treffer), `.swift-format` unverändert
-- [x] SEC-08-Ausnahme Debug `get-task-allow` (BUG-6): Eintrag mit Kontroll-ID, Umfang, Zustimmung, Ausgleich und Neuprüfung in `docs/decisions.md:49`; Ausgleich gegengeprüft: `DevToolsSecurity -status` „Developer mode is currently disabled.“, Release `CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO` (`project.pbxproj:228`)
-- [!] Release-Bau (Entitlements, `strings`) — in diesem Lauf nicht gebaut, braucht den Schlüsselbund
-- [!] Anmeldung, Autorisierung zwischen Nutzern, Rate Limiting, Brute Force (SEC-04), URL/Kopfzeilen (SEC-05/06), Modellausgaben (SEC-07) — entfallen: kein Konto, kein HTTP, keine KI in diesem Feature
+- [x] Keine Geheimnisse in git (SEC-01): `git log -p d573a64..HEAD | grep -nE "gsk_|sk-[A-Za-z0-9]{10}|api_key|PRIVATE KEY|ghp_|github_pat_|AKIA|password *=|secret *=|token *="` — 0 Treffer; `strings` über den Bau — 0 Treffer
+- [x] Protokoll ohne Inhalte: neue Zeilen nur mit Stand und Dauer; Prüfkinder schreiben nichts (14 Kind-Starts ohne „App started“)
+- [x] Startargument (SEC-02): `--check-accessibility` liest nur, gibt „granted“/„denied“ aus und beendet sich vor der App (`PermissionChecking.swift:107-111`)
+- [x] Auswertung der Antwort: exakter Vergleich, sonst keine Antwort; stderr nach `/dev/null`; Zeitgrenze 2 s mit `terminate()` (`:91-102`); gemessen 43 bis 73 ms
+- [x] Keine abgeschwächten Prüfungen (SEC-08): keine entfernte Testzeile, keine abgeschalteten Tests, `.swift-format`, Package.swift, Projekt, Info.plist und Entitlements unverändert
+- [ ] BUG-8 (verschärft, Medium): Prüfung von außen beliebig oft auslösbar, jetzt mit zwei Prozessstarts je Mitteilung
+- [ ] BUG-13 (Low): Prüfkind wird ohne Signaturprüfung gestartet
+- [!] Release-Bau und Entitlements — nicht gebaut, braucht den Schlüsselbund
 
 ## Regression (PROJ-1, PROJ-2)
-- [x] Testlauf 16:33: AppShellTests 44/44 (PROJ-1), DiagnosticsTests 18/18 und NoticesTests 15/15 (PROJ-2), OnboardingTests 18/18 und PermissionsTests 24/24 (PROJ-3)
-- [x] Lint `swift format lint --strict --recursive App Packages`: Exit 0
-- [x] Bau ohne Signatur ins Scratchpad: BUILD SUCCEEDED, keine Compiler-Warnungen (der signierte Bau wurde von den Prüfern nicht ausgeführt, weil er den Schlüsselbund braucht)
-- [x] Geteilter Code nicht berührt: `git diff f2154a4..HEAD --stat -- App Packages/InnoWhisperKit/Sources/AppShell Packages/InnoWhisperKit/Sources/Notices Packages/InnoWhisperKit/Sources/Diagnostics` leer; `updateProblems` meldet und zieht nur einmal (`PermissionMonitor.swift:163-179`), häufigeres Prüfen erzeugt keine doppelten Hinweise
-- [x] PROJ-1 EC-5 (Herunterfahren): `beginActivity` schaltet auch Sudden Termination ab, der Weg über `willPowerOffNotification` (`App/AppDelegate.swift:32-36,51-53`) bleibt unverändert
-  - [!] tatsächliches Herunterfahren — no way to run and probe this project was recorded
-- [!] Kein Feature ist „Deployed“; Laufzeit von PROJ-1/PROJ-2 — no way to run and probe this project was recorded
+- [x] Testlauf 121/121, darunter alle Suites von PROJ-1 (SingleInstanceAndQuit, LoginItemController, LegacyAppGuard, State, SettingsRegistry) und PROJ-2 (Log, LogFile, LogMessage, Notice*)
+- [x] Start über den neuen Einstieg: „Launch checks passed“ und „Login item status: enabled“ bei allen Starts; nur eine Instanz (0 Zeilen „Second instance detected“ bei 14 Kind-Starts)
+- [x] Prüfung auf die alte App unbeeinflusst (keine Meldung während der Kind-Starts)
+- [!] Laufzeit von Menüleiste, Einstellungsfenster, Hinweisen und Tönen — no way to run and probe this project was recorded; kein Feature „Deployed“
 
 ## QA-Tests (Schritt 6)
-- Keine neuen Tests in diesem Lauf. BUG-7 betrifft den Systemanschluss (`SystemPermissionChecker`), der nur am laufenden Programm prüfbar ist; die Tests nutzen einen Ersatz.
+- Keine neuen Tests in diesem Lauf. Die neuen Tests aus dem Bau (`accessibilityFollowsTheDocksAnswer`, `listChangeTriggersAFreshAccessibilityCheck`) sind mit Rot-Probe angelegt. Ungetestet bleibt der echte Prozessstart samt Fehlerweg (siehe BUG-11); er ist nur am laufenden Programm prüfbar.
 
 ## E2E-Tests
 - Status: **nicht gelaufen** (`/e2e-tests` für kritische Abläufe; für diese native App gibt es noch keinen E2E-Stack)
 
 ## Nicht geprüft in diesem Lauf
-- [!] Bedienungshilfen im Hintergrund mit dem fertigen Bau entziehen und wieder erteilen (AC-10, AC-15, AC-16) — durch BUG-7 nicht erreicht; Test durch Timur nach der Korrektur
-- [!] AC-11 echtes „Nicht erlauben“, AC-12 echte Tasten Esc/⌘W, AC-13 Beenden mittendrin, AC-21 Tastatur/VoiceOver, AC-22 Hell/Dunkel, EC-3 echter Neustart, EC-5 zweiter Bildschirm — no way to run and probe this project was recorded; Test durch Timur folgt
-- [!] Mikrofon „eingeschränkt“ an einem echten, von der IT verwalteten Mac — kein solcher Mac verfügbar
+- [!] AC-14 mit dem neuen Einstieg, EC-2 live, EC-3 echter Neustart, EC-5 zweiter Bildschirm, AC-21 Tastatur/VoiceOver — no way to run and probe this project was recorded
+- [!] Fehlerweg der Prüfung außerhalb (Zeitüberschreitung, Start scheitert) am laufenden Programm — siehe BUG-11
+- [!] Flut von Mitteilungen (BUG-8), ausgetauschtes Programm (BUG-13), Fehlercodes des Docks beim Neustart des Docks (BUG-12) — nicht ausgeführt
+- [!] Mikrofon „eingeschränkt“ an einem von der IT verwalteten Mac — kein solcher Mac verfügbar
+- [!] Release-Bau — braucht den Schlüsselbund
 
 ## Gefundene Fehler
 
 ### BUG-1: Entzogene Erlaubnis wird im Hintergrund nicht bemerkt
 - **Schweregrad:** High
-- **Status:** Open (Mikrofon-Hälfte belegt behoben, Bedienungshilfen-Hälfte mit dem fertigen Bau noch nicht gemessen)
-- **Fehlerart (Class):** Regelmäßige Arbeit einer Menüleisten-App im Hintergrund ohne Schutz gegen App Nap; Erlaubnis-Abfragen, die macOS je Prozess zwischenspeichert
+- **Status:** Fixed (in diesem Lauf bestätigt)
+- **Fehlerart (Class):** Regelmäßige Arbeit im Hintergrund ohne Schutz gegen App Nap; Erlaubnis-Abfragen, die macOS im laufenden Prozess veraltet hält
 - **Kriterium:** AC-15, AC-16
-- **Sweep:** `grep -rn "beginActivity\|NSAppSleepDisabled\|NSProcessInfo.*activity" App Packages` — 1 Treffer (`PermissionMonitor.swift:76`, vorher 0); `grep -rn "authorizationStatus(for" App Packages/InnoWhisperKit/Sources` — 1 Treffer, nur noch für „eingeschränkt“ (`PermissionChecking.swift:31`)
-- **Offen:** Bedienungshilfen im Hintergrund mit dem fertigen Bau aus- und einschalten (nur echte Schalter, `tccutil` erreicht eine laufende App nicht). Die Abnahme-Lane sah zwischen 16:23:49 und 16:24:52 keine Bedienungshilfen-Anfrage des Prozesses bei tccd; ob `AXIsProcessTrusted()` im Prozess zwischenspeichert, klärt nur dieser Test.
+- **Sweep:** `grep -rn "beginActivity\|NSAppSleepDisabled\|NSProcessInfo.*activity" App Packages` — 1 Treffer (`PermissionMonitor.swift:78`); `grep -rn "kAXFocusedApplicationAttribute" Packages/InnoWhisperKit/Sources App` — 0 Treffer
+- **Beleg:** Mikrofon im Hintergrund 1,03 s / 1,99 s (Bericht vom Nachmittag), Bedienungshilfen 6 von 6 Wechseln in 0,54 bis 0,58 s (siehe AC-15, AC-16). Restrisiko im Fehlerweg siehe BUG-11.
 
 ### BUG-2: Falscher Hinweis bei gesperrtem Mikrofon
 - **Schweregrad:** Low
@@ -110,7 +98,7 @@ Angewendet nach `docs/kit/guides/security.md`: SEC-01, SEC-02, SEC-08 (Diff ber�
 - **Fehlerart:** Text und Knopf fassen Zustände mit unterschiedlicher Ursache zusammen
 - **Kriterium:** AC-11 (Randfall „eingeschränkt“)
 - **Sweep:** `grep -n "return \"In den Systemeinstellungen erlauben\"" Packages/InnoWhisperKit/Sources/Permissions/PermissionSteps.swift` — 1 Treffer
-- **Stand:** Hinweistext behoben (`PermissionSteps.swift:50-51`, Test `hintsExplainWhatToDo`). Rest: Der Knopf heißt bei „eingeschränkt“ weiter „In den Systemeinstellungen erlauben“ (`PermissionSteps.swift:41-44`) und steht über dem Satz „Wende dich an die Person, die deinen Mac verwaltet“.
+- **Stand:** Text behoben; der Knopf heißt bei „eingeschränkt“ weiter „In den Systemeinstellungen erlauben“. Vom Diff nicht berührt.
 
 ### BUG-3: Abweichungen vom Design-System
 - **Schweregrad:** Low
@@ -118,65 +106,78 @@ Angewendet nach `docs/kit/guides/security.md`: SEC-01, SEC-02, SEC-08 (Diff ber�
 - **Fehlerart:** Gestaltungsvorgaben aus `docs/design-system.md` in neuen Ansichten nicht übernommen
 - **Kriterium:** AC-22
 - **Sweep:** `grep -rn "buttonStyle(" Packages/InnoWhisperKit/Sources/Onboarding Packages/InnoWhisperKit/Sources/Permissions` — 6 Treffer
-- **Stand:** Symbole behoben (2/2 hierarchisch). Rest: `.bordered` (`PermissionStepView.swift:17,31`) neben Glas (`OnboardingView.swift:52,54`). `docs/design-system.md:11` erlaubt Glas für Knopfleisten, `:52` verlangt schlichte Nebenknöpfe; ob das so gemeint ist, entscheidet Timur.
+- **Stand:** Symbole behoben; gemischte Knopfstile (`.bordered` neben Glas) offen, Entscheidung bei Timur. Vom Diff nicht berührt.
 
 ### BUG-4: „Jetzt erlauben“ doppelt im Bereich „Zugang & Erlaubnisse“
 - **Schweregrad:** Low
 - **Status:** Deferred
 - **Fehlerart:** Gleiche Handlung an zwei Stellen derselben Fläche
 - **Kriterium:** AC-16, AC-17
-- **Sweep:** `grep -rn "Jetzt erlauben" Packages/InnoWhisperKit/Sources` — 3 Treffer (`AccessPane.swift:21`, `PermissionMonitor.swift:173`, Kommentar `ProblemCenter.swift:20`)
-- **Stand:** vom Diff nicht berührt. AC-16 und AC-17 verlangen den Knopf beide; eine Änderung braucht `/refine PROJ-3`.
+- **Sweep:** `grep -rn "Jetzt erlauben" Packages/InnoWhisperKit/Sources` — 3 Treffer
+- **Stand:** AC-16 und AC-17 verlangen beide den Knopf; Änderung braucht `/refine PROJ-3`. Vom Diff nicht berührt.
 
 ### BUG-5: PROJ-1 AC-16 ohne Ausnahme-Vermerk
 - **Schweregrad:** Low
-- **Status:** Fixed (in diesem Lauf bestätigt)
-- **Fehlerart:** Verhaltensänderung an einem freigegebenen Nachbar-Feature ohne Vermerk in dessen spec.md
-- **Sweep:** `grep -n "PROJ-1[, ]*AC-\|AC-5 und AC-6" features/PROJ-3-erlaubnisse-einfuehrung/spec.md` — 2 Treffer (`:70`, `:79`), beide mit Gegenstück in PROJ-1 (`spec.md:40`, `:55`). Restumfang siehe BUG-9.
+- **Status:** Fixed (bestätigt im vorigen Lauf)
 
 ### BUG-6: SEC-08-Eintrag zur Debug-Ausnahme unvollständig
 - **Schweregrad:** Low
-- **Status:** Fixed (in diesem Lauf bestätigt)
-- **Fehlerart:** Sicherheits-Ausnahme ohne vollständigen SEC-08-Eintrag
-- **Sweep:** `grep -nE "\*\*Ausnahme|Debug trägt weiter .get-task-allow" docs/decisions.md features/*/design.md` — 3 Treffer, davon `docs/decisions.md:49` mit SEC-ID und allen Pflichtfeldern; `design.md:146` verweist nur auf ADR-007 (kosmetisch)
+- **Status:** Fixed (bestätigt im vorigen Lauf)
 
 ### BUG-7: Mikrofon in der Einführung erlaubt, App erkennt es nicht
 - **Schweregrad:** High
-- **Status:** Open
-- **Fehlerart (Class):** Erlaubnis über eine Schnittstelle angefragt und über eine andere gelesen; die lesende Schnittstelle erfährt von der Antwort nichts
-- **Kriterium:** AC-8 (auch AC-7: „Weiter“ bleibt gesperrt, die Einführung kommt nicht weiter)
-- **Sweep:** `grep -rn "requestAccess(for: .audio)\|requestRecordPermission" Packages/InnoWhisperKit/Sources App` — 1 Treffer (`PermissionChecking.swift:40`, `AVCaptureDevice.requestAccess`), gelesen wird über `AVAudioApplication.shared.recordPermission` (`PermissionChecking.swift:26`)
-- **Nachstellen (Test durch Timur, 05.11., fertiger Bau 16:23:48):**
-  1. Mikrofon und Bedienungshilfen für `com.innosolv.InnoWhisper` zurückgesetzt, Einführungs-Fortschritt gelöscht, App gestartet (16:40:19, „microphone notDetermined“).
-  2. Im Schritt „Mikrofon“ auf den Knopf, im macOS-Fenster „Erlauben“.
-  3. Erwartet: binnen 2 s „Erlaubt“ mit grünem Häkchen. Tatsächlich: macOS speichert die Erlaubnis (tccd 16:41:55,413 „Create“), die App bleibt bei „noch nie gefragt“, auch nach 108 s; jeder weitere Klick schreibt nur „Microphone permission requested“.
-- **Hinweis:** Eingeführt mit der Korrektur von BUG-1 (Wechsel der lesenden Schnittstelle). Vor dem Wechsel war AC-8 live erfüllt (Bericht vom Vormittag, 10:53:14).
+- **Status:** Fixed (in diesem Lauf bestätigt)
+- **Fehlerart (Class):** Erlaubnis über eine Schnittstelle angefragt und über eine andere gelesen
+- **Kriterium:** AC-8
+- **Sweep:** `grep -rn "requestAccess(for: .audio)\|requestRecordPermission" Packages/InnoWhisperKit/Sources App` — 1 Treffer (`PermissionChecking.swift:137`, `AVAudioApplication`)
+- **Beleg:** siehe AC-8 (0 s nach macOS) und AC-11 (Ablehnen und späteres Einschalten erkannt)
 
 ### BUG-8: Prüfung von außen beliebig oft auslösbar
-- **Schweregrad:** Low
-- **Status:** Deferred
+- **Schweregrad:** Medium (vorher Low; durch den Diff verschärft)
+- **Status:** Deferred (Vorschlag)
 - **Fehlerart (Class):** Von außen auslösbare Arbeit ohne Bündelung oder Drosselung am Eingang (SEC-02)
-- **Sweep:** `grep -rn "suspensionBehavior: .deliverImmediately" App Packages` — 1 Treffer (`PermissionMonitor.swift:194`); die zweite Stelle `SingleInstanceGuard.swift:15` sendet nur
-- **Nachstellen (nicht ausgeführt, probe none):** InnoWhisper im Hintergrund, eine Schleife sendet `com.apple.accessibility.api`; jede Zustellung löst `refresh()` mit zwei Abfragen bei macOS aus. Folge höchstens Rechenlast, kein falscher Stand, kein Datenabfluss.
+- **Sweep:** `grep -rn "suspensionBehavior: .deliverImmediately" App Packages` — 1 Treffer (`PermissionMonitor.swift:211`); `grep -rn "Task.detached" App Packages/InnoWhisperKit/Sources` — 1 Treffer (`PermissionChecking.swift:73`)
+- **Nachstellen (nicht ausgeführt):** Jeder Prozess der Sitzung kann `com.apple.accessibility.api` senden; jede Zustellung startet jetzt zwei Kopien von InnoWhisper (nach 0,5 s und 2 s), jede hält bis zu 2 s einen Thread und schreibt eine Protokollzeile. Folge: Rechenlast und Protokoll-Verdrängung, kein falscher Stand, kein Datenabfluss.
 
 ### BUG-9: Vermerk zur verzögerten Prüfung auf die alte App enger als das Verhalten
 - **Schweregrad:** Low
 - **Status:** Deferred
-- **Fehlerart (Class):** Vermerk an einem freigegebenen Nachbar-Feature fasst den Geltungsbereich enger als der Code (Restbestand von BUG-5)
-- **Kriterium:** EC-4, PROJ-1 AC-16/EC-2/AC-18
-- **Sweep:** `grep -n "Beim ersten Start, solange" features/PROJ-1-app-rahmen-einstellungen/spec.md` — 1 Treffer; `grep -rn "startOnboardingIfNeeded" App` — 2 Treffer
-- **Nachstellen (Code-Pfad):** Die Prüfung wartet bei jedem Start mit offener Einführung auf „Fertig“ (`App/AppDelegate.swift:39`, `App/AppEnvironment.swift:89-104`), also auch beim Fortsetzen (AC-13) und nach einem Update mit neuem Schritt (AC-18). Vermerk und EC-4 sagen „beim ersten Start“. Lösung: Vermerk per `/refine` erweitern oder Verzögerung im Code auf den ersten Start begrenzen.
+- **Fehlerart (Class):** Vermerk an einem freigegebenen Nachbar-Feature fasst den Geltungsbereich enger als der Code
+- **Sweep:** `grep -n "Beim ersten Start, solange" features/PROJ-1-app-rahmen-einstellungen/spec.md` — 1 Treffer
+- **Stand:** vom Diff nicht berührt
 
 ### BUG-10: App Nap für den ganzen Prozess dauerhaft aus
 - **Schweregrad:** Low
 - **Status:** Deferred
 - **Fehlerart (Class):** Energiespar-Ausnahme ohne Ende und für mehr als die nötige Arbeit
 - **Sweep:** `grep -rn "endActivity" Packages/InnoWhisperKit/Sources App` — 0 Treffer
-- **Nachstellen:** `beginActivity` in `PermissionMonitor.swift:84` gilt bis zum Beenden der App; Stromverbrauch auf Akku nicht gemessen.
+
+### BUG-11: Nach der ersten Prüfung außerhalb liest die App die Bedienungshilfen nicht mehr selbst
+- **Schweregrad:** Medium
+- **Status:** Deferred (Vorschlag)
+- **Fehlerart (Class):** Zwischengespeicherte Antwort einer Hilfsprüfung ohne Verfall verdrängt die laufende Abfrage; der Rückfallweg ist tot
+- **Kriterium:** AC-15, AC-16 (Fehlerweg); widerspricht `design.md` → Bau-Notizen („Ohne Antwort binnen 2 s bleibt die eigene Lesung“)
+- **Sweep:** `grep -rnE "private var [A-Za-z]+: PermissionState\?" Packages/InnoWhisperKit/Sources` — 1 Treffer (`PermissionChecking.swift:30`)
+- **Nachstellen (nicht ausgeführt, probe none):** Bedienungshilfen einmal umschalten (Antwort wird gespeichert). Danach scheitert die Prüfung außerhalb (Zeitüberschreitung bei voller Last oder Programmdatei nicht startbar), und die Erlaubnis wird entzogen: Die App bleibt bei „erlaubt“ bis zum nächsten Wechsel oder Neustart. Ebenso, falls die Mitteilung einmal ausbleibt: Die 3-s-Abfrage liest nur noch den gespeicherten Wert.
+
+### BUG-12: Unbekannte Antworten des Docks gelten als „erlaubt“
+- **Schweregrad:** Low
+- **Status:** Deferred (Vorschlag)
+- **Fehlerart (Class):** Unbekannte Fehlercodes werden auf „erlaubt“ abgebildet (fail-open)
+- **Sweep:** `grep -n "default: return .granted" Packages/InnoWhisperKit/Sources/Permissions/PermissionChecking.swift` — 1 Treffer
+- **Nachstellen (nicht ausgeführt):** Ein anderer Fehlercode als „API disabled“ oder „cannot complete“ (z. B. während das Dock neu startet) ergibt „erlaubt“, auch wenn `AXIsProcessTrusted()` „nein“ sagt (`PermissionChecking.swift:116-121`).
+
+### BUG-13: Prüfkind wird ohne Signaturprüfung gestartet
+- **Schweregrad:** Low
+- **Status:** Deferred (Vorschlag)
+- **Fehlerart (Class):** Hilfsprozess wird ohne Prüfung der Identität aus einem veränderbaren Pfad gestartet
+- **Sweep:** `grep -rnE "Process\(\)|posix_spawn|NSTask|executableURL" App Packages/InnoWhisperKit/Sources` — 5 Treffer in 2 Dateien (`AppRelauncher.swift` startet über `open`, anderer Fall)
+- **Nachstellen (nicht ausgeführt):** `runCheck` startet, was unter `Bundle.main.executableURL` liegt; tccd führt das Kind unter der Verantwortung der laufenden App (aufgezeichnet 17:42:41,185). Ob ein ausgetauschtes Programm die Erlaubnisse erbt, ist nicht belegt. Voraussetzung: Schreibzugriff auf das App-Bundle bei laufender App; unter `/Applications` schützt „App-Verwaltung“.
 
 ## Zusammenfassung
-- **Abnahmekriterien im Diff:** belegt AC-3, AC-4, AC-6, AC-9, AC-11 (Logik), AC-17, AC-20, AC-21 (Logik), AC-22 (Teil); fehlerhaft AC-8 (BUG-7), AC-15/AC-16 Bedienungshilfen-Hälfte offen (BUG-1); übrige übernommen
-- **Fehler:** 10 (0 kritisch, 2 hoch, 0 mittel, 8 niedrig) — Open: BUG-1, BUG-7; Fixed: BUG-5, BUG-6; Deferred: BUG-2, BUG-3, BUG-4, BUG-8, BUG-9, BUG-10
-- **Sicherheit:** 9 Prüfungen belegt, 2 NOT VERIFIED (Release-Bau; entfallene Prüfungen ohne Konto, HTTP und KI)
-- **Produktionsreif:** NEIN
-- **Empfehlung:** BUG-7 mit `/build PROJ-3` beheben (Anfrage und Abfrage über dieselbe Schnittstelle), danach den Test durch Timur wiederholen und dabei die Bedienungshilfen-Hälfte von BUG-1 messen
+- **Abnahmekriterien:** 22/22 belegt oder übernommen; im Diff belegt AC-1, AC-7 bis AC-13, AC-15 bis AC-17, AC-19, AC-20, AC-22, davon live durch Timur AC-7, AC-8, AC-9, AC-10, AC-11, AC-12, AC-13, AC-15, AC-16, AC-22
+- **Grenzfälle:** 5/5 belegt oder übernommen; EC-2 und EC-3 live nicht geprüft
+- **Fehler:** 13 (0 kritisch, 2 hoch, 2 mittel, 9 niedrig) — Fixed: BUG-1, BUG-5, BUG-6, BUG-7; Deferred: BUG-2, BUG-3, BUG-4, BUG-8, BUG-9, BUG-10, BUG-11, BUG-12, BUG-13; Open: keiner
+- **Sicherheit:** 5 Prüfungen belegt, 1 NOT VERIFIED (Release-Bau), 2 Funde (BUG-8, BUG-13)
+- **Produktionsreif:** JA — keine offenen kritischen oder hohen Fehler; die nicht geprüften Punkte stehen oben unter „Nicht geprüft in diesem Lauf“
+- **Empfehlung:** Die zurückgestellten Fehler später gesammelt mit `/build PROJ-3 deferred` beheben; BUG-11 und BUG-8 zuerst
