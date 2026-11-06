@@ -101,6 +101,9 @@ public final class GroqKeyModel {
     @ObservationIgnored private let problems: ProblemCenter
     @ObservationIgnored private let onboardingFinishedOnce: @MainActor () -> Bool
     @ObservationIgnored private var network: NWPathMonitor?
+    /// Counts confirmed removals; a check that started before one must not
+    /// write its result afterwards (BUG-1).
+    @ObservationIgnored private var removals = 0
 
     public init(
         store: KeyStoring = SystemKeyStore(),
@@ -192,6 +195,7 @@ public final class GroqKeyModel {
             return
         }
         Log.write("Key removed", category: .groq)
+        removals += 1
         status = .missing
         lastFour = nil
         lastResult = nil
@@ -215,9 +219,11 @@ public final class GroqKeyModel {
             return
         }
         isChecking = true
+        let removalsBefore = removals
         let outcome = await checker.check(key)
         isChecking = false
         log(outcome, context: "Stored key check")
+        guard removals == removalsBefore else { return discardResult() }
         switch outcome.result {
         case .valid: setStatus(.valid, lastFour: lastFour)
         case .rejected: setStatus(.invalid, lastFour: lastFour)
@@ -249,14 +255,21 @@ public final class GroqKeyModel {
 
     private func checkAndSave(_ key: String) async {
         isChecking = true
+        let removalsBefore = removals
         let outcome = await checker.check(key)
         isChecking = false
         log(outcome, context: "Key check")
+        guard removals == removalsBefore else { return discardResult() }
         switch outcome.result {
         case .valid: save(key, as: .valid)
         case .unreachable: save(key, as: .unchecked)
         case .rejected: lastResult = .rejected
         }
+    }
+
+    /// The key was removed while Groq was asked; the removal stands (BUG-1).
+    private func discardResult() {
+        Log.write("Check result discarded: key was removed meanwhile", category: .groq)
     }
 
     /// Stores the key and its state; the old key stays if the keychain refuses (EC-8).

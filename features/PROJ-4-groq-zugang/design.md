@@ -85,7 +85,8 @@ Groq-Schlüssel (höchstens einer pro Nutzer)
   gezeigt
 - Gespeichert im Schlüsselbund des Nutzers:
   Dienst „com.innosolv.InnoWhisper“, Konto „groq-api-key“,
-  lesbar nur auf diesem Mac und erst nach der ersten Entsperrung nach dem Start
+  im Login-Schlüsselbund, geschützt durch das Mac-Passwort, nie in iCloud;
+  zieht beim Umzug auf einen neuen Mac (Migrationsassistent, Time Machine) mit
 - Wird nie in Einstellungen, Protokoll oder Zwischenablage geschrieben
 
 Prüf-Stand des Schlüssels
@@ -139,7 +140,7 @@ Keine in einem Dashboard. Jeder Mitarbeiter legt sich selbst ein Groq-Konto und 
 | Bereich „Zugang & Erlaubnisse“ wird in der App aus zwei Gruppen zusammengesetzt | Kein Umbau des Rahmens aus PROJ-1 nötig, die Module kennen sich nicht | Neue „Gruppen“-Schnittstelle für jeden Bereich im Rahmen (wäre ein `/refine PROJ-1`) | `AccessPane` aus PROJ-3 liefert künftig nur noch seine Gruppe; kleine Änderung an einem freigegebenen Feature | 2026-11-06 |
 | Prüfung über `GET /openai/v1/models` | Leichteste Anfrage, kostet nichts, bewährt in der alten App (`GroqKeyValidator.swift`) | Probe-Umwandlung mit kurzer Stille | Bestätigt nur, dass der Schlüssel gilt, nicht dass das Konto Guthaben hat | 2026-11-06 |
 | 429 gilt als „gilt“ | Groq hat den Schlüssel erkannt, nur zu viele Anfragen | Als „nicht erreichbar“ werten | Ein gesperrtes Konto mit 429 würde als gültig gelten; die Umwandlung meldet das dann selbst (PROJ-6) | 2026-11-06 |
-| Schlüsselbund nur auf diesem Mac, nach erster Entsperrung lesbar | Schlüssel wandert nicht über iCloud auf andere Geräte; Prüfung beim Start klappt auch vor dem ersten Entsperren nicht, das ist in Ordnung | Synchronisierender Schlüsselbund | Auf einem neuen Mac muss der Schlüssel neu eingefügt werden | 2026-11-06 |
+| Login-Schlüsselbund ohne iCloud, ohne Schutzklasse (ersetzt die Zeile „nur auf diesem Mac, nach erster Entsperrung“, BUG-2, Entscheidung Timur) | Der dateibasierte Login-Schlüsselbund wertet Schutzklassen nicht aus; die alte Zusage stimmte nicht. Mitziehen beim Umzug auf einen neuen Mac ist gewollt, niemand muss den Schlüssel neu eintragen | Data-Protection-Schlüsselbund mit Zugriffsgruppe und Provisioning-Profil | Schlüssel liegt in jeder Sicherung des Login-Schlüsselbunds, verschlüsselt mit dem Mac-Passwort | 2026-11-06 |
 | Existenz des alten Schlüssels prüfen, ohne ihn zu lesen | Sonst käme die macOS-Frage schon beim Öffnen des Schritts statt nach dem angekündigten Klick (globale Regel 52) | Sofort lesen | Wenn die Existenzprüfung selbst eine Frage auslöst, muss der Hinweis davor kommen; wird beim Bau gemessen (siehe offene Fragen) | 2026-11-06 |
 | Netzverbindung beobachten statt regelmäßig prüfen | Prüft nur dann, wenn ein „noch nicht geprüft“-Schlüssel wieder erreichbar wird; keine Daueranfragen | Prüfung alle paar Minuten | Wechselt das Netz, ohne dass macOS es meldet, kommt die Prüfung erst beim nächsten Start | 2026-11-06 |
 | Kein Anmelde-Schutz gegen Raten | InnoWhisper hat keine eigenen Konten; geprüft wird nur gegen Groq, das selbst begrenzt. SEC-04 entfällt; EC-3 verhindert gehäufte Anfragen aus der App | Eigene Sperre nach N Fehlversuchen | — | 2026-11-06 |
@@ -163,3 +164,4 @@ Live-Test am 06.11.2026 mit Timur, Testversion aus DerivedData, ausgewertet übe
 - Korrektur aus dem Test: In den Einstellungen stand das Eingabefeld rechtsbündig neben einer zweiten Beschriftung „Groq-Schlüssel“. Jetzt ohne eigene Beschriftung (die Gruppe heißt schon so), volle Breite, Text links. Von Timur bestätigt.
 - Nicht live geprüft, bleibt für `/qa`: Speichern ohne Internet und Nachprüfen beim Wiederverbinden (AC-10, EC-5), Warnung bei ungültigem gespeichertem Schlüssel nach Neustart (AC-14 mit 401), verweigertes Speichern im Schlüsselbund (EC-8). Diese Fälle sind nur durch Tests mit Platzhaltern belegt.
 - Nebenbefund außerhalb von PROJ-4: `LegacyAppGuard` (PROJ-1) schreibt „Legacy app running …“ bei jedem Programmstart oder -ende anderer Apps erneut, solange die Frage zur alten Version offen ist (18 gleiche Zeilen um 16:44:26). Nur Protokoll-Rauschen, kein Fehlverhalten; nicht geändert.
+- Korrektur nach `/qa` (06.11.): BUG-1 („Entfernen“ während einer laufenden Prüfung) – eine bestätigte Entfernung gewinnt jetzt immer; ein Prüfergebnis, das danach eintrifft, wird verworfen und protokolliert („Check result discarded …“). „Entfernen“ ist während einer Prüfung zusätzlich gesperrt. BUG-2 – Schlüssel bleibt im Login-Schlüsselbund (Entscheidung Timur), die wirkungslose Schutzklasse ist entfernt, siehe Technische Entscheidungen.

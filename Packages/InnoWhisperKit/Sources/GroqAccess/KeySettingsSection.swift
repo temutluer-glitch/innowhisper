@@ -29,6 +29,7 @@ public struct KeySettingsSection: View {
                         model.clearResult()
                     }
                     Button("Entfernen", role: .destructive) { confirmRemove = true }
+                        .disabled(model.isChecking)
                     if model.isChecking {
                         ProgressView().controlSize(.small)
                     }

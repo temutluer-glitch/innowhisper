@@ -17,8 +17,9 @@ public protocol KeyStoring: Sendable {
     func delete() throws(KeychainError)
 }
 
-/// InnoWhisper's own keychain entry: only on this Mac, readable after the
-/// first unlock (AC-5, AC-13, AC-17, design.md → Datenmodell).
+/// InnoWhisper's own entry in the login keychain, protected by the Mac
+/// password, never synced to iCloud; it moves along with a Mac migration
+/// (AC-5, AC-13, AC-17, design.md → Datenmodell, decision of 06.11.).
 public struct SystemKeyStore: KeyStoring {
     let service: String
     let account: String
@@ -40,12 +41,10 @@ public struct SystemKeyStore: KeyStoring {
         ]
     }
 
-    /// What is written: the key plus "only this Mac, after first unlock".
+    /// What is written: only the key. The login keychain ignores protection
+    /// classes, so none is asked for (BUG-2).
     func attributes(for key: String) -> [String: Any] {
-        [
-            kSecValueData as String: Data(key.utf8),
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
-        ]
+        [kSecValueData as String: Data(key.utf8)]
     }
 
     public func read() throws(KeychainError) -> String? {

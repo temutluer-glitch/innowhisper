@@ -269,6 +269,30 @@ final class FakeChecker: KeyChecking {
         #expect(model.wantsEdit)
     }
 
+    // BUG-1 (AC-13, AC-15): a confirmed "Entfernen" wins over a check that was still running
+    @Test func removeDuringARunningCheckLeavesNoKey() async {
+        defaults.set("valid", forKey: GroqAccessInfo.statusDefaultsKey)
+        let store = FakeStore(key: "gsk_stored01")
+        let model = makeModel(store: store, checker: FakeChecker(.valid, delay: .milliseconds(200)))
+        let stored = Task { await model.checkStored(showResult: true) }
+        try? await Task.sleep(for: .milliseconds(50))
+        model.remove()
+        await stored.value
+        #expect(store.key == nil)
+        #expect(model.status == .missing)
+        #expect(!model.isUsable)
+        #expect(defaults.string(forKey: GroqAccessInfo.statusDefaultsKey) == nil)
+        #expect(problems.isReported(id: GroqAccessInfo.problemID))
+
+        let submitted = Task { await model.submit("gsk_newer002") }
+        try? await Task.sleep(for: .milliseconds(50))
+        model.remove()
+        await submitted.value
+        #expect(store.key == nil)
+        #expect(model.status == .missing)
+        #expect(model.lastFour == nil)
+    }
+
     // AC-11: "Prüfen" in the settings shows what Groq said
     @Test func checkFromTheSettingsShowsTheResult() async {
         defaults.set("valid", forKey: GroqAccessInfo.statusDefaultsKey)
