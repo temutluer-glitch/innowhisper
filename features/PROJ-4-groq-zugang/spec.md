@@ -75,6 +75,7 @@
 
 ## Open Questions
 - [ ] Ob macOS beim Lesen des Schlüssels der alten App wirklich nach dem Mac-Passwort fragt (oder gar nicht, oder nur mit „Erlauben“), wird beim Bau gemessen; der Hinweistext in AC-7 wird dann an das tatsächliche Fenster angepasst.
+- [ ] Ob schon die Prüfung, ob die alte App einen Schlüssel hat, eine macOS-Frage auslöst; falls ja, kommt sie erst nach dem Hinweis aus AC-7 (siehe design.md).
 
 ## Decision Log
 

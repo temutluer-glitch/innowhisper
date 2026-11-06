@@ -13,7 +13,7 @@ Es gibt keinen Server (ADR-002). Alle Daten liegen nur auf dem jeweiligen Mac un
 | Ding | Was es darstellt | Gehört / sichtbar für |
 |------|------------------|-----------------------|
 | Einstellungen | Modell, Sprachhinweis, Ausgabe (einfügen oder Zwischenablage), Mikrofon, Töne, Start beim Anmelden | Nutzer des Macs |
-| Zugangsschlüssel | Der eigene Groq-Schlüssel; liegt ausschließlich im Schlüsselbund | Nutzer des Macs |
+| Zugangsschlüssel | Der eigene Groq-Schlüssel; liegt ausschließlich im Schlüsselbund. Dazu ein Prüf-Stand (gilt, noch nicht geprüft, ungültig) in den Einstellungen (PROJ-4) | Nutzer des Macs |
 | Tastenkürzel | Taste oder Tastenkombination, Modus (halten oder ein/aus) und die verknüpfte KI-Vorlage | Nutzer des Macs |
 | KI-Vorlage | Anweisung, wie die KI den Text überarbeitet; „Ohne KI“ ist fest eingebaut und nicht löschbar | Nutzer des Macs |
 | Wörterbuch-Eintrag | Ein Name oder Fachbegriff, der richtig geschrieben werden soll | Nutzer des Macs |
@@ -26,6 +26,7 @@ Es gibt keinen Server (ADR-002). Alle Daten liegen nur auf dem jeweiligen Mac un
 ## Zusammenhänge
 
 - Es gibt genau einen Satz Einstellungen und höchstens einen Zugangsschlüssel pro Nutzer.
+- Den Schlüssel der alten App liest InnoWhisper nur einmal auf Wunsch, um ihn zu übernehmen; dessen Eintrag bleibt unverändert (PROJ-4).
 - Jedes Tastenkürzel benutzt genau eine KI-Vorlage; eine Vorlage kann von mehreren Kürzeln benutzt werden.
 - Wird eine Vorlage gelöscht, fallen die Kürzel, die sie benutzt haben, auf „Ohne KI“ zurück.
 - Jeder Verlaufs-Eintrag hat höchstens eine Aufnahme; wird der Eintrag gelöscht, wird die Aufnahme mitgelöscht.
