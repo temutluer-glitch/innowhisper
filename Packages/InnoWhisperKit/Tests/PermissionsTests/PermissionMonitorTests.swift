@@ -179,9 +179,37 @@ final class FakeClock {
         let monitor = makeMonitor(finished: true)
         monitor.recheckDelays = [.zero]
         checker.freshAccessibility = .denied
-        await monitor.accessibilityListChanged()
+        monitor.accessibilityListChanged()
+        await monitor.listChangeTask?.value
         #expect(checker.accessibilityRechecks == 1)
         #expect(monitor.state(of: .accessibility) == .denied)
         #expect(problems.isReported(id: PermissionKind.accessibility.problemID))
+    }
+
+    // BUG-8 (QA 05.11.): any program can send the list-changed message. A burst
+    // of them must not start a check outside the app for every single one.
+    @Test func burstOfListChangesRunsOneCheckSequence() async {
+        checker.states = [.microphone: .granted, .accessibility: .granted]
+        let monitor = makeMonitor(finished: true)
+        monitor.recheckDelays = [.milliseconds(50)]
+        for _ in 0..<5 { monitor.accessibilityListChanged() }
+        await monitor.listChangeTask?.value
+        #expect(checker.accessibilityRechecks == 1)
+    }
+
+    // BUG-11 (QA 05.11.): if the list-changed message never comes, the check
+    // outside the app still runs now and then instead of trusting an old answer.
+    @Test func outsideCheckAlsoRunsEveryThirtySeconds() async {
+        let monitor = makeMonitor(finished: true)
+        await monitor.checkOutsideIfDue()
+        #expect(checker.accessibilityRechecks == 0)
+        clock.advance(.seconds(29))
+        await monitor.checkOutsideIfDue()
+        #expect(checker.accessibilityRechecks == 0)
+        clock.advance(.seconds(1))
+        await monitor.checkOutsideIfDue()
+        #expect(checker.accessibilityRechecks == 1)
+        await monitor.checkOutsideIfDue()
+        #expect(checker.accessibilityRechecks == 1)
     }
 }

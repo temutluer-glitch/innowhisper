@@ -177,6 +177,11 @@ Gemessen am 2026-11-05 auf Timurs Mac (macOS 26.5.1), Entwicklungsbau, Protokoll
   - **Gewählt (Timurs Entscheidung „Kleiner Prüfer“):** Ändert sich die Bedienungshilfen-Liste, startet InnoWhisper sein eigenes Programm unsichtbar mit `--check-accessibility` (nach 0,5 s und nach 2 s). Es antwortet vor allem anderen (kein Fenster, kein Menüleisten-Symbol, kein Protokolleintrag) und beendet sich. Dauer 43 bis 73 ms. Ohne Antwort binnen 2 s bleibt die eigene Lesung (Dock-Aufruf plus `AXIsProcessTrusted()`).
   - Schlusstest mit dem fertigen Bau, Einführung von vorn: Esc und ⌘W ohne Wirkung, Mikrofon sofort erkannt, Bedienungshilfen 17:40:36,774 bei macOS, erkannt 17:40:36,772, Häkchen blieb beim Fensterwechsel stabil. Danach im Hintergrund sechs Wechsel, alle richtig erkannt, jeweils 0,55 bis 0,6 s nach macOS (z. B. aus 17:42:40,644, erkannt 17:42:41,212; ein 17:42:54,059, erkannt 17:42:54,634). Grenze laut AC-15/AC-16: 5 s.
   - Die Messung „Bedienungshilfen ausgeschaltet 16:16:23“ weiter oben stammt von einem älteren Bau (Prozess seit 12:16) und gilt nur als Hinweis.
+- **Rückfall und Bremse für die Prüfung außerhalb (BUG-11, BUG-8, gebaut 2026-11-06, Timurs Auftrag „Jetzt beheben“):**
+  - Ohne Antwort des Prüfers (Zeitgrenze 2 s, Start scheitert, unbekannte Ausgabe) gilt wieder die eigene Lesung der App; vorher blieb die letzte Antwort stehen.
+  - Zusätzlich läuft die Prüfung alle 30 s ohne Anlass, falls ein Wechsel ohne Mitteilung vorbeigeht.
+  - Kommen mehrere Mitteilungen schnell hintereinander, ersetzt jede die noch wartende Folge; ins Protokoll kommt nur eine geänderte Antwort. Das Warten auf den Prüfer belegt keinen Thread mehr.
+  - Gemessen: 20 Mitteilungen in 1 s (08:47:40 bis 08:47:41) ergaben genau 2 Prüfer-Prozesse (08:47:41,642 und 08:47:43,773), der nächste kam von selbst 30 s später (08:48:14,073); tccd zählt die Anfragen je Prozess. Schaltertest durch Timur: aus 08:54:10,966, erkannt 08:54:11,552; ein 08:54:20,657, erkannt 08:54:21,238.
 
 ## Offene Fragen
 

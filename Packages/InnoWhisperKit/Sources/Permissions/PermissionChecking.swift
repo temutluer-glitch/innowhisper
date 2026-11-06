@@ -26,10 +26,25 @@ extension PermissionChecking {
 public final class SystemPermissionChecker: PermissionChecking {
     /// Argument that makes InnoWhisper answer the Accessibility check and quit.
     public nonisolated static let accessibilityCheckArgument = "--check-accessibility"
-    /// Answer of the last check outside the app; nil until the list first changes.
+    /// Answer of the last check outside the app; nil while there is none, then
+    /// the app's own reading counts (QA BUG-11).
     private var checkedOutside: PermissionState?
+    private let readAccessibility: @MainActor () -> PermissionState
+    private let askOutside: @Sendable () async -> PermissionState?
 
-    public init() {}
+    public convenience init() {
+        self.init(
+            readAccessibility: { Self.currentAccessibilityState() },
+            askOutside: { await Self.askOutsideTheApp() })
+    }
+
+    init(
+        readAccessibility: @escaping @MainActor () -> PermissionState,
+        askOutside: @escaping @Sendable () async -> PermissionState?
+    ) {
+        self.readAccessibility = readAccessibility
+        self.askOutside = askOutside
+    }
 
     public func state(of kind: PermissionKind) -> PermissionState {
         switch kind {
@@ -56,7 +71,7 @@ public final class SystemPermissionChecker: PermissionChecking {
             // design.md → Bau-Notizen).
             // After a change of the list, a freshly started process answers
             // correctly every time; the running one sometimes does not (QA BUG-1).
-            return checkedOutside ?? Self.currentAccessibilityState()
+            return checkedOutside ?? readAccessibility()
         }
     }
 
@@ -64,37 +79,49 @@ public final class SystemPermissionChecker: PermissionChecking {
         accessibilityState(dockAnswer: askDock(), trusted: AXIsProcessTrusted())
     }
 
-    /// Starts InnoWhisper's own program a second time, invisibly, with
-    /// `accessibilityCheckArgument`; it answers and quits at once. Without an
-    /// answer within 2 seconds the app keeps its own reading.
+    /// Checks Accessibility in a freshly started copy of InnoWhisper. Without
+    /// an answer the app's own reading counts again. Logs only what changes,
+    /// so a flood of checks cannot fill the log (QA BUG-8, BUG-11).
     public func recheckAccessibility() async {
-        guard let program = Bundle.main.executableURL else { return }
-        let started = ContinuousClock.now
-        let answer = await Task.detached { Self.runCheck(program: program) }.value
-        let took = ContinuousClock.now - started
+        let answer = await askOutside()
+        guard answer != checkedOutside else { return }
         if let answer {
-            checkedOutside = answer
-            Log.write("Accessibility checked outside the app: \(answer), took \(took)", category: .permissions)
+            Log.write("Accessibility checked outside the app: \(answer)", category: .permissions)
         } else {
-            Log.write("Accessibility check outside the app gave no answer, took \(took)", category: .permissions)
+            Log.write("Accessibility check outside the app gave no answer, own reading counts", category: .permissions)
+        }
+        checkedOutside = answer
+    }
+
+    /// Starts InnoWhisper's own program a second time, invisibly, with
+    /// `accessibilityCheckArgument`; it answers and quits at once. No answer
+    /// within 2 seconds, or anything unexpected, means nil. Waits without
+    /// blocking a thread.
+    nonisolated static func askOutsideTheApp() async -> PermissionState? {
+        guard let program = Bundle.main.executableURL else { return nil }
+        return await withCheckedContinuation { continuation in
+            let check = OutsideCheck(continuation)
+            let process = Process()
+            process.executableURL = program
+            process.arguments = [accessibilityCheckArgument]
+            let output = Pipe()
+            process.standardOutput = output
+            process.standardError = FileHandle.nullDevice
+            process.terminationHandler = { finished in
+                let text = String(decoding: output.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
+                check.finish(finished.terminationStatus == 0 ? parseAnswer(text) : nil)
+            }
+            do {
+                try process.run()
+            } catch {
+                check.finish(nil)
+                return
+            }
+            check.stopAfterTimeout(process)
         }
     }
 
-    nonisolated private static func runCheck(program: URL) -> PermissionState? {
-        let process = Process()
-        process.executableURL = program
-        process.arguments = [accessibilityCheckArgument]
-        let output = Pipe()
-        process.standardOutput = output
-        process.standardError = FileHandle.nullDevice
-        do { try process.run() } catch { return nil }
-        let deadline = Date().addingTimeInterval(2)
-        while process.isRunning && Date() < deadline { usleep(20_000) }
-        if process.isRunning {
-            process.terminate()
-            return nil
-        }
-        let text = String(decoding: output.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
+    nonisolated static func parseAnswer(_ text: String) -> PermissionState? {
         switch text.trimmingCharacters(in: .whitespacesAndNewlines) {
         case "granted": return .granted
         case "denied": return .denied
@@ -145,5 +172,32 @@ public final class SystemPermissionChecker: PermissionChecking {
         let options = ["AXTrustedCheckOptionPrompt": false] as CFDictionary
         _ = AXIsProcessTrustedWithOptions(options)
         _ = Self.askDock()
+    }
+}
+
+/// Hands the answer of one check outside the app back exactly once: from the
+/// finished process or, after 2 seconds, from the time limit.
+private final class OutsideCheck: @unchecked Sendable {
+    private let lock = NSLock()
+    private var continuation: CheckedContinuation<PermissionState?, Never>?
+
+    init(_ continuation: CheckedContinuation<PermissionState?, Never>) {
+        self.continuation = continuation
+    }
+
+    func finish(_ answer: PermissionState?) {
+        lock.lock()
+        let waiting = continuation
+        continuation = nil
+        lock.unlock()
+        waiting?.resume(returning: answer)
+    }
+
+    func stopAfterTimeout(_ process: Process) {
+        nonisolated(unsafe) let process = process
+        DispatchQueue.global().asyncAfter(deadline: .now() + 2) { [self] in
+            if process.isRunning { process.terminate() }
+            finish(nil)
+        }
     }
 }

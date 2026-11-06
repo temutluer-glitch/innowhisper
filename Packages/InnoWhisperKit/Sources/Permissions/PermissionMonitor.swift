@@ -39,6 +39,11 @@ public final class PermissionMonitor {
     @ObservationIgnored private var accessibilityListObserver: AccessibilityListObserver?
     /// When to check Accessibility again outside the app after the list changed.
     @ObservationIgnored var recheckDelays: [Duration] = [.milliseconds(500), .seconds(2)]
+    /// How often the check outside the app runs without any message (QA BUG-11).
+    static let outsideCheckInterval: Duration = .seconds(30)
+    /// The running sequence of checks after a list change; a new change replaces it (QA BUG-8).
+    @ObservationIgnored private(set) var listChangeTask: Task<Void, Never>?
+    @ObservationIgnored private var lastOutsideCheck: ContinuousClock.Instant
 
     public init(
         checker: PermissionChecking,
@@ -54,6 +59,7 @@ public final class PermissionMonitor {
         self.onboardingFinishedOnce = onboardingFinishedOnce
         self.now = now
         self.keepChecksRunning = keepChecksRunning
+        self.lastOutsideCheck = now()
         refresh()
     }
 
@@ -89,6 +95,7 @@ public final class PermissionMonitor {
                 guard let interval = self?.interval else { return }
                 try? await Task.sleep(for: interval)
                 self?.refresh()
+                await self?.checkOutsideIfDue()
             }
         }
         observers.append(
@@ -98,20 +105,38 @@ public final class PermissionMonitor {
                 MainActor.assumeIsolated { self?.appBecameActive() }
             })
         accessibilityListObserver = AccessibilityListObserver { [weak self] in
-            Task { await self?.accessibilityListChanged() }
+            self?.accessibilityListChanged()
         }
     }
 
     /// The Accessibility list changed. Inside the running app macOS sometimes
     /// keeps the old answer (measured 05.11.2026, design.md → Bau-Notizen), so
-    /// a fresh check outside the app follows shortly after (QA BUG-1).
-    func accessibilityListChanged() async {
+    /// a fresh check outside the app follows shortly after (QA BUG-1). A new
+    /// change replaces a sequence still waiting, so a burst of messages from
+    /// any program starts one sequence, not one per message (QA BUG-8).
+    func accessibilityListChanged() {
         refresh()
-        for delay in recheckDelays {
-            try? await Task.sleep(for: delay)
-            await checker.recheckAccessibility()
-            refresh()
+        listChangeTask?.cancel()
+        listChangeTask = Task { [weak self, recheckDelays] in
+            for delay in recheckDelays {
+                try? await Task.sleep(for: delay)
+                guard !Task.isCancelled else { return }
+                await self?.checkOutside()
+            }
         }
+    }
+
+    /// Runs the check outside the app when the last one is 30 seconds old, in
+    /// case a list change went by without a message (QA BUG-11).
+    func checkOutsideIfDue() async {
+        guard now() - lastOutsideCheck >= Self.outsideCheckInterval else { return }
+        await checkOutside()
+    }
+
+    private func checkOutside() async {
+        lastOutsideCheck = now()
+        await checker.recheckAccessibility()
+        refresh()
     }
 
     /// Reads every permission from macOS once.

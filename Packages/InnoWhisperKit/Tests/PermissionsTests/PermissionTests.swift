@@ -60,4 +60,23 @@ import Testing
         #expect(Checker.accessibilityState(dockAnswer: nil, trusted: true) == .granted)
         #expect(Checker.accessibilityState(dockAnswer: nil, trusted: false) == .denied)
     }
+
+    // BUG-11 (QA 05.11.): when the check outside the app gives no answer, the
+    // app's own reading counts again instead of an old outside answer.
+    @Test func noOutsideAnswerFallsBackToOwnReading() async {
+        let answers = OutsideAnswers([.denied, nil])
+        let checker = SystemPermissionChecker(
+            readAccessibility: { .granted }, askOutside: { await answers.next() })
+        #expect(checker.state(of: .accessibility) == .granted)
+        await checker.recheckAccessibility()
+        #expect(checker.state(of: .accessibility) == .denied)
+        await checker.recheckAccessibility()
+        #expect(checker.state(of: .accessibility) == .granted)
+    }
+}
+
+actor OutsideAnswers {
+    private var answers: [PermissionState?]
+    init(_ answers: [PermissionState?]) { self.answers = answers }
+    func next() -> PermissionState? { answers.isEmpty ? nil : answers.removeFirst() }
 }
