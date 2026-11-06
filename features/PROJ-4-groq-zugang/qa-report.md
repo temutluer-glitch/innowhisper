@@ -1,5 +1,48 @@
 # QA-Ergebnisse PROJ-4: Groq-Zugang
 
+## Nachtrag 2 vom 2026-11-06: Fensterhöhe und Live-Test durch Timur
+
+**Umfang:** `git diff 7beaf3f..HEAD -- Packages features/PROJ-3-erlaubnisse-einfuehrung/design.md`, Commit 568dda5.
+- Produktionscode: nur `Onboarding/OnboardingWindowController.swift:15` (Fenster 520 × 440 → 520 × 540).
+- Neu ist der Test `KeyStepFitsTests`.
+- Die Änderung betrifft den Einführungsrahmen aus PROJ-3. Geprüft hat ein unabhängiger `qa-engineer` mit allen drei Bereichen.
+- Testlauf vorher einmal: 158 Tests in 24 Suites bestanden (`scratchpad/qa-proj4-suite-3.log`).
+- Lint der geänderten Dateien: Exit 0. `commands.build`: BUILD SUCCEEDED (Owner).
+
+**Anlass:** Timur meldete im Live-Test ein Bildschirmfoto. Darauf waren „Schritt 2 von 5“ und die Knöpfe „Zurück“ und „Weiter“ abgeschnitten. Gemessen: Die Seite war 365 pt hoch, das alte Fenster ließ ihr nur 309 pt.
+
+**Ergebnisse:**
+- [x] **AC-1, AC-3, AC-7, AC-9 passen ins Fenster.** Gemessen hat der Prüfer mit der echten `OnboardingView`, ohne feste Höhe, über NSHostingView. Der Rahmen um die Seite ist in jedem Zustand 131 pt (gilt für Glas- und bordered-Knöpfe).
+
+  | Zustand | Gesamthöhe |
+  |---|---|
+  | Ohne alte App | 407 |
+  | Mit Übernahme-Hinweis | 496 |
+  | Hinweis plus Ergebniszeile („rejected“, „takeoverFailed“, „saveFailed“) | 534 |
+  | Fenster | 540 |
+
+  - Rot-Probe: Bei 440 schlägt `tallestKeyStepFitsTheOnboardingWindow` fehl, weil 534 größer als 440 ist.
+- [x] **Regression PROJ-3:** Die anderen Seiten passen weiter. Willkommen 283, Fertig 250, Mikrofon höchstens 442, Bedienungshilfen höchstens 425.
+  - Zentrieren rechnet mit der echten Rahmengröße (`OnboardingWindowController.swift:39-40`).
+  - Esc und ⌘W bleiben wirkungslos.
+  - PROJ-3 `design.md:78` ist nachgetragen.
+- [x] **Sicherheit:** Es wurde kein Test und keine Prüfung abgeschwächt (SEC-08). Im Diff stehen keine Geheimnisse (SEC-01).
+- [x] **Timur, 06.11., 18:25–18:26, mit dem Bau von 568dda5:**
+  - Das Fenster ist vollständig sichtbar, auch nach „Ablehnen“.
+  - Der Link „Groq-Seite für Schlüssel öffnen“ öffnet die Groq-Seite (**AC-3**).
+  - Die macOS-Abfrage beim ersten Klick hat er abgelehnt (securityd 18:25:59,942). Das Protokoll zeigt um 18:26:03 „Takeover from old app failed: status -128“, die Meldung erschien (**AC-9**).
+  - Zweiter Versuch erlaubt (securityd 18:26:07,867): Übernahme, Groq 200 in 260 ms, Einführung abgeschlossen 18:26:21 (**AC-8**).
+- [x] **Timur, 06.11., 18:15:** Mit falschem Schlüssel und Netz antwortete Groq mit 401 in 412 ms. Die Ablehnung erschien, nichts wurde gespeichert (**AC-6**). Warndreieck und „Kein Groq-Schlüssel.“ ohne Schlüssel waren sichtbar (**AC-15**).
+- [!] **AC-10 live (ohne Internet):** Timur hat den Test am 06.11. bewusst übersprungen. Sein Mac hängt am Netzwerkkabel, „WLAN aus“ trennt ihn also nicht. Abgedeckt ist der Fall nur durch die Tests `noAnswerStoresTheKeyAsNotYetChecked` und `networkReturnChecksOnlyAKeyThatWasNotChecked`.
+- [!] **PROJ-1 AC-11 (Knopf im Menüleisten-Fenster schließt das Fenster):** Nicht beantwortet. Das Protokoll zeigt 10-mal „Settings window shown“ zwischen 18:15:43 und 18:15:48. Ob das Menüleisten-Fenster offen blieb, ist ungeklärt.
+- [!] **AC-14 live (401 beim Start), EC-8 live:** Nicht ausprobiert. Grund: no way to run and probe this project was recorded. Belegt nur durch Tests.
+
+**Neue Befunde in dieser Nachprüfung:** zwei, beide Low. Nach der Abbruchregel für Nachprüfungen sind sie Deferred und lösen keine neue Runde aus (BUG-9, BUG-10 unten).
+
+**Ergebnis nach Nachtrag 2:** **BEREIT.** Kein Fehler ist mehr Open. BUG-1 und BUG-2 sind behoben, BUG-3 bis BUG-10 sind Deferred (Low). Bewusst nicht live geprüft sind die drei [!]-Punkte oben.
+
+---
+
 ## Nachtrag 2026-11-06: Nachprüfung BUG-1 und BUG-2
 
 **Umfang:** `git diff --stat 30892d1..HEAD`. 30892d1 ist der Commit des Berichts, HEAD ist 7beaf3f. Geänderte Produktionsdateien:
@@ -187,6 +230,20 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02, SEC-03 (lokal
 - **Klasse:** Netzanfrage über die geteilte Sitzung statt über eine flüchtige.
 - **Suche:** `grep -rn "URLSession.shared" Packages/InnoWhisperKit/Sources` → 1 Treffer (`KeyValidator.swift:41`).
 - **Folge:** Cookies von Groq bzw. Cloudflare liegen unter `~/Library/HTTPStorages/com.innosolv.InnoWhisper*`. Sie enthalten keinen Schlüssel (0 Treffer für `gsk_`, `Bearer`, `Authorization`).
+
+### BUG-9: Passt-Test nutzt eine kopierte Rahmenhöhe und lässt nur 6 pt Luft
+- **Schwere:** Low
+- **Status:** Deferred
+- **Klasse:** Layout-Test, der eine abgeschriebene Rahmenkonstante statt der gemessenen Rahmenhöhe nutzt und nur einen Zustand prüft.
+- **Suche:** `grep -rnE "let [A-Za-z]+: CGFloat = [0-9]+" Packages/InnoWhisperKit/Tests` → 2 Treffer, davon betroffen 1 (`KeyStepFitsTests.swift:18`). Dazu `grep -rln "fittingSize" Packages/InnoWhisperKit/Tests` → 1 Datei. Für die anderen Seiten gibt es also keinen solchen Test.
+- **Folge:** Ändert sich der Rahmen in `OnboardingView`, bleibt der Test grün. Eine zusätzliche Textzeile im Schlüssel-Schritt (rund 15 pt, etwa durch BUG-6) schneidet wieder ab. Seiten späterer Features prüft er nicht.
+
+### BUG-10: Einführungsfenster wird nicht an kleine Bildschirme angepasst
+- **Schwere:** Low (berechnet, nicht am Gerät beobachtet)
+- **Status:** Deferred
+- **Klasse:** Fenster fester Größe ohne Abgleich mit der sichtbaren Bildschirmfläche.
+- **Suche:** `grep -rnE "static let size = CGSize|setContentSize\(" Packages/InnoWhisperKit/Sources App` → 3 Treffer, ohne Abgleich nur `OnboardingWindowController.swift:15/37`. Die Einstellungen nutzen `WindowFramePolicy`.
+- **Folge:** Der Fensterrahmen ist jetzt 572 pt hoch, vorher 472. Auf einem 13-Zoll-Laptop mit „Größerer Text“ und Dock sind etwa 546 pt sichtbar. Dann ragt der untere Rand mit den Knöpfen unter das Dock. Return drückt trotzdem „Weiter“.
 
 ## Nicht geprüft in diesem Lauf
 
