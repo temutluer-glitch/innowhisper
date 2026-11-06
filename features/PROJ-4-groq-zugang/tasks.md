@@ -12,8 +12,8 @@
 
 ## Stufe 2 — Anschlüsse nach außen
 
-- [ ] T2 [P]  Prüfung bei Groq: Anfrage an die Modell-Liste mit Zeitgrenze 15 s; Ergebnis gilt (200, 429), abgelehnt (401, 403), nicht erreichbar (alles andere, Zeitüberschreitung, kein Netz) samt Statuscode und Dauer; Netzwerkzugang austauschbar; Tests für jeden Fall  · files: GA/KeyValidator.swift, GAT/KeyValidatorTests.swift  · → AC-4, EC-4, EC-5
-- [ ] T3 [P]  Schlüsselbund: eigener Eintrag lesen, speichern (nur dieser Mac, nach erster Entsperrung), löschen, mit Fehlercode bei Verweigerung; alter Eintrag: Existenz feststellen ohne Lesen, Lesen nur auf Aufruf, nie verändern; Schnittstellen mit Attrappen; Tests  · files: GA/KeyStore.swift, GA/LegacyKeyReader.swift, GAT/KeyStoreTests.swift  · → AC-5, AC-8, AC-13, AC-17, EC-8, EC-9
+- [x] T2 [P]  Prüfung bei Groq: Anfrage an die Modell-Liste mit Zeitgrenze 15 s; Ergebnis gilt (200, 429), abgelehnt (401, 403), nicht erreichbar (alles andere, Zeitüberschreitung, kein Netz) samt Statuscode und Dauer; Netzwerkzugang austauschbar; Tests für jeden Fall  · files: GA/KeyValidator.swift, GAT/KeyValidatorTests.swift  · → AC-4, EC-4, EC-5
+- [x] T3 [P]  Schlüsselbund: eigener Eintrag lesen, speichern (nur dieser Mac, nach erster Entsperrung), löschen, mit Fehlercode bei Verweigerung; alter Eintrag: Existenz feststellen ohne Lesen, Lesen nur auf Aufruf, nie verändern; Schnittstellen mit Attrappen; Tests  · files: GA/KeyStore.swift, GA/LegacyKeyReader.swift, GAT/KeyStoreTests.swift  · → AC-5, AC-8, AC-13, AC-17, EC-8, EC-9
 
 ## Stufe 3 — Zustand
 
