@@ -13,6 +13,7 @@ public struct LogCategory: Sendable, Equatable {
     public static let notices = LogCategory("notices")
     public static let onboarding = LogCategory("onboarding")
     public static let permissions = LogCategory("permissions")
+    public static let groq = LogCategory("groq")
 }
 
 /// The log file on this Mac (AC-11, AC-13, EC-3, EC-4). All file access runs

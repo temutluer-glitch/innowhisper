@@ -8,7 +8,7 @@
 
 ## Stufe 1 — Grundgerüst
 
-- [ ] T1  Modul `GroqAccess` (hängt von `AppShell`, `Diagnostics`, `Onboarding` ab) samt Testziel anlegen; Modul-Kopf mit festen Werten (Prüfadresse, Zeitgrenze 15 s, Schlüsselbund-Namen neu und alt, Schritt-Kennung „groq-key“, Reihenfolge 10, Einstellungs-Schlüssel „groqKey.status“); Protokoll-Bereich `groq`; erster Test  · files: Kit/Package.swift, GA/GroqAccess.swift, GAT/SmokeTests.swift, Kit/Sources/Diagnostics/LogFile.swift  · → AC-17, AC-18
+- [x] T1  Modul `GroqAccess` (hängt von `AppShell`, `Diagnostics`, `Onboarding` ab) samt Testziel anlegen; Modul-Kopf mit festen Werten (Prüfadresse, Zeitgrenze 15 s, Schlüsselbund-Namen neu und alt, Schritt-Kennung „groq-key“, Reihenfolge 10, Einstellungs-Schlüssel „groqKey.status“); Protokoll-Bereich `groq`; erster Test  · files: Kit/Package.swift, GA/GroqAccess.swift, GAT/SmokeTests.swift, Kit/Sources/Diagnostics/LogFile.swift  · → AC-17, AC-18
 
 ## Stufe 2 — Anschlüsse nach außen
 
