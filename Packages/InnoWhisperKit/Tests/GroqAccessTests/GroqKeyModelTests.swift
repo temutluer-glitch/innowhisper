@@ -268,4 +268,20 @@ final class FakeChecker: KeyChecking {
         #expect(opened == 1)
         #expect(model.wantsEdit)
     }
+
+    // AC-11: "Prüfen" in the settings shows what Groq said
+    @Test func checkFromTheSettingsShowsTheResult() async {
+        defaults.set("valid", forKey: GroqAccessInfo.statusDefaultsKey)
+        let checker = FakeChecker(.unreachable)
+        let model = makeModel(store: FakeStore(key: "gsk_shown001"), checker: checker)
+        await model.checkStored(showResult: true)
+        #expect(model.lastResult == .notReachable)
+        #expect(model.status == .valid)
+        checker.answer(.rejected)
+        await model.checkStored(showResult: true)
+        #expect(model.lastResult == .rejected)
+        #expect(model.status == .invalid)
+        await model.checkStored()
+        #expect(model.lastResult == .rejected)
+    }
 }

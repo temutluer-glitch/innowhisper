@@ -21,8 +21,8 @@
 
 ## Stufe 4 — Oberflächen
 
-- [ ] T5 [P]  Gemeinsamer Baustein (verdecktes Feld, „Prüfen“ mit Fortschritt, Ergebniszeile mit den Texten aus AC-4) und Einführungs-Schritt „Zugangsschlüssel“ (Erklärsatz, Übernahme-Hinweis und Knopf nur bei altem Schlüssel, Hilfe in drei Schritten mit Link, Weiter-Sperre, erledigt sich automatisch); VoiceOver-Beschriftungen; Test des Schritt-Vertrags  · files: GA/KeyEntryView.swift, GA/KeyStep.swift, GAT/KeyStepTests.swift  · → AC-1, AC-2, AC-3, AC-4, AC-6, AC-7, AC-9, EC-2, EC-3, EC-7, EC-9
-- [ ] T6 [P]  Gruppe „Groq-Schlüssel“ in den Einstellungen (Stand, „•••• “ plus letzte 4 Zeichen, „Prüfen“, „Ändern“, „Entfernen“ in gleicher Größe, Rückfrage vor dem Entfernen, Ändern klappt den Baustein auf); `AccessPane` liefert nur noch die Gruppe „Erlaubnisse“  · files: GA/KeySettingsSection.swift, Kit/Sources/Permissions/AccessPane.swift  · → AC-11, AC-12, AC-13
+- [x] T5 [P]  Gemeinsamer Baustein (verdecktes Feld, „Prüfen“ mit Fortschritt, Ergebniszeile mit den Texten aus AC-4) und Einführungs-Schritt „Zugangsschlüssel“ (Erklärsatz, Übernahme-Hinweis und Knopf nur bei altem Schlüssel, Hilfe in drei Schritten mit Link, Weiter-Sperre, erledigt sich automatisch); VoiceOver-Beschriftungen; Test des Schritt-Vertrags  · files: GA/KeyEntryView.swift, GA/KeyStep.swift, GAT/KeyStepTests.swift  · → AC-1, AC-2, AC-3, AC-4, AC-6, AC-7, AC-9, EC-2, EC-3, EC-7, EC-9
+- [x] T6 [P]  Gruppe „Groq-Schlüssel“ in den Einstellungen (Stand, „•••• “ plus letzte 4 Zeichen, „Prüfen“, „Ändern“, „Entfernen“ in gleicher Größe, Rückfrage vor dem Entfernen, Ändern klappt den Baustein auf); `AccessPane` liefert nur noch die Gruppe „Erlaubnisse“  · files: GA/KeySettingsSection.swift, Kit/Sources/Permissions/AccessPane.swift  · → AC-11, AC-12, AC-13
 
 ## Stufe 5 — Zusammensetzen und echt prüfen
 

@@ -49,6 +49,8 @@ public enum KeyEntryResult: Equatable, Sendable {
     case saveFailed
     case removeFailed
     case takeoverFailed
+    /// "Prüfen" in the settings without an answer; the state stays.
+    case notReachable
 
     public var isSuccess: Bool { self == .works }
 
@@ -60,6 +62,7 @@ public enum KeyEntryResult: Equatable, Sendable {
         case .saveFailed: "Der Schlüssel konnte nicht gespeichert werden. Bitte versuche es noch einmal."
         case .removeFailed: "Der Schlüssel konnte nicht entfernt werden. Bitte versuche es noch einmal."
         case .takeoverFailed: "Übernahme hat nicht geklappt. Füge deinen Schlüssel einfach unten ein."
+        case .notReachable: "Groq ist gerade nicht erreichbar. Versuche es später noch einmal."
         }
     }
 }
@@ -197,7 +200,8 @@ public final class GroqKeyModel {
     }
 
     /// Checks the stored key; a refusal marks it invalid, no answer keeps the state (AC-10, AC-14, EC-6).
-    public func checkStored() async {
+    /// `showResult` fills the result line, for "Prüfen" in the settings (AC-11).
+    public func checkStored(showResult: Bool = false) async {
         guard status != .missing, !isChecking else { return }
         let key: String?
         do {
@@ -218,6 +222,14 @@ public final class GroqKeyModel {
         case .valid: setStatus(.valid, lastFour: lastFour)
         case .rejected: setStatus(.invalid, lastFour: lastFour)
         case .unreachable: break
+        }
+        if showResult {
+            lastResult =
+                switch outcome.result {
+                case .valid: .works
+                case .rejected: .rejected
+                case .unreachable: .notReachable
+                }
         }
     }
 
