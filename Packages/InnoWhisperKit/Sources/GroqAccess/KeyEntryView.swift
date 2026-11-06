@@ -29,6 +29,10 @@ struct KeyEntryView: View {
             HStack(spacing: 8) {
                 SecureField(KeyTexts.fieldLabel, text: $input, prompt: Text("gsk_…"))
                     .textFieldStyle(.roundedBorder)
+                    // In the settings form a labelled field sits right-aligned
+                    // next to its label; the group title already names it.
+                    .labelsHidden()
+                    .multilineTextAlignment(.leading)
                     .accessibilityLabel(KeyTexts.fieldLabel)
                     .onSubmit(check)
                 Button(action: check) {

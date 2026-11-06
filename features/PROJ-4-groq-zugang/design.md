@@ -147,5 +147,19 @@ Keine in einem Dashboard. Jeder Mitarbeiter legt sich selbst ein Groq-Konto und 
 
 ## Offene Fragen
 
-- [ ] Wie genau sieht die macOS-Frage beim Lesen des alten Schlüssels aus (Passwort, nur „Erlauben“, gar keine)? Wird beim Bau mit dem echten Eintrag der alten App gemessen; der Hinweistext aus AC-7 wird angepasst.
-- [ ] Löst schon die Existenzprüfung des alten Eintrags eine macOS-Frage aus? Falls ja, wird sie erst nach dem Hinweis ausgeführt.
+- [x] Wie genau sieht die macOS-Frage beim Lesen des alten Schlüssels aus? Gemessen am 06.11.: das Schlüsselbund-Fenster von macOS mit Passwortfeld (securityd „displaying keychain prompt“, SecurityAgent), genau einmal. Der Hinweistext aus AC-7 („Gleich fragt macOS nach deinem Mac-Passwort …“) passt und bleibt.
+- [x] Löst schon die Existenzprüfung des alten Eintrags eine macOS-Frage aus? Nein. Der Schritt erschien 16:28:55 ohne Fenster; das Fenster kam erst 16:28:58,8 mit dem Klick auf „Schlüssel übernehmen“.
+
+## Bau-Notizen
+
+Live-Test am 06.11.2026 mit Timur, Testversion aus DerivedData, ausgewertet über `~/Library/Logs/InnoWhisper/InnoWhisper.log` und `/usr/bin/log show` (securityd, SecurityAgent).
+
+- Übernahme aus der alten App (AC-7, AC-8): Schritt zeigte den Hinweis, ein einziges Schlüsselbund-Fenster von macOS mit Passwort kam erst nach dem Klick (16:28:58,8), Übernahme 16:29:03,9, Groq-Prüfung 200 in 280 ms, gespeichert als „gilt“. Der Eintrag der alten App blieb unverändert.
+- Falscher Schlüssel (AC-6): Groq antwortete 401 in 194 ms, Ablehnungstext erschien, nichts gespeichert.
+- Richtiger Schlüssel per Einfügen (AC-5): 200 in 237 ms, Einführungsschritt danach erledigt, Einführung abgeschlossen.
+- Einstellungen (AC-11 bis AC-13): Stand „Schlüssel funktioniert“ mit den letzten 4 Zeichen, „Prüfen“ (200 in 224 bis 411 ms), „Ändern“ mit neuem Schlüssel, „Entfernen“ nach Rückfrage; Timur bestätigte Warndreieck und Problemtext (AC-15).
+- Prüfung beim Start (AC-14): nach Neustart „Key at start: valid“, danach Prüfung 200 in 243 ms.
+- Schlüssel nirgends im Klartext: 0 Treffer für `gsk_` in beiden Protokolldateien und in `com.innosolv.InnoWhisper.plist` (nur gezählt, keine Werte ausgegeben).
+- Korrektur aus dem Test: In den Einstellungen stand das Eingabefeld rechtsbündig neben einer zweiten Beschriftung „Groq-Schlüssel“. Jetzt ohne eigene Beschriftung (die Gruppe heißt schon so), volle Breite, Text links. Von Timur bestätigt.
+- Nicht live geprüft, bleibt für `/qa`: Speichern ohne Internet und Nachprüfen beim Wiederverbinden (AC-10, EC-5), Warnung bei ungültigem gespeichertem Schlüssel nach Neustart (AC-14 mit 401), verweigertes Speichern im Schlüsselbund (EC-8). Diese Fälle sind nur durch Tests mit Platzhaltern belegt.
+- Nebenbefund außerhalb von PROJ-4: `LegacyAppGuard` (PROJ-1) schreibt „Legacy app running …“ bei jedem Programmstart oder -ende anderer Apps erneut, solange die Frage zur alten Version offen ist (18 gleiche Zeilen um 16:44:26). Nur Protokoll-Rauschen, kein Fehlverhalten; nicht geändert.

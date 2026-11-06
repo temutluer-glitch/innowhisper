@@ -1,9 +1,11 @@
 import AppShell
 import Diagnostics
+import GroqAccess
 import Notices
 import Observation
 import Onboarding
 import Permissions
+import SwiftUI
 
 /// Composition root: creates the shared objects once and wires the features.
 @MainActor
@@ -26,6 +28,7 @@ final class AppEnvironment {
     @ObservationIgnored let onboardingStore = OnboardingProgressStore()
     @ObservationIgnored let onboardingWindow = OnboardingWindowController()
     @ObservationIgnored let permissions: PermissionMonitor
+    @ObservationIgnored let groqKey: GroqKeyModel
     @ObservationIgnored private var onboardingFlow: OnboardingFlow?
 
     init() {
@@ -51,6 +54,7 @@ final class AppEnvironment {
             problems: problems,
             onboardingFinishedOnce: { onboardingStore.finishedOnce }
         )
+        groqKey = GroqKeyModel(problems: problems, onboardingFinishedOnce: { onboardingStore.finishedOnce })
         sounds.onMissingSound = { Log.write("Sound missing: \($0)", category: .notices, level: .error) }
 
         let registry = registry
@@ -58,7 +62,16 @@ final class AppEnvironment {
         let sounds = sounds
         let logFile = logFile
         let permissions = permissions
-        registry.register(SettingsPane(section: .access) { AccessPane(monitor: permissions) })
+        let groqKey = groqKey
+        // "Zugang & Erlaubnisse" = Groq key (PROJ-4) above the permissions (PROJ-3).
+        registry.register(
+            SettingsPane(section: .access) {
+                Form {
+                    KeySettingsSection(model: groqKey)
+                    AccessPane(monitor: permissions)
+                }
+                .formStyle(.grouped)
+            })
         registry.register(SettingsPane(section: .general) { GeneralPane(registry: registry, loginItems: loginItems) })
         registry.register(
             GeneralSettingsGroup(id: "sounds", title: "Töne", order: 20) { SoundSettingsGroup(player: sounds) })
@@ -70,6 +83,8 @@ final class AppEnvironment {
     func start() {
         noticePanel.start()
         permissions.start()
+        groqKey.showSettings = { [weak self] in self?.openSettings(.access) }
+        groqKey.start()
         observeActivity()
     }
 
@@ -87,12 +102,13 @@ final class AppEnvironment {
     /// Shows the onboarding if steps are open (AC-1, AC-13, AC-18) and calls
     /// `then` once it is finished, or right away if none is needed (EC-4).
     func startOnboardingIfNeeded(then: @escaping @MainActor () -> Void) {
-        let steps = PermissionSteps.make(monitor: permissions)
+        let steps = [KeyStep.make(model: groqKey)] + PermissionSteps.make(monitor: permissions)
         let flow = OnboardingFlow.start(steps: steps, store: onboardingStore) { [weak self] in
             guard let self else { return }
             onboardingWindow.close()
             onboardingFlow = nil
             permissions.onboardingIsOpen = false
+            groqKey.onboardingIsOpen = false
             then()
         }
         guard let flow else {
@@ -101,6 +117,7 @@ final class AppEnvironment {
         }
         onboardingFlow = flow
         permissions.onboardingIsOpen = true
+        groqKey.onboardingIsOpen = true
         onboardingWindow.show(flow)
     }
 
