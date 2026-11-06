@@ -12,7 +12,7 @@ final class OnboardingWindow: NSWindow {
 /// Owns the one onboarding window (AC-1, AC-12, EC-5).
 @MainActor
 public final class OnboardingWindowController {
-    static let size = CGSize(width: 520, height: 440)
+    static let size = CGSize(width: 520, height: 540)
 
     private var window: OnboardingWindow?
 

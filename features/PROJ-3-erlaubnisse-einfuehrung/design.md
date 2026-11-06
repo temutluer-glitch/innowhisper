@@ -75,7 +75,7 @@ Jeder Einführungs-Schritt, den ein Feature anmeldet, hat:
 
 ### Einführungsfenster
 
-- Eigenes Fenster, Titel „InnoWhisper einrichten“, feste Größe 520 × 440 Punkte, ohne Schließen-, Minimieren- und Vollbild-Knopf. Esc und ⌘W tun nichts (AC-12). Normale Fensterebene: Systemeinstellungen und andere Programme können davor liegen.
+- Eigenes Fenster, Titel „InnoWhisper einrichten“, feste Größe 520 × 540 Punkte (bis 06.11.2026: 440; erhöht, weil der Schritt „Zugangsschlüssel“ aus PROJ-4 sonst oben und unten abgeschnitten war), ohne Schließen-, Minimieren- und Vollbild-Knopf. Esc und ⌘W tun nichts (AC-12). Normale Fensterebene: Systemeinstellungen und andere Programme können davor liegen.
 - Beim Öffnen: mittig auf dem Bildschirm mit dem Mauszeiger (EC-5), App nach vorne holen (AC-1).
 - „InnoWhisper beenden“ und ⌘Q funktionieren wie immer (AC-13). Eine Rückfrage gibt es nicht, weil während der Einführung nie ein Diktat läuft.
 - Knöpfe einer Fußleiste in derselben Größe; „Weiter“, „Los geht's“ und „Fertig“ sind der Hauptknopf, „Zurück“ der Nebenknopf (`docs/design-system.md`, AC-22). Alle Bedienelemente mit Beschriftung für VoiceOver und Tastatur-Fokus (AC-21).
