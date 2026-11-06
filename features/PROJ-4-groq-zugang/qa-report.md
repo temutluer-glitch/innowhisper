@@ -1,5 +1,45 @@
 # QA-Ergebnisse PROJ-4: Groq-Zugang
 
+## Nachtrag 2026-11-06: Nachprüfung BUG-1 und BUG-2
+
+**Umfang:** `git diff --stat 30892d1..HEAD`. 30892d1 ist der Commit des Berichts, HEAD ist 7beaf3f. Geänderte Produktionsdateien:
+- `Sources/GroqAccess/GroqKeyModel.swift`
+- `Sources/GroqAccess/KeySettingsSection.swift`
+- `Sources/GroqAccess/KeyStore.swift`
+
+Dazu kommen 2 Testdateien und `design.md`. Geteilter Code ist nicht betroffen. Deshalb gab es einen unabhängigen `qa-engineer`-Prüfer mit allen drei Bereichen.
+
+**Prüfläufe:**
+- Testlauf einmal vor dem Prüfer: 157 Tests in 23 Suites bestanden (`scratchpad/qa-proj4-suite-2.log`).
+- Lint der geänderten Dateien: Exit 0.
+- `commands.build`: BUILD SUCCEEDED (Owner, Stand 7beaf3f).
+
+**Ergebnisse:**
+- [x] **BUG-1 behoben.** Die Suche `grep -n "await checker.check" …/GroqAccess/*.swift` liefert 2 Treffer (`GroqKeyModel.swift:223, :259`). Auf beide folgt `guard removals == removalsBefore else { return discardResult() }` (`:226, :262`). Der Zähler steigt nur nach einer gelungenen Löschung (`:198`). „Entfernen“ ist während einer Prüfung gesperrt (`KeySettingsSection.swift:31-32`).
+  - Test: `removeDuringARunningCheckLeavesNoKey`.
+  - Gegenproben des Prüfers in einer Kopie des Pakets: abgelehnte Prüfung, „Ändern“ mit altem Schlüssel, Prüfung nach Netzrückkehr, gescheiterte Löschung, zweimal Entfernen, neuer Schlüssel nach dem Verwerfen. 8/8 bestanden.
+  - Rot-Probe: Ohne die beiden `guard` schlagen die Tests mit der erwarteten Abweichung fehl.
+- [x] **BUG-2 behoben, gemessen an der Entscheidung von Timur.** Der Schlüssel bleibt im Login-Schlüsselbund, und nichts verspricht mehr einen Schutz, den macOS nicht einhält.
+  - Die alte Suche hat weiter 1 Treffer (`KeyStore.swift`). Das ist so gewollt.
+  - Gegensuche nach `ThisDeviceOnly|AfterFirstUnlock|kSecAttrAccessible|nur auf diesem Mac|Entsperrung` in Code, Tests und Doku. Für PROJ-4 bleiben nur Stellen, die die Zusage verneinen (`KeyStoreTests.swift:24`, `design.md:143`). Dazu kommt die erledigte Planzeile T3 in `tasks.md:16`; sie beschreibt den Bau, kein Verhalten.
+  - Test: `keyGoesToTheLoginKeychainWithoutICloud` prüft: keine Schutzklasse, kein Data-Protection-Schlüsselbund, keine iCloud-Synchronisierung.
+- [x] **AC-13, AC-15** jetzt erfüllt (Belege siehe BUG-1). Das Problem „Kein Groq-Schlüssel.“ mit „Schlüssel eintragen“ erscheint auch nach dem Verwerfen.
+- [x] **AC-11, AC-12, AC-18, EC-3, EC-6, EC-8** von der Änderung nicht verschlechtert.
+  - `isChecking` wird vor dem Verwerfen zurückgesetzt.
+  - Die neue Protokollzeile „Check result discarded: key was removed meanwhile“ ist fester Text.
+  - Ohne Entfernung ist der Ablauf unverändert.
+- [x] **Sicherheit:**
+  - `git diff 30892d1..HEAD | grep -cE 'gsk_[A-Za-z0-9]{20,}'` = 0.
+  - SEC-08: Der einzige entfernte Test (`keyStaysOnThisMac`) ist durch den gegenteiligen Test ersetzt. Das ist durch die Entscheidung unter BUG-2 gedeckt und keine Abschwächung.
+- [x] **Regression:** Die Änderung berührt nur `GroqAccess`. Die Suites von PROJ-1 bis PROJ-3 sind grün.
+- [!] **NOT VERIFIED:** Bedienung in der laufenden App (gesperrtes „Entfernen“ mit Ladeanzeige) und der echte Schlüsselbund mit dem alten Eintrag. Grund: no way to run and probe this project was recorded.
+- **Neue Befunde:** keine.
+- **Hinweis:** Bei `design.md:143` fehlt die SEC-Kennung (SEC-03). Das ist nur Doku.
+
+Alles Übrige unten gilt unverändert seit dem ersten Lauf vom 06.11. Ausnahmen: die Status von BUG-1 und BUG-2 und die Zeilennummern bei BUG-7.
+
+---
+
 **Geprüft:** 2026-11-06, erste Prüfung (keine Nachprüfung)
 **App-Adresse:** hier nicht lauffähig (`probe.kind: none`, native Menüleisten-App). Laufzeitkriterien gelten nur dort als belegt, wo ein Test durch Timur aufgezeichnet ist: Zeilen aus `~/Library/Logs/InnoWhisper/InnoWhisper.log` und dem macOS-Systemprotokoll (securityd, SecurityAgent) mit Uhrzeit, dazu Timurs Sichtprüfung.
 **Prüfer:** QA Engineer (KI). Drei unabhängige `qa-engineer`-Prüfer ohne Kenntnis des Baus: Abnahme (Schritt 2), Sicherheit (Schritt 3), Regression (Schritt 4 und 5). Zusammengeführt vom Owner.
@@ -81,7 +121,7 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02, SEC-03 (lokal
 
 ### BUG-1: „Entfernen“ während einer laufenden Prüfung zeigt danach „Schlüssel funktioniert“ ohne Schlüssel
 - **Schwere:** Medium
-- **Status:** Open
+- **Status:** Fixed (Nachprüfung 06.11., 7beaf3f)
 - **Klasse:** Zustand wird nach einem `await` ohne erneute Prüfung geschrieben; ein veraltetes Prüfergebnis überschreibt eine spätere Aktion des Nutzers.
 - **Suche:** `grep -n "await checker.check" Packages/InnoWhisperKit/Sources/GroqAccess/*.swift` → 2 Treffer (`GroqKeyModel.swift:218` und `:252`).
 - **Nachstellen:**
@@ -94,7 +134,7 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02, SEC-03 (lokal
 
 ### BUG-2: Schlüssel liegt im dateibasierten Login-Schlüsselbund, „nur auf diesem Mac“ gilt nicht
 - **Schwere:** Medium
-- **Status:** Open
+- **Status:** Fixed (Nachprüfung 06.11., 7beaf3f)
 - **Klasse:** Schutzklasse im Schlüsselbund gesetzt, ohne den Data-Protection-Schlüsselbund zu wählen; macOS ignoriert das Attribut dann stillschweigend.
 - **Suche:** `grep -rl "SecItemAdd" Packages/InnoWhisperKit/Sources App | xargs grep -L "kSecUseDataProtectionKeychain"` → 1 Treffer (`KeyStore.swift`).
 - **Beleg:** Systemprotokoll beim Entfernen 17:06:19,226: InnoWhisper schreibt `/Users/timurmutluer/Library/Keychains/login.keychain-db`. `KeyStore.swift:35-49` setzt `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`, aber nicht `kSecUseDataProtectionKeychain`. Der Test `keyStaysOnThisMac` prüft nur die Abfrage, nicht den Ort.
@@ -138,7 +178,7 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02, SEC-03 (lokal
 - **Schwere:** Low
 - **Status:** Deferred
 - **Klasse:** Fehler beim Lesen wird wie „nichts gespeichert“ behandelt.
-- **Suche:** `grep -n "status = .missing" Packages/InnoWhisperKit/Sources/GroqAccess/GroqKeyModel.swift` → 3 Treffer (`:195` nach dem Entfernen und `:294` richtig, `:303` im Fehlerweg).
+- **Suche:** `grep -n "status = .missing" Packages/InnoWhisperKit/Sources/GroqAccess/GroqKeyModel.swift` → 3 Treffer (`:199` nach dem Entfernen und `:307` richtig, `:316` im Fehlerweg; Stand 7beaf3f).
 - **Folge:** Scheitert das Lesen beim Start (z. B. Schlüsselbund kurz gesperrt), erscheint „Kein Groq-Schlüssel.“, obwohl einer existiert. Erst ein Neustart lädt neu.
 
 ### BUG-8: Prüfanfrage speichert Cookies von Groq dauerhaft
