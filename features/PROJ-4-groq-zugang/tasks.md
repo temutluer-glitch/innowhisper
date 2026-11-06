@@ -17,7 +17,7 @@
 
 ## Stufe 3 — Zustand
 
-- [ ] T4  Modell des Zugangs: Stand (gilt, noch nicht geprüft, ungültig, kein Schlüssel) mit Speicherung in „groqKey.status“; letzte 4 Zeichen; Eingabe säubern und auf Form prüfen; nur eine Prüfung zur Zeit; Prüfen, Übernehmen, Ändern (alter bleibt bei Ablehnung), Entfernen; Prüfung beim Start; Nachprüfen, wenn das Netz wiederkommt; Probleme „groq.key“ nur nach abgeschlossener, nicht offener Einführung melden und sofort zurückziehen; Protokoll ohne Schlüssel; Tests mit Attrappen  · files: GA/GroqKeyModel.swift, GAT/GroqKeyModelTests.swift  · → AC-2, AC-5, AC-6, AC-8, AC-9, AC-10, AC-12, AC-13, AC-14, AC-15, AC-16, AC-18, EC-1, EC-2, EC-3, EC-6, EC-8
+- [x] T4  Modell des Zugangs: Stand (gilt, noch nicht geprüft, ungültig, kein Schlüssel) mit Speicherung in „groqKey.status“; letzte 4 Zeichen; Eingabe säubern und auf Form prüfen; nur eine Prüfung zur Zeit; Prüfen, Übernehmen, Ändern (alter bleibt bei Ablehnung), Entfernen; Prüfung beim Start; Nachprüfen, wenn das Netz wiederkommt; Probleme „groq.key“ nur nach abgeschlossener, nicht offener Einführung melden und sofort zurückziehen; Protokoll ohne Schlüssel; Tests mit Attrappen  · files: GA/GroqKeyModel.swift, GAT/GroqKeyModelTests.swift  · → AC-2, AC-5, AC-6, AC-8, AC-9, AC-10, AC-12, AC-13, AC-14, AC-15, AC-16, AC-18, EC-1, EC-2, EC-3, EC-6, EC-8
 
 ## Stufe 4 — Oberflächen
 
