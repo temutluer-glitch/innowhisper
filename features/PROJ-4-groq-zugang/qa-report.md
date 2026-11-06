@@ -99,6 +99,7 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02, SEC-03 (lokal
 - **Suche:** `grep -rl "SecItemAdd" Packages/InnoWhisperKit/Sources App | xargs grep -L "kSecUseDataProtectionKeychain"` → 1 Treffer (`KeyStore.swift`).
 - **Beleg:** Systemprotokoll beim Entfernen 17:06:19,226: InnoWhisper schreibt `/Users/timurmutluer/Library/Keychains/login.keychain-db`. `KeyStore.swift:35-49` setzt `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`, aber nicht `kSecUseDataProtectionKeychain`. Der Test `keyStaysOnThisMac` prüft nur die Abfrage, nicht den Ort.
 - **Folge:** Der Schlüssel zieht mit dem Login-Schlüsselbund über Migrationsassistent oder Time Machine auf einen anderen Mac, verschlüsselt mit dem Login-Passwort. In iCloud landet er nicht. Die Zusage in `design.md` (Technische Entscheidungen, Zeile „Schlüsselbund nur auf diesem Mac“) stimmt nicht.
+- **Entscheidung Timur, 06.11.:** Der Schlüssel darf im normalen Login-Schlüsselbund bleiben und beim Umzug auf einen neuen Mac mitziehen. Behoben ist der Fehler, wenn Entwurf, Schlüsselbund-Abfrage und Test nichts mehr versprechen, was macOS nicht einhält.
 - **Hinweis:** Der Data-Protection-Schlüsselbund braucht bei Developer ID in der Regel eine Zugriffsgruppe mit Provisioning-Profil. Ob das gebaut oder die Zusage im Entwurf korrigiert wird, ist eine Entscheidung (`/architecture` bzw. PROJ-14), keine reine Code-Korrektur.
 
 ### BUG-3: Protokoll vermerkt nicht „Prüfung gestartet“
@@ -176,4 +177,4 @@ Nicht ausgeführt (für native Menüleisten-Apps gibt es hier keinen Browser-Abl
 
 ## Ergebnis
 
-**NICHT BEREIT.** Es gibt keinen Fehler der Stufe Critical oder High. Zwei Fehler der Stufe Medium sind aber als Open vorgeschlagen (BUG-1, BUG-2). Sechs Fehler der Stufe Low sind als Deferred vorgeschlagen (BUG-3 bis BUG-8). Die Entscheidung von Timur steht noch aus.
+**NICHT BEREIT.** Es gibt keinen Fehler der Stufe Critical oder High. Timur hat am 06.11. entschieden: BUG-1 und BUG-2 (Medium) werden jetzt behoben (Open). BUG-3 bis BUG-8 (Low) kommen später gesammelt (Deferred). Status bleibt In Review. Nach der Korrektur prüft `/qa` in der Breite der Änderung nach; die offenen Live-Fälle aus „Nicht geprüft“ testet Timur dann mit.
