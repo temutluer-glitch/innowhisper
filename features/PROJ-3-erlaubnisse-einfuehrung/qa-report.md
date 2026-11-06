@@ -1,5 +1,27 @@
 # QA-Ergebnisse PROJ-3: Erlaubnisse & Einführung
 
+## Nachtrag 2026-11-06: Nachprüfung BUG-8 und BUG-11
+
+**Umfang:** `git diff --stat 8aafe27..HEAD` (8aafe27 = Commit des Berichts vom 05.11., HEAD = 5f19542). Geänderte Produktionsdateien:
+- `Packages/InnoWhisperKit/Sources/Permissions/PermissionChecking.swift`
+- `Packages/InnoWhisperKit/Sources/Permissions/PermissionMonitor.swift`
+Timur hat die beiden zurückgestellten Fehler mittlerer Schwere zum sofortigen Beheben freigegeben („Jetzt beheben“, 05.11.). Ein unabhängiger `qa-engineer`-Prüfer mit allen drei Bereichen; Testlauf 124/124 bestanden, Lint Exit 0, Bau ohne Signatur erfolgreich. Geprüfter Bau: Debug vom 06.11. 08:47:24, entspricht HEAD (`strings` findet „gave no answer, own reading counts“).
+
+- [x] **BUG-11 behoben:** Ohne Antwort gilt wieder die eigene Lesung (`PermissionChecking.swift:85-94`, Test `noOutsideAnswerFallsBackToOwnReading`, Rot-Probe gemacht); Fehlerwege mit einer wörtlichen Codekopie durchgespielt (hängt 5 s → keine Antwort nach 2,13 s, Exit 1 → keine Antwort, Programm fehlt → keine Antwort, 50 parallele Prüfungen → je genau eine Antwort). Prüfung ohne Anlass alle 30 s aufgezeichnet: 17 Prüfungen zwischen 08:48:14 und 08:57:02, Abstand 30,3 bis 32,7 s. Rest siehe BUG-14.
+- [x] **BUG-8 behoben für die Prozessstarts:** 20 Mitteilungen in 1 s ergaben genau 2 Prüfprozesse (tccd: PID 15433 um 08:47:41,642, PID 15690 um 08:47:43,773); `Task.detached` 0 Treffer, kein blockierter Thread mehr; Protokoll nur bei Änderung (3 Zeilen bei 23 Prüfungen). Test `burstOfListChangesRunsOneCheckSequence`, Rot-Probe gemacht. Rest siehe BUG-15, BUG-16.
+- [x] **AC-15** Schaltertest durch Timur, 06.11.: aus bei macOS 08:54:10,966, erkannt 08:54:11,552 (0,59 s); Warndreieck gesehen.
+- [x] **AC-16** ein bei macOS 08:54:20,657, erkannt 08:54:21,238 (0,58 s); Warndreieck verschwand.
+- [x] **AC-19, AC-20** Start liest richtig (08:47:26,516 „accessibility granted“); neue Protokollzeilen nur mit Aufzählungswert oder festem Text.
+- [x] **Sicherheit:** keine Geheimnisse (`git log -p 8aafe27..HEAD` 0 Treffer); feste Argumentliste ohne Shell; nur Exit 0 mit genau „granted“/„denied“ wird angenommen; Fortsetzung genau einmal unter Sperre; keine abgeschwächten Tests.
+- [x] **Regression:** 124/124 inkl. aller Suites von PROJ-1 und PROJ-2; 23 Prüfprozesse ohne Zeile „Second instance“ oder „error“; Erkennung der alten App unverändert (08:55:08,863 erkannt, Timur wählte „beenden“).
+- [!] Fehlerweg am laufenden Programm, AC-8/AC-10 mit diesem Bau bei offener Einführung, EC-2 live, EC-3 echter Neustart, Mitteilungsflut live durch den Prüfer — no way to run and probe this project was recorded (die Flut hat der Bauende gemessen, siehe `design.md` → Bau-Notizen)
+- Hinweis: Jede Prüfung außerhalb erzeugt in tccd eine Zeile der Stufe „Fehler“ (fehlende Apple-interne Berechtigung), bei 30-s-Takt etwa 2.800 am Tag. Kein Fehler im Produkt, gehört zu BUG-10.
+
+Alles Übrige unten gilt unverändert seit dem 05.11.
+
+---
+
+
 **Geprüft:** 2026-11-05 (zweite Nachprüfung, nach der Korrektur von BUG-7 und dem Rest von BUG-1)
 **App-Adresse:** nicht hier lauffähig (`probe.kind: none`, native Menüleisten-App). Laufzeitkriterien gelten nur dort als belegt, wo ein Test durch Timur aufgezeichnet ist: Protokollzeilen der App neben Zeitstempeln von macOS (tccd), dazu Timurs Sichtprüfung.
 **Prüfer:** QA Engineer (KI). Ein unabhängiger `qa-engineer`-Prüfer mit allen drei Bereichen (Abnahme, Sicherheit, Regression) ohne Kenntnis des Baus; zusammengeführt vom Owner, dazu Tests durch Timur mit dem fertigen Bau.
@@ -134,7 +156,7 @@ Angewendet nach `docs/kit/guides/security.md`: SEC-01, SEC-02, SEC-08 (SEC-03 bi
 
 ### BUG-8: Prüfung von außen beliebig oft auslösbar
 - **Schweregrad:** Medium (vorher Low; durch den Diff verschärft)
-- **Status:** Deferred (Vorschlag)
+- **Status:** Fixed (bestätigt 06.11., siehe Nachtrag oben; Rest in BUG-15 und BUG-16)
 - **Fehlerart (Class):** Von außen auslösbare Arbeit ohne Bündelung oder Drosselung am Eingang (SEC-02)
 - **Sweep:** `grep -rn "suspensionBehavior: .deliverImmediately" App Packages` — 1 Treffer (`PermissionMonitor.swift:211`); `grep -rn "Task.detached" App Packages/InnoWhisperKit/Sources` — 1 Treffer (`PermissionChecking.swift:73`)
 - **Nachstellen (nicht ausgeführt):** Jeder Prozess der Sitzung kann `com.apple.accessibility.api` senden; jede Zustellung startet jetzt zwei Kopien von InnoWhisper (nach 0,5 s und 2 s), jede hält bis zu 2 s einen Thread und schreibt eine Protokollzeile. Folge: Rechenlast und Protokoll-Verdrängung, kein falscher Stand, kein Datenabfluss.
@@ -154,7 +176,7 @@ Angewendet nach `docs/kit/guides/security.md`: SEC-01, SEC-02, SEC-08 (SEC-03 bi
 
 ### BUG-11: Nach der ersten Prüfung außerhalb liest die App die Bedienungshilfen nicht mehr selbst
 - **Schweregrad:** Medium
-- **Status:** Deferred (Vorschlag)
+- **Status:** Fixed (bestätigt 06.11., siehe Nachtrag oben; Rest in BUG-14)
 - **Fehlerart (Class):** Zwischengespeicherte Antwort einer Hilfsprüfung ohne Verfall verdrängt die laufende Abfrage; der Rückfallweg ist tot
 - **Kriterium:** AC-15, AC-16 (Fehlerweg); widerspricht `design.md` → Bau-Notizen („Ohne Antwort binnen 2 s bleibt die eigene Lesung“)
 - **Sweep:** `grep -rnE "private var [A-Za-z]+: PermissionState\?" Packages/InnoWhisperKit/Sources` — 1 Treffer (`PermissionChecking.swift:30`)
@@ -174,10 +196,32 @@ Angewendet nach `docs/kit/guides/security.md`: SEC-01, SEC-02, SEC-08 (SEC-03 bi
 - **Sweep:** `grep -rnE "Process\(\)|posix_spawn|NSTask|executableURL" App Packages/InnoWhisperKit/Sources` — 5 Treffer in 2 Dateien (`AppRelauncher.swift` startet über `open`, anderer Fall)
 - **Nachstellen (nicht ausgeführt):** `runCheck` startet, was unter `Bundle.main.executableURL` liegt; tccd führt das Kind unter der Verantwortung der laufenden App (aufgezeichnet 17:42:41,185). Ob ein ausgetauschtes Programm die Erlaubnisse erbt, ist nicht belegt. Voraussetzung: Schreibzugriff auf das App-Bundle bei laufender App; unter `/Applications` schützt „App-Verwaltung“.
 
+### BUG-14: Ohne Mitteilung wird eine Änderung erst nach bis zu 33 s erkannt
+- **Schweregrad:** Low
+- **Status:** Deferred
+- **Fehlerart (Class):** Die gespeicherte Antwort einer Hilfsprüfung verdrängt die eigene Lesung bis zur nächsten Hilfsprüfung, statt dass eine abweichende eigene Lesung eine Prüfung auslöst
+- **Kriterium:** AC-15, AC-16 (nur wenn macOS die Mitteilung nicht schickt; in 8 von 8 aufgezeichneten Wechseln kam sie)
+- **Sweep:** `grep -rn "checkedOutside ?? " Packages/InnoWhisperKit/Sources` — 1 Treffer
+- **Nachstellen (nicht ausgeführt):** Wechsel ohne Mitteilung → erst die nächste 30-s-Prüfung erkennt ihn (aufgezeichnete Abstände bis 32,7 s).
+
+### BUG-15: Jede Mitteilung löst sofort eine volle Abfrage im Haupt-Thread aus
+- **Schweregrad:** Low
+- **Status:** Deferred
+- **Fehlerart (Class):** Von außen auslösbare Arbeit ohne Bündelung am Eingang (SEC-02), Rest von BUG-8
+- **Sweep:** `grep -rn -A1 "func accessibilityListChanged()" Packages/InnoWhisperKit/Sources | grep -c "refresh()"` — 1
+- **Nachstellen (nicht ausgeführt):** Flut von Mitteilungen → je Mitteilung eine Mikrofon-Abfrage und, ohne gespeicherte Antwort, ein Dock-Aufruf mit bis zu 0,5 s Wartezeit im Haupt-Thread. Kein falscher Stand.
+
+### BUG-16: Dauernde Mitteilungsfolge verhindert die Prüfung nach einer Änderung
+- **Schweregrad:** Low
+- **Status:** Deferred
+- **Fehlerart (Class):** Bündelung ohne Höchstwartezeit
+- **Sweep:** `grep -rn "listChangeTask?.cancel()" Packages/InnoWhisperKit/Sources` — 1 Treffer
+- **Nachstellen (aus dem Code, nicht ausgeführt):** Mitteilungen dauerhaft im Abstand unter 0,5 s → die Folge wird immer wieder ersetzt; dann greift nur die 30-s-Prüfung.
+
 ## Zusammenfassung
 - **Abnahmekriterien:** 22/22 belegt oder übernommen; im Diff belegt AC-1, AC-7 bis AC-13, AC-15 bis AC-17, AC-19, AC-20, AC-22, davon live durch Timur AC-7, AC-8, AC-9, AC-10, AC-11, AC-12, AC-13, AC-15, AC-16, AC-22
 - **Grenzfälle:** 5/5 belegt oder übernommen; EC-2 und EC-3 live nicht geprüft
-- **Fehler:** 13 (0 kritisch, 2 hoch, 2 mittel, 9 niedrig) — Fixed: BUG-1, BUG-5, BUG-6, BUG-7; Deferred: BUG-2, BUG-3, BUG-4, BUG-8, BUG-9, BUG-10, BUG-11, BUG-12, BUG-13; Open: keiner
+- **Fehler:** 16 (0 kritisch, 2 hoch, 2 mittel, 12 niedrig) — Fixed: BUG-1, BUG-5, BUG-6, BUG-7, BUG-8, BUG-11; Deferred: BUG-2, BUG-3, BUG-4, BUG-9, BUG-10, BUG-12, BUG-13, BUG-14, BUG-15, BUG-16; Open: keiner (Stand 06.11.)
 - **Sicherheit:** 5 Prüfungen belegt, 1 NOT VERIFIED (Release-Bau), 2 Funde (BUG-8, BUG-13)
 - **Produktionsreif:** JA — keine offenen kritischen oder hohen Fehler; die nicht geprüften Punkte stehen oben unter „Nicht geprüft in diesem Lauf“
-- **Empfehlung:** Die zurückgestellten Fehler später gesammelt mit `/build PROJ-3 deferred` beheben; BUG-11 und BUG-8 zuerst
+- **Empfehlung:** Die zurückgestellten Fehler (alle niedrig) später gesammelt mit `/build PROJ-3 deferred` beheben
