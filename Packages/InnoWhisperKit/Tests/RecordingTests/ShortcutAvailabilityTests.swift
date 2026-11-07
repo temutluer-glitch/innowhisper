@@ -47,8 +47,26 @@ import Testing
         }
         #expect(!check.isFree(.combination(keyCode: UInt16(kVK_ANSI_Z), modifiers: [.command, .shift])))
         #expect(!check.isFree(.combination(keyCode: UInt16(kVK_LeftArrow), modifiers: .command)))
-        #expect(check.isFree(.combination(keyCode: UInt16(kVK_F5), modifiers: .command)))
+        // ⌘F5 switches VoiceOver on and off (BUG-3, second round): taken.
+        #expect(!check.isFree(.combination(keyCode: UInt16(kVK_F5), modifiers: .command)))
+        #expect(check.isFree(.combination(keyCode: UInt16(kVK_F6), modifiers: .command)))
+        #expect(check.isFree(.combination(keyCode: UInt16(kVK_F13), modifiers: .command)))
         #expect(check.isFree(.combination(keyCode: UInt16(kVK_ANSI_D), modifiers: [.control, .option])))
+    }
+
+    // BUG-3 second round: Apple's shortcuts with ⌥⌘ and ⌃⌘ and unchanged macOS shortcuts are taken
+    @Test func appleShortcutsWithOptionOrControlCommandAreTaken() {
+        let check = ShortcutAvailability(systemShortcuts: { [:] }, probe: { _, _ in true })
+        let taken: [(Int, ModifierSet)] = [
+            (kVK_ANSI_H, [.option, .command]), (kVK_ANSI_M, [.option, .command]), (kVK_ANSI_W, [.option, .command]),
+            (kVK_ANSI_D, [.option, .command]), (kVK_ANSI_F, [.control, .command]), (kVK_Space, [.control, .command]),
+            (kVK_ANSI_Q, [.control, .command]),
+        ]
+        for (key, modifiers) in taken {
+            #expect(!check.isFree(.combination(keyCode: UInt16(key), modifiers: modifiers)))
+        }
+        #expect(check.isFree(.combination(keyCode: UInt16(kVK_ANSI_K), modifiers: [.option, .command])))
+        #expect(check.isFree(.combination(keyCode: UInt16(kVK_ANSI_K), modifiers: [.control, .command])))
     }
 
     @Test func loneModifierIsNeverChecked() {

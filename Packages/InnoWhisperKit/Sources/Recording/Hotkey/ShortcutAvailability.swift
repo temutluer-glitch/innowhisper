@@ -35,6 +35,7 @@ public struct ShortcutAvailability {
         guard case .combination(let keyCode, let modifiers) = shortcut else { return true }
         let candidate = SystemShortcut(keyCode: keyCode, modifiers: modifiers)
         if Self.isStandardProgramShortcut(keyCode: keyCode, modifiers: modifiers) { return false }
+        if Self.appleShortcuts.contains(candidate) { return false }
         if takenBySystem().contains(candidate) { return false }
         return probe(keyCode, modifiers)
     }
@@ -68,9 +69,38 @@ public struct ShortcutAvailability {
     }
 
     static let functionKeys: Set<UInt16> = Set(
-        [kVK_F1, kVK_F2, kVK_F3, kVK_F4, kVK_F5, kVK_F6, kVK_F7, kVK_F8, kVK_F9, kVK_F10, kVK_F11, kVK_F12].map {
-            UInt16($0)
-        })
+        [
+            kVK_F1, kVK_F2, kVK_F3, kVK_F4, kVK_F5, kVK_F6, kVK_F7, kVK_F8, kVK_F9, kVK_F10, kVK_F11, kVK_F12,
+            kVK_F13, kVK_F14, kVK_F15, kVK_F16, kVK_F17, kVK_F18, kVK_F19,
+        ].map { UInt16($0) })
+
+    /// Apple's shortcuts with ⌥⌘ and ⌃⌘ and macOS shortcuts that macOS does
+    /// not store while they are unchanged (BUG-3, second round).
+    static let appleShortcuts: Set<SystemShortcut> = {
+        let optionCommand: ModifierSet = [.option, .command]
+        let controlCommand: ModifierSet = [.control, .command]
+        let entries: [(Int, ModifierSet)] = [
+            (kVK_ANSI_H, optionCommand),  // hide others
+            (kVK_ANSI_M, optionCommand),  // minimise all
+            (kVK_ANSI_W, optionCommand),  // close all
+            (kVK_ANSI_D, optionCommand),  // show or hide the Dock
+            (kVK_ANSI_N, optionCommand),  // new …
+            (kVK_ANSI_I, optionCommand),  // inspector
+            (kVK_ANSI_S, optionCommand),  // sidebar
+            (kVK_ANSI_T, optionCommand),  // toolbar
+            (kVK_ANSI_V, optionCommand),  // move file
+            (kVK_ANSI_8, optionCommand),  // zoom
+            (kVK_ANSI_Equal, optionCommand),  // zoom in
+            (kVK_ANSI_Minus, optionCommand),  // zoom out
+            (kVK_ANSI_F, controlCommand),  // full screen
+            (kVK_Space, controlCommand),  // emoji and symbols
+            (kVK_ANSI_Q, controlCommand),  // lock screen
+            (kVK_ANSI_D, controlCommand),  // look up
+            (kVK_F5, .command),  // VoiceOver
+            (kVK_F5, optionCommand),  // accessibility shortcuts
+        ]
+        return Set(entries.map { SystemShortcut(keyCode: UInt16($0.0), modifiers: $0.1) })
+    }()
 
     /// Default system shortcuts of macOS by their id in `AppleSymbolicHotKeys`.
     static let macOSDefaults: [String: SystemShortcut] = [
