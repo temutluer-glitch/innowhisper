@@ -26,7 +26,7 @@
 
 ## Stufe 4 — Steuerung
 
-- [ ] T10  Aufnahme-Steuerung als Zustandsautomat (bereit → wartet → startet → nimmt auf → endet) mit Generationszähler: Erlaubnis-Prüfung mit Hinweis-Knopf, Startton erst bei fließendem Ton, Zustand „nimmt auf“ an der Menüleiste, Endton, Abbruch, Verwerfen, Weitergabe an die Ablage, Rückfall auf das Systemmikrofon mit Hinweis, Unterbrechungen (Gerät getrennt, Ruhezustand, Bildschirmsperre, Speicher) mit Hinweis, nur Probe-Aufnahmen solange die Einführung offen ist, höchstens eine Aufnahme; Protokoll ohne Inhalte  · files: RC/Session/RecordingController.swift, RC/Session/InterruptionWatcher.swift, RCT/RecordingControllerTests.swift  · → AC-2, AC-3, AC-4, AC-5, AC-7, AC-8, AC-9, AC-11, AC-13, AC-14, AC-15, AC-21, EC-2, EC-3, EC-4, EC-6, EC-8
+- [x] T10  Aufnahme-Steuerung als Zustandsautomat (bereit → wartet → startet → nimmt auf → endet) mit Generationszähler: Erlaubnis-Prüfung mit Hinweis-Knopf, Startton erst bei fließendem Ton, Zustand „nimmt auf“ an der Menüleiste, Endton, Abbruch, Verwerfen, Weitergabe an die Ablage, Rückfall auf das Systemmikrofon mit Hinweis, Unterbrechungen (Gerät getrennt, Ruhezustand, Bildschirmsperre, Speicher) mit Hinweis, nur Probe-Aufnahmen solange die Einführung offen ist, höchstens eine Aufnahme; Protokoll ohne Inhalte  · files: RC/Session/RecordingController.swift, RC/Session/InterruptionWatcher.swift, RCT/RecordingControllerTests.swift  · → AC-2, AC-3, AC-4, AC-5, AC-7, AC-8, AC-9, AC-11, AC-13, AC-14, AC-15, AC-21, EC-2, EC-3, EC-4, EC-6, EC-8
 
 ## Stufe 5 — Oberfläche
 
