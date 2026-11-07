@@ -74,30 +74,37 @@ public struct ShortcutAvailability {
             kVK_F13, kVK_F14, kVK_F15, kVK_F16, kVK_F17, kVK_F18, kVK_F19,
         ].map { UInt16($0) })
 
-    /// Apple's shortcuts with ⌥⌘ and ⌃⌘ and macOS shortcuts that macOS does
-    /// not store while they are unchanged (BUG-3, second round).
+    /// Apple's program shortcuts with ⌥⌘, ⌥⇧⌘ and ⌃⌘ (BUG-3, BUG-15). Shortcuts
+    /// that macOS manages itself are in `macOSDefaults`, so switching one off
+    /// in the system settings frees it (BUG-17).
     static let appleShortcuts: Set<SystemShortcut> = {
         let optionCommand: ModifierSet = [.option, .command]
+        let optionShiftCommand: ModifierSet = [.option, .shift, .command]
         let controlCommand: ModifierSet = [.control, .command]
         let entries: [(Int, ModifierSet)] = [
             (kVK_ANSI_H, optionCommand),  // hide others
             (kVK_ANSI_M, optionCommand),  // minimise all
             (kVK_ANSI_W, optionCommand),  // close all
-            (kVK_ANSI_D, optionCommand),  // show or hide the Dock
             (kVK_ANSI_N, optionCommand),  // new …
             (kVK_ANSI_I, optionCommand),  // inspector
             (kVK_ANSI_S, optionCommand),  // sidebar
             (kVK_ANSI_T, optionCommand),  // toolbar
             (kVK_ANSI_V, optionCommand),  // move file
-            (kVK_ANSI_8, optionCommand),  // zoom
-            (kVK_ANSI_Equal, optionCommand),  // zoom in
-            (kVK_ANSI_Minus, optionCommand),  // zoom out
+            (kVK_ANSI_C, optionCommand),  // copy style
+            (kVK_ANSI_F, optionCommand),  // search field
+            (kVK_ANSI_L, optionCommand),  // downloads
+            (kVK_ANSI_P, optionCommand),  // path bar
+            (kVK_ANSI_Y, optionCommand),  // slideshow
+            (kVK_LeftArrow, optionCommand),  // previous tab
+            (kVK_RightArrow, optionCommand),  // next tab
+            (kVK_ANSI_V, optionShiftCommand),  // paste and match style
+            (kVK_ANSI_Q, optionShiftCommand),  // log out at once
             (kVK_ANSI_F, controlCommand),  // full screen
             (kVK_Space, controlCommand),  // emoji and symbols
             (kVK_ANSI_Q, controlCommand),  // lock screen
             (kVK_ANSI_D, controlCommand),  // look up
-            (kVK_F5, .command),  // VoiceOver
-            (kVK_F5, optionCommand),  // accessibility shortcuts
+            (kVK_ANSI_A, controlCommand),  // annotate
+            (kVK_ANSI_T, controlCommand),  // new tab group
         ]
         return Set(entries.map { SystemShortcut(keyCode: UInt16($0.0), modifiers: $0.1) })
     }()
@@ -115,6 +122,22 @@ public struct ShortcutAvailability {
         "33": SystemShortcut(keyCode: UInt16(kVK_DownArrow), modifiers: .control),  // app windows
         "79": SystemShortcut(keyCode: UInt16(kVK_LeftArrow), modifiers: .control),  // space left
         "81": SystemShortcut(keyCode: UInt16(kVK_RightArrow), modifiers: .control),  // space right
+        "29": SystemShortcut(keyCode: UInt16(kVK_ANSI_3), modifiers: [.control, .shift, .command]),  // shot clip
+        "31": SystemShortcut(keyCode: UInt16(kVK_ANSI_4), modifiers: [.control, .shift, .command]),  // area clip
+        "12": SystemShortcut(keyCode: UInt16(kVK_F1), modifiers: .control),  // keyboard access
+        "7": SystemShortcut(keyCode: UInt16(kVK_F2), modifiers: .control),  // focus menu bar
+        "8": SystemShortcut(keyCode: UInt16(kVK_F3), modifiers: .control),  // focus Dock
+        "9": SystemShortcut(keyCode: UInt16(kVK_F4), modifiers: .control),  // focus window
+        "10": SystemShortcut(keyCode: UInt16(kVK_F5), modifiers: .control),  // focus toolbar
+        "11": SystemShortcut(keyCode: UInt16(kVK_F6), modifiers: .control),  // focus floating window
+        "13": SystemShortcut(keyCode: UInt16(kVK_F7), modifiers: .control),  // Tab moves focus
+        "57": SystemShortcut(keyCode: UInt16(kVK_F8), modifiers: .control),  // focus status menus
+        "52": SystemShortcut(keyCode: UInt16(kVK_ANSI_D), modifiers: [.option, .command]),  // Dock
+        "59": SystemShortcut(keyCode: UInt16(kVK_F5), modifiers: .command),  // VoiceOver
+        "162": SystemShortcut(keyCode: UInt16(kVK_F5), modifiers: [.option, .command]),  // accessibility shortcuts
+        "15": SystemShortcut(keyCode: UInt16(kVK_ANSI_8), modifiers: [.option, .command]),  // zoom
+        "17": SystemShortcut(keyCode: UInt16(kVK_ANSI_Equal), modifiers: [.option, .command]),  // zoom in
+        "19": SystemShortcut(keyCode: UInt16(kVK_ANSI_Minus), modifiers: [.option, .command]),  // zoom out
     ]
 
     private static func isEnabled(_ value: Any?) -> Bool {

@@ -69,6 +69,30 @@ import Testing
         #expect(check.isFree(.combination(keyCode: UInt16(kVK_ANSI_K), modifiers: [.control, .command])))
     }
 
+    // BUG-15/17 (QA 07.11.): unchanged macOS shortcuts are taken on a fresh Mac,
+    // switched-off ones are free, and more of Apple's program shortcuts are known
+    @Test func fullAppleListRespectsSwitchedOffSystemShortcuts() {
+        let fresh = ShortcutAvailability(systemShortcuts: { [:] }, probe: { _, _ in true })
+        let freshTaken: [(Int, ModifierSet)] = [
+            (kVK_ANSI_4, [.control, .shift, .command]), (kVK_ANSI_3, [.control, .shift, .command]),
+            (kVK_F2, .control), (kVK_F8, .control), (kVK_ANSI_8, [.option, .command]),
+            (kVK_ANSI_V, [.option, .shift, .command]), (kVK_ANSI_C, [.option, .command]),
+            (kVK_ANSI_F, [.option, .command]), (kVK_ANSI_A, [.control, .command]),
+            (kVK_LeftArrow, [.option, .command]),
+        ]
+        for (key, modifiers) in freshTaken {
+            #expect(!fresh.isFree(.combination(keyCode: UInt16(key), modifiers: modifiers)))
+        }
+        // Zoom (id 15) and Dock (id 52) switched off in macOS: free
+        let stored: [String: Any] = [
+            "15": entry(enabled: false, keyCode: kVK_ANSI_8, flags: (1 << 19) | (1 << 20)),
+            "52": entry(enabled: false, keyCode: kVK_ANSI_D, flags: (1 << 19) | (1 << 20)),
+        ]
+        let switchedOff = ShortcutAvailability(systemShortcuts: { stored }, probe: { _, _ in true })
+        #expect(switchedOff.isFree(.combination(keyCode: UInt16(kVK_ANSI_8), modifiers: [.option, .command])))
+        #expect(switchedOff.isFree(.combination(keyCode: UInt16(kVK_ANSI_D), modifiers: [.option, .command])))
+    }
+
     @Test func loneModifierIsNeverChecked() {
         let check = ShortcutAvailability(systemShortcuts: { [:] }, probe: { _, _ in false })
         #expect(check.isFree(.modifierOnly(.rightCommand)))
