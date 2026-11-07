@@ -143,6 +143,9 @@ public final class RecordingController {
     @ObservationIgnored private var fileURL: URL?
     @ObservationIgnored private var microphoneKind: MicrophoneKind = .system
     @ObservationIgnored private var escapeRule = EscapeRule()
+    /// Whether the Mac is kept awake right now, and when speech was last heard (BUG-12).
+    @ObservationIgnored private var isKeptAwake = false
+    @ObservationIgnored private var lastSpeechAt: ContinuousClock.Instant?
     @ObservationIgnored private var watchers: [Task<Void, Never>] = []
 
     public init(hotkeys: any RecordingHotkeys, services: RecordingServices) {
@@ -236,16 +239,47 @@ public final class RecordingController {
     private func received(_ captureLevel: CaptureLevel) {
         guard state == .starting || state == .recording else { return }
         level = captureLevel.level
+        if state == .recording, captureLevel.level >= RecordingInfo.awakeSpeechLevel {
+            lastSpeechAt = services.now()
+            setKeptAwake(true)
+        }
         guard state == .starting, captureLevel.hasSignal else { return }
         state = .recording
         if let openedAt {
             Log.write("Recording started, sound after \(services.now() - openedAt)", category: .recording)
         }
         services.playStart()
-        services.keepAwake(true)
+        lastSpeechAt = services.now()
+        setKeptAwake(true)
         services.dictationStarted()
         services.activity.activity = .recording
         watchDiskSpace(generation)
+        watchForSilence(generation)
+    }
+
+    /// A forgotten recording (nothing said for 2 minutes) lets the Mac sleep
+    /// and lock again; the lock then ends the recording (BUG-12, EC-3).
+    private func watchForSilence(_ current: Int) {
+        let task = Task { [weak self] in
+            while true {
+                guard let self else { return }
+                await services.sleep(RecordingInfo.speechCheckInterval)
+                guard generation == current, state == .recording else { return }
+                if let lastSpeechAt, services.now() - lastSpeechAt >= RecordingInfo.awakeWithoutSpeech,
+                    isKeptAwake
+                {
+                    Log.write("Keep-awake released: no speech for 2 minutes", category: .recording)
+                    setKeptAwake(false)
+                }
+            }
+        }
+        watchers.append(task)
+    }
+
+    private func setKeptAwake(_ awake: Bool) {
+        guard awake != isKeptAwake else { return }
+        isKeptAwake = awake
+        services.keepAwake(awake)
     }
 
     /// EC-4: free space is checked every 10 s while recording.
@@ -387,7 +421,8 @@ public final class RecordingController {
     }
 
     private func endRecording() {
-        if state == .recording || state == .finishing { services.keepAwake(false) }
+        setKeptAwake(false)
+        lastSpeechAt = nil
         stopWatchers()
         generation += 1
         state = .idle

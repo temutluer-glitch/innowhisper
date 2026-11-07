@@ -174,6 +174,29 @@ func settle() async {
         #expect(InterruptionWatcher.workspaceNotifications.contains(NSWorkspace.willSleepNotification))
     }
 
+    // BUG-12 (QA 07.11.): a forgotten recording does not keep the Mac awake forever
+    @Test func keepAwakeEndsAfterTwoMinutesWithoutSpeech() async {
+        let controller = makeController()
+        hotkeys.press(.open)
+        capture.sound(0.6)
+        await settle()
+        #expect(log.awake == [true])
+        clock.now += .seconds(60)
+        await timers.elapse(RecordingInfo.speechCheckInterval)
+        #expect(log.awake == [true])
+        clock.now += .seconds(61)
+        await timers.elapse(RecordingInfo.speechCheckInterval)
+        #expect(log.awake == [true, false])
+        capture.sound(0.05)
+        #expect(log.awake == [true, false])
+        capture.sound(0.6)
+        #expect(log.awake == [true, false, true])
+        hotkeys.press(.finish)
+        await settle()
+        #expect(log.awake == [true, false, true, false])
+        #expect(controller.state == .idle)
+    }
+
     // AC-14: no sound for 1 s → cancelled, no start tone, notice
     @Test func noSoundCancelsAfterOneSecond() async {
         let controller = makeController()

@@ -29,6 +29,12 @@ public enum RecordingInfo {
     public static let minimumFreeBytes: Int64 = 200 * 1024 * 1024
     /// How often free disk space is checked while recording (EC-4).
     public static let diskCheckInterval: Duration = .seconds(10)
+    /// The Mac is kept awake only while speech was heard within this time (BUG-12).
+    public static let awakeWithoutSpeech: Duration = .seconds(120)
+    /// How often the time since the last speech is checked (BUG-12).
+    public static let speechCheckInterval: Duration = .seconds(30)
+    /// Level (0…1, about −45 dB) that counts as speech for keeping the Mac awake.
+    public static let awakeSpeechLevel = 0.25
     /// How often the real key state is checked while recording (EC-5).
     public static let keyStateCheckInterval: Duration = .milliseconds(500)
     /// Audio format of the recording file (design.md → Datenmodell).
