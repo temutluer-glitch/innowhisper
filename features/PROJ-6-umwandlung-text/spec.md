@@ -29,7 +29,7 @@
 
 ### Umwandeln
 - [ ] **AC-1** — Angenommen ein gültiger Zugangsschlüssel ist eingetragen und das Internet ist da, wenn eine Aufnahme fertig ist, dann wird sie über Groq in Text umgewandelt, und das Menüleisten-Symbol zeigt „wandelt um“, solange mindestens eine Umwandlung läuft.
-- [ ] **AC-2** — Angenommen InnoWhisper ist frisch installiert, wenn der Nutzer den Bereich „Aufnahme“ der Einstellungen öffnet, dann steht das Modell auf „Genauer“ und die Sprache auf „Deutsch“; wählbar sind „Genauer“ und „Schnell“ sowie „Deutsch“, „Englisch“ und „Automatisch“.
+- [ ] **AC-2** — Angenommen InnoWhisper ist frisch installiert, wenn der Nutzer den Bereich „Aufnahme“ der Einstellungen öffnet, dann steht das Modell auf „Schnell“ und die Sprache auf „Deutsch“; wählbar sind „Genauer“ und „Schnell“ sowie „Deutsch“, „Englisch“ und „Automatisch“.
 - [ ] **AC-3** — Angenommen die Umwandlung hat geklappt, wenn der Text fertig ist, dann wird er weitergegeben; solange es PROJ-7 noch nicht gibt, landet er in der Zwischenablage und es erscheint kurz „Text in der Zwischenablage.“
 - [ ] **AC-4** — Angenommen der Nutzer ändert Modell oder Sprache, wenn danach eine Aufnahme fertig wird, dann gilt für sie die neue Wahl; eine schon laufende Umwandlung behält die alte.
 
@@ -80,7 +80,7 @@
 
 ## Open Questions
 - [ ] PROJ-1 AC-20 sagt beim Beenden während einer Umwandlung „… geht es verloren“. Mit AC-20 dieser Spec wird es beim nächsten Start nachgeholt. Der Text der Rückfrage gehört per `/refine PROJ-1` angepasst.
-- [ ] PROJ-5 löscht beim Start übrig gebliebene Aufnahme-Dateien. Für AC-20 müssen noch nicht umgewandelte Aufnahmen davon ausgenommen sein; wie, klärt `/architecture`.
+- [x] PROJ-5 löscht beim Start übrig gebliebene Aufnahme-Dateien. Für AC-20 müssen noch nicht umgewandelte Aufnahmen davon ausgenommen sein. Gelöst in `design.md` (Aufnahme-Liste, `removeLeftovers` mit Ausnahmeliste).
 - [ ] Welche Groq-Grenzen das genutzte Konto hat, ist offen (Produktplan). Davon hängt ab, wie oft AC-14 im Alltag vorkommt.
 
 ## Decision Log
@@ -88,7 +88,8 @@
 ### Product Decisions
 | Decision | Rationale | Date |
 |----------|-----------|------|
-| Modell ab Werk „Genauer“ (whisper-large-v3), „Schnell“ wählbar | Pflichtpunkt 4: sauberere deutsche Sätze; Mehrkosten (rund 11 statt 4 Cent pro Stunde Sprache) sind fürs Team unerheblich | 2026-11-07 |
+| ~~Modell ab Werk „Genauer“ (whisper-large-v3)~~ ersetzt durch die nächste Zeile | — | 2026-11-07 |
+| Modell ab Werk „Schnell“ (whisper-large-v3-turbo), „Genauer“ wählbar; der Qualitätstest (AC-17, AC-18) prüft beide, ist „Genauer“ klar besser, wird umgestellt | Eigener Vergleich vom 06.11. (ADR-003): turbo bei 15 echten Diktaten am saubersten und schnellsten, large-v3 brach einmal ab und hängte Begriffe an. Die erste Empfehlung „Genauer“ hatte diesen Test übersehen; Timur hat am 07.11. umentschieden | 2026-11-07 |
 | Sprache ab Werk „Deutsch“, wählbar „Englisch“ und „Automatisch“ | Feste Sprache senkt erfundene englische Sätze; das Team diktiert fast nur Deutsch | 2026-11-07 |
 | Bei Fehlern zweimal still neu versuchen, dann Hinweis mit „Erneut versuchen“, Aufnahme bleibt | Kurze Aussetzer stören nicht; nichts geht verloren (Pflichtpunkt 2) | 2026-11-07 |
 | Ein endgültig gescheitertes Diktat hält spätere nicht auf | Weiterarbeiten geht vor strenger Reihenfolge; das gescheiterte kommt nach | 2026-11-07 |
