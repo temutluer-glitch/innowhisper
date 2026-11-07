@@ -35,12 +35,12 @@ Fünf Dateien, darunter die gemeinsame Verdrahtung, deshalb drei unabhängige Pr
 - [x] **Regression:** Keine Rückfälle in PROJ-1 bis PROJ-4. BUG-1, BUG-2 und BUG-10 halten.
 - [!] **Laufzeit:** Freigabe des Wachhaltens am echten Mac, Bildschirm aus mit anschließender Sperre, laute Räume, Tastatur live. Grund: no way to run and probe this project was recorded.
 
-**Neue Befunde dieser Nachprüfung.** Nach der Abbruchregel lösen sie keine neue Runde aus und sind als Deferred vorgeschlagen:
+**Neue Befunde dieser Nachprüfung.** Timur hat am 07.11. „noch eine Runde“ gewählt: alle drei werden jetzt behoben (Open). Für BUG-16 hat er festgelegt: Eine Aufnahme hält den Mac höchstens 20 Minuten ohne Tastatur- oder Mauseingabe wach.
 - BUG-15 (Low): restliche Apple- und macOS-Kürzel.
 - BUG-16 (Medium): Wachhalten an fester Lautstärke statt an Sprache.
 - BUG-17 (Low): Die feste Liste übersteuert ausgeschaltete Systemkürzel.
 
-**Ergebnis nach Nachtrag 2:** Kein Fehler ist mehr Open. Siehe „Ergebnis“ am Ende.
+**Ergebnis nach Nachtrag 2:** BUG-15, BUG-16 und BUG-17 sind Open, Status bleibt In Review.
 
 ---
 
@@ -290,7 +290,7 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02 (Einstellungen
 
 ### BUG-15: Restliche Apple- und macOS-Kürzel gelten als frei
 - **Schwere:** Low
-- **Status:** Deferred (vorgeschlagen)
+- **Status:** Open
 - **Klasse:** Belegt-Prüfung ohne vollständige Liste von Apples Standardkürzeln (Rest von BUG-3).
 - **Suche:** `grep -cE '"(7|8|9|10|11|12|13|29|31|57)": SystemShortcut' Packages/InnoWhisperKit/Sources/Recording/Hotkey/ShortcutAvailability.swift` → 0. Nach einer Korrektur sollten es 10 sein.
 - **Belege:**
@@ -300,7 +300,7 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02 (Einstellungen
 
 ### BUG-16: Wachhalten hängt an fester Lautstärke statt an Sprache
 - **Schwere:** Medium
-- **Status:** Deferred (vorgeschlagen)
+- **Status:** Open
 - **Klasse:** Die Ausnahme gegen den Ruhezustand verlängert sich durch einen festen Pegel (−45 dB) statt durch erkannte Sprache oder die Anwesenheit des Nutzers.
 - **Suche:** `grep -rn "awakeSpeechLevel" Packages/InnoWhisperKit/Sources` → 2.
 - **Folge laut:** In einem lauten Raum (Großraumbüro, Fernseher, Musik) hält eine vergessene Aufnahme im Modus „Ein/aus“ den Mac weiter wach und entsperrt. Sie nimmt dabei Gespräche Dritter auf, die ab PROJ-6 an Groq gehen. Gegenprobe: Pegel −42 dB über 30 Minuten, keine Freigabe.
@@ -309,7 +309,7 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02 (Einstellungen
 
 ### BUG-17: Feste Kürzel-Liste übersteuert ausgeschaltete Systemkürzel
 - **Schwere:** Low
-- **Status:** Deferred (vorgeschlagen)
+- **Status:** Open
 - **Klasse:** Die feste Liste wird vor dem gespeicherten Zustand der Systemkürzel geprüft.
 - **Suche:** `grep -cE '\((kVK_ANSI_D, optionCommand|kVK_F5, \.command|kVK_F5, optionCommand|kVK_ANSI_8, optionCommand|kVK_ANSI_Equal, optionCommand|kVK_ANSI_Minus, optionCommand)\)' Packages/InnoWhisperKit/Sources/Recording/Hotkey/ShortcutAvailability.swift` → 6.
 - **Folge:** Ein in macOS ausgeschaltetes Kürzel, etwa ⌥⌘8 für Zoom, wird trotzdem als „schon belegt“ abgelehnt.
