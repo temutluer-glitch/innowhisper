@@ -8,7 +8,7 @@
 
 ## Stufe 1 — Grundgerüst
 
-- [ ] T1  Modul `Recording` (hängt von `AppShell`, `Diagnostics`, `Notices`, `Onboarding`, `Permissions` ab) samt Testziel anlegen und ins Xcode-Projekt einhängen; Modul-Kopf mit festen Werten (Wartezeit 0,25 s, Mindestdauer 0,5 s, Sprachanteil 5 % bei −35 dB, kein Ton nach 1 s, Esc-Grenze 30 s und 3 s, Speichergrenze 200 MB, Prüftakt 10 s und 0,5 s, Ordner `Recordings`, Schritt-Kennung „shortcut“, Reihenfolge 60, Einstellungs-Schlüssel `recording.shortcut`, `recording.mode`, `recording.microphoneID`); Protokoll-Bereich `recording`; erster Test  · files: Kit/Package.swift, RC/Recording.swift, RCT/SmokeTests.swift, Kit/Sources/Diagnostics/LogFile.swift, InnoWhisper.xcodeproj/project.pbxproj  · → AC-21
+- [x] T1  Modul `Recording` (hängt von `AppShell`, `Diagnostics`, `Notices`, `Onboarding`, `Permissions` ab) samt Testziel anlegen und ins Xcode-Projekt einhängen; Modul-Kopf mit festen Werten (Wartezeit 0,25 s, Mindestdauer 0,5 s, Sprachanteil 5 % bei −35 dB, kein Ton nach 1 s, Esc-Grenze 30 s und 3 s, Speichergrenze 200 MB, Prüftakt 10 s und 0,5 s, Ordner `Recordings`, Schritt-Kennung „shortcut“, Reihenfolge 60, Einstellungs-Schlüssel `recording.shortcut`, `recording.mode`, `recording.microphoneID`); Protokoll-Bereich `recording`; erster Test  · files: Kit/Package.swift, RC/Recording.swift, RCT/SmokeTests.swift, Kit/Sources/Diagnostics/LogFile.swift, InnoWhisper.xcodeproj/project.pbxproj  · → AC-21
 
 ## Stufe 2 — Regeln ohne Mac-Technik
 

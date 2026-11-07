@@ -1,0 +1,39 @@
+import Foundation
+
+/// Recording by shortcut (PROJ-5): watching the shortcut, opening the
+/// microphone, writing the audio file and handing finished recordings on in
+/// the order they were spoken.
+public enum RecordingInfo {
+    /// A lone modifier (e.g. right ⌘) must be held this long before the
+    /// microphone opens, so ⌘C never starts a recording (EC-1, design.md).
+    public static let holdDelay: Duration = .milliseconds(250)
+    /// Shorter recordings are dropped without a notice (AC-10).
+    public static let minimumDuration: Duration = .milliseconds(500)
+    /// Share of "voiced" audio below which a recording counts as silent (AC-11).
+    public static let minimumVoicedFraction = 0.05
+    /// Level that counts a piece of audio as voiced (AC-11).
+    public static let voicedThresholdDecibels: Float = -35
+    /// Without real audio after this long the start is cancelled (AC-14).
+    public static let noSoundTimeout: Duration = .seconds(1)
+    /// Up to this length one Esc cancels; after it a second Esc is needed (AC-8, AC-9).
+    public static let singleEscapeLimit: Duration = .seconds(30)
+    /// Time window for the second Esc (AC-9).
+    public static let secondEscapeWindow: Duration = .seconds(3)
+    /// Recording ends below this much free disk space (EC-4).
+    public static let minimumFreeBytes: Int64 = 200 * 1024 * 1024
+    /// How often free disk space is checked while recording (EC-4).
+    public static let diskCheckInterval: Duration = .seconds(10)
+    /// How often the real key state is checked while recording (EC-5).
+    public static let keyStateCheckInterval: Duration = .milliseconds(500)
+    /// Audio format of the recording file (design.md → Datenmodell).
+    public static let sampleRate: Double = 16_000
+    /// Folder of the recording files below Application Support/InnoWhisper.
+    public static let folderName = "Recordings"
+    /// Onboarding step: fixed id and position after the permissions (PROJ-3 design).
+    public static let stepID = "shortcut"
+    public static let stepOrder = 60
+    /// Settings keys (design.md → Datenmodell).
+    public static let shortcutDefaultsKey = "recording.shortcut"
+    public static let modeDefaultsKey = "recording.mode"
+    public static let microphoneDefaultsKey = "recording.microphoneID"
+}
