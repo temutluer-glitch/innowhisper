@@ -37,6 +37,7 @@ final class AppEnvironment {
     @ObservationIgnored let hotkeyMonitor: HotkeyMonitor
     @ObservationIgnored let recording: RecordingController
     @ObservationIgnored let shortcutProbe = ShortcutProbe()
+    @ObservationIgnored let keepAwake = KeepAwake()
     @ObservationIgnored private var interruptions: InterruptionWatcher?
     @ObservationIgnored private var onboardingFlow: OnboardingFlow?
 
@@ -69,6 +70,7 @@ final class AppEnvironment {
         hotkeyMonitor = HotkeyMonitor(shortcut: shortcuts.shortcut, mode: shortcuts.mode)
         let microphoneChoice = microphoneChoice
         let recordingSounds = sounds
+        let keepAwake = keepAwake
         recording = RecordingController(
             hotkeys: hotkeyMonitor,
             services: RecordingServices(
@@ -83,7 +85,8 @@ final class AppEnvironment {
                 notify: { kind, text, action in notices.show(kind, text, action: action) },
                 dictationStarted: { notices.dictationStarted() },
                 playStart: { recordingSounds.playStart() },
-                playEnd: { recordingSounds.playEnd() }))
+                playEnd: { recordingSounds.playEnd() },
+                keepAwake: { keepAwake.set($0) }))
 
         let registry = registry
         let loginItems = loginItems

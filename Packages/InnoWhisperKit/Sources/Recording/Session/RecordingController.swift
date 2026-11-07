@@ -65,6 +65,8 @@ public struct RecordingServices {
     public var dictationStarted: @MainActor () -> Void
     public var playStart: @MainActor () -> Void
     public var playEnd: @MainActor () -> Void
+    /// Keeps the Mac and its screen awake while a recording runs (BUG-10).
+    public var keepAwake: @MainActor (Bool) -> Void
     public var now: @MainActor () -> ContinuousClock.Instant
     public var sleep: @MainActor (Duration) async -> Void
 
@@ -81,6 +83,7 @@ public struct RecordingServices {
         dictationStarted: @escaping @MainActor () -> Void,
         playStart: @escaping @MainActor () -> Void,
         playEnd: @escaping @MainActor () -> Void,
+        keepAwake: @escaping @MainActor (Bool) -> Void = { _ in },
         now: @escaping @MainActor () -> ContinuousClock.Instant = { ContinuousClock.now },
         sleep: @escaping @MainActor (Duration) async -> Void = { try? await Task.sleep(for: $0) }
     ) {
@@ -96,6 +99,7 @@ public struct RecordingServices {
         self.dictationStarted = dictationStarted
         self.playStart = playStart
         self.playEnd = playEnd
+        self.keepAwake = keepAwake
         self.now = now
         self.sleep = sleep
     }
@@ -238,6 +242,7 @@ public final class RecordingController {
             Log.write("Recording started, sound after \(services.now() - openedAt)", category: .recording)
         }
         services.playStart()
+        services.keepAwake(true)
         services.dictationStarted()
         services.activity.activity = .recording
         watchDiskSpace(generation)
@@ -382,6 +387,7 @@ public final class RecordingController {
     }
 
     private func endRecording() {
+        if state == .recording || state == .finishing { services.keepAwake(false) }
         stopWatchers()
         generation += 1
         state = .idle

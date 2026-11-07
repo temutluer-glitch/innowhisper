@@ -1,3 +1,4 @@
+import AppKit
 import AppShell
 import Foundation
 import Notices
@@ -102,6 +103,7 @@ func settle() async {
         var ends = 0
         var dictationStarted = 0
         var requested = 0
+        var awake: [Bool] = []
         var texts: [String] { notices.map(\.1) }
     }
 
@@ -127,6 +129,7 @@ func settle() async {
             dictationStarted: { [log] in log.dictationStarted += 1 },
             playStart: { [log] in log.starts += 1 },
             playEnd: { [log] in log.ends += 1 },
+            keepAwake: { [log] in log.awake.append($0) },
             now: { [clock] in clock.now },
             sleep: { [timers] duration in await timers.sleep(duration) })
         return RecordingController(hotkeys: hotkeys, services: services)
@@ -155,6 +158,20 @@ func settle() async {
         hotkeys.press(.finish)
         await settle()
         #expect(consumer.received.map(\.sequence) == [1, 2])
+    }
+
+    // BUG-10 (QA 07.11.): the screen going dark must not end a long dictation
+    @Test func recordingKeepsTheMacAwakeAndScreenSleepIsNoInterruption() async {
+        let controller = makeController()
+        hotkeys.press(.open)
+        capture.sound()
+        #expect(log.awake == [true])
+        hotkeys.press(.finish)
+        await settle()
+        #expect(log.awake == [true, false])
+        #expect(controller.state == .idle)
+        #expect(!InterruptionWatcher.workspaceNotifications.contains(NSWorkspace.screensDidSleepNotification))
+        #expect(InterruptionWatcher.workspaceNotifications.contains(NSWorkspace.willSleepNotification))
     }
 
     // AC-14: no sound for 1 s → cancelled, no start tone, notice

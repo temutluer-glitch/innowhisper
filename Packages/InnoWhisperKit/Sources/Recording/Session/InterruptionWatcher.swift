@@ -11,13 +11,16 @@ public final class InterruptionWatcher {
         self.onInterruption = onInterruption
     }
 
+    /// System sleep and switching to another user. The screen merely going
+    /// dark is no interruption; a screen lock is (EC-3).
+    static let workspaceNotifications: [Notification.Name] = [
+        NSWorkspace.willSleepNotification, NSWorkspace.sessionDidResignActiveNotification,
+    ]
+
     public func start() {
         guard observers.isEmpty else { return }
         let workspace = NSWorkspace.shared.notificationCenter
-        for name in [
-            NSWorkspace.willSleepNotification, NSWorkspace.screensDidSleepNotification,
-            NSWorkspace.sessionDidResignActiveNotification,
-        ] {
+        for name in Self.workspaceNotifications {
             observe(workspace, name)
         }
         observe(DistributedNotificationCenter.default(), Notification.Name("com.apple.screenIsLocked"))
@@ -33,5 +36,24 @@ public final class InterruptionWatcher {
             MainActor.assumeIsolated { self?.onInterruption() }
         }
         observers.append((center, token))
+    }
+}
+
+/// Keeps the Mac and its screen from going to sleep on their own while a
+/// recording runs, so a long dictation without typing is not cut off (BUG-10).
+@MainActor
+public final class KeepAwake {
+    private var activity: NSObjectProtocol?
+
+    public init() {}
+
+    public func set(_ awake: Bool) {
+        if awake, activity == nil {
+            activity = ProcessInfo.processInfo.beginActivity(
+                options: [.idleDisplaySleepDisabled, .idleSystemSleepDisabled], reason: "Diktat läuft")
+        } else if !awake, let activity {
+            ProcessInfo.processInfo.endActivity(activity)
+            self.activity = nil
+        }
     }
 }
