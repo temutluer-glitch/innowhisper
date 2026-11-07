@@ -92,6 +92,12 @@ public struct KeyInterpreter: Sendable {
         reset()
     }
 
+    /// The modifier keys macOS reports as held with a key event. Event flags
+    /// are exact at that moment; a lost key-up must not block the shortcut.
+    public mutating func noteHeldModifiers(_ held: Set<ModifierKey>) {
+        heldModifiers = held
+    }
+
     /// The controller finished or cancelled the recording; back to idle.
     /// Physically held keys stay known.
     public mutating func reset() {
@@ -115,7 +121,9 @@ public struct KeyInterpreter: Sendable {
     // MARK: - Modifier keys (never swallowed)
 
     private mutating func modifierDown(_ key: ModifierKey, at time: Duration) -> Decision {
-        guard heldModifiers.insert(key).inserted else { return .pass }
+        // A real key-down event is the truth: the key was up before, even if an
+        // earlier state check still counted it as held (live test 07.11.).
+        heldModifiers.insert(key)
         guard case .modifierOnly(let lone) = shortcut else { return .pass }
         let othersHeld = heldModifiers.count > 1
         if key == lone {

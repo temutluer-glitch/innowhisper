@@ -173,7 +173,17 @@ public final class HotkeyMonitor {
             return false
         }
         guard !isPaused, let keyEvent = Self.interpreterEvent(for: event) else { return false }
-        return apply(keyEvent)
+        if case .flagsChanged(let keyCode, let flags) = event, let key = ModifierKey(keyCode: keyCode) {
+            // Everything held besides the changed key, as the event says.
+            interpreter.noteHeldModifiers(Self.heldModifiers(in: flags).subtracting([key]))
+        }
+        let consume = apply(keyEvent)
+        if case .modifierDown(let key) = keyEvent, interpreter.shortcut == .modifierOnly(key),
+            interpreter.mode == .hold, interpreter.phase == .idle
+        {
+            log("Shortcut key press not counted: another modifier is held", .notice)
+        }
+        return consume
     }
 
     private func apply(_ event: KeyInterpreter.Event) -> Bool {

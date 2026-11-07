@@ -57,6 +57,7 @@ struct ShortcutField: View {
     @State private var isRecording = false
     @State private var message: String?
     @State private var monitor: Any?
+    @State private var focusObserver: NSObjectProtocol?
     @State private var recording = ShortcutRecording()
 
     static let needsModifierText = "Drücke dazu mindestens ⌘, ⌥, ⌃ oder ⇧."
@@ -89,12 +90,28 @@ struct ShortcutField: View {
             MainActor.assumeIsolated { handle(event) }
             return nil
         }
+        // macOS handles its own shortcuts (⌘ Leertaste opens Spotlight) before
+        // InnoWhisper sees the key; the settings window then loses the keyboard.
+        // That means: taken. Never record the lone modifier left behind.
+        focusObserver = NotificationCenter.default.addObserver(
+            forName: NSWindow.didResignKeyNotification, object: nil, queue: .main
+        ) { _ in
+            MainActor.assumeIsolated { takenBySystem() }
+        }
+    }
+
+    private func takenBySystem() {
+        guard isRecording else { return }
+        stop()
+        message = RecordingTexts.shortcutTaken
     }
 
     private func stop() {
         guard isRecording else { return }
         if let monitor { NSEvent.removeMonitor(monitor) }
         monitor = nil
+        if let focusObserver { NotificationCenter.default.removeObserver(focusObserver) }
+        focusObserver = nil
         isRecording = false
         onRecordingChanged(false)
     }

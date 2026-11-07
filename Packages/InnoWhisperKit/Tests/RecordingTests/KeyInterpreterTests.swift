@@ -27,6 +27,19 @@ import Testing
         return keys
     }
 
+    // Live test 07.11.: the second press did nothing. A real key-down event is
+    // the truth, even when an earlier state check still counted the key as held.
+    @Test func secondPressWorksEvenWhenTheKeyWasStillCountedAsHeld() {
+        var keys = openedRightCommandHold()
+        #expect(keys.handle(.modifierUp(.rightCommand), at: ms(3000)) == finish)
+        // macOS reports the session state a moment late: still "held".
+        _ = keys.handle(.stateCheck(heldModifiers: [.rightCommand], isMainKeyDown: false), at: ms(3010))
+        keys.reset()
+        _ = keys.handle(.modifierDown(.rightCommand), at: ms(5000))
+        #expect(keys.handle(.tick, at: ms(5250)) == open)
+        #expect(keys.handle(.modifierUp(.rightCommand), at: ms(8000)) == finish)
+    }
+
     // AC-2: right ⌘ alone opens only after 0.25 s and ends on release
     @Test func rightCommandHoldOpensAfterDelayAndFinishesOnRelease() {
         var keys = KeyInterpreter(shortcut: .factory, mode: .hold)

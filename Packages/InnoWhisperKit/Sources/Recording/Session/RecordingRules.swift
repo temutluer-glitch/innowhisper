@@ -60,6 +60,8 @@ public struct AudioMeter: Equatable, Sendable {
     public private(set) var level: Double = 0
     /// `true` once any sample was not exactly 0; zero-only chunks are digital silence (AC-14).
     public private(set) var hasSignal = false
+    /// Average power of the loudest chunk so far, for the log.
+    public private(set) var loudestDecibels: Float = AudioMeter.silenceDecibels
     private var chunkCount = 0
     private var voicedChunkCount = 0
 
@@ -75,6 +77,7 @@ public struct AudioMeter: Equatable, Sendable {
         guard !samples.isEmpty else { return }
         let decibels = Self.averagePower(of: samples)
         lastDecibels = decibels
+        loudestDecibels = max(loudestDecibels, decibels)
         level = Self.level(forDecibels: decibels)
         chunkCount += 1
         if decibels > RecordingInfo.voicedThresholdDecibels {

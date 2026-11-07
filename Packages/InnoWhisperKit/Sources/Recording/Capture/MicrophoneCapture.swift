@@ -115,8 +115,13 @@ public struct CaptureResult: Equatable, Sendable {
     public let duration: Duration
     public let voicedFraction: Double
     public let hasSignal: Bool
+    /// Average power of the loudest chunk in dB (only for the log).
+    public let loudestDecibels: Float
 
-    public init(fileURL: URL, duration: Duration, voicedFraction: Double, hasSignal: Bool) {
+    public init(
+        fileURL: URL, duration: Duration, voicedFraction: Double, hasSignal: Bool, loudestDecibels: Float = -160
+    ) {
+        self.loudestDecibels = loudestDecibels
         self.fileURL = fileURL
         self.duration = duration
         self.voicedFraction = voicedFraction
@@ -256,7 +261,9 @@ public final class MicrophoneCapture: MicrophoneCapturing {
             }
         }
         if case .success(let capture) = result {
-            Log.write("Capture stopped: \(capture.duration), signal \(capture.hasSignal)", category: .recording)
+            Log.write(
+                "Capture stopped: \(capture.duration), signal \(capture.hasSignal), voiced \(Int(capture.voicedFraction * 100))%, loudest \(Int(capture.loudestDecibels)) dB",
+                category: .recording)
         }
         return try result.get()
     }
@@ -376,7 +383,7 @@ private final class CaptureSink: NSObject, AVCaptureAudioDataOutputSampleBufferD
             return .success(
                 CaptureResult(
                     fileURL: fileURL, duration: duration, voicedFraction: meter.voicedFraction,
-                    hasSignal: meter.hasSignal))
+                    hasSignal: meter.hasSignal, loudestDecibels: meter.loudestDecibels))
         } catch let error as CaptureError {
             return .failure(error)
         } catch {
