@@ -117,11 +117,15 @@ public struct CaptureResult: Equatable, Sendable {
     public let hasSignal: Bool
     /// Average power of the loudest chunk in dB (only for the log).
     public let loudestDecibels: Float
+    /// Background noise of the recording in dB (only for the log).
+    public let backgroundDecibels: Float
 
     public init(
-        fileURL: URL, duration: Duration, voicedFraction: Double, hasSignal: Bool, loudestDecibels: Float = -160
+        fileURL: URL, duration: Duration, voicedFraction: Double, hasSignal: Bool, loudestDecibels: Float = -160,
+        backgroundDecibels: Float = -160
     ) {
         self.loudestDecibels = loudestDecibels
+        self.backgroundDecibels = backgroundDecibels
         self.fileURL = fileURL
         self.duration = duration
         self.voicedFraction = voicedFraction
@@ -262,7 +266,7 @@ public final class MicrophoneCapture: MicrophoneCapturing {
         }
         if case .success(let capture) = result {
             Log.write(
-                "Capture stopped: \(capture.duration), signal \(capture.hasSignal), voiced \(Int(capture.voicedFraction * 100))%, loudest \(Int(capture.loudestDecibels)) dB",
+                "Capture stopped: \(capture.duration), signal \(capture.hasSignal), voiced \(Int(capture.voicedFraction * 100))%, loudest \(Int(capture.loudestDecibels)) dB, background \(Int(capture.backgroundDecibels)) dB",
                 category: .recording)
         }
         return try result.get()
@@ -382,8 +386,9 @@ private final class CaptureSink: NSObject, AVCaptureAudioDataOutputSampleBufferD
             let duration = try writer.finish()
             return .success(
                 CaptureResult(
-                    fileURL: fileURL, duration: duration, voicedFraction: meter.voicedFraction,
-                    hasSignal: meter.hasSignal, loudestDecibels: meter.loudestDecibels))
+                    fileURL: fileURL, duration: duration, voicedFraction: meter.speechFraction(),
+                    hasSignal: meter.hasSignal, loudestDecibels: meter.loudestDecibels,
+                    backgroundDecibels: meter.backgroundDecibels))
         } catch let error as CaptureError {
             return .failure(error)
         } catch {

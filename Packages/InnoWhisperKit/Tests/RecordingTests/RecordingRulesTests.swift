@@ -60,6 +60,40 @@ import Testing
     }
 
     // AC-11: the threshold sits at −35 dB
+    /// Feeds chunks with the given powers, `count` each.
+    private func meter(_ parts: [(decibels: Float, count: Int)]) -> AudioMeter {
+        var meter = AudioMeter()
+        for part in parts {
+            for _ in 0..<part.count { meter.add(constant(decibels: part.decibels, count: 320)) }
+        }
+        return meter
+    }
+
+    // AC-11, live test 07.11.: quiet speech (−40 dB) in a quiet room (−70 dB) is speech
+    @Test func quietSpeechInAQuietRoomIsKept() {
+        let quiet = meter([(-70, 30), (-40, 60), (-70, 30)])
+        #expect(abs(quiet.backgroundDecibels + 70) < 0.01)
+        #expect(quiet.speechFraction() == 0.5)
+        #expect(
+            RecordingRules.verdict(duration: .seconds(2), voicedFraction: quiet.speechFraction(), interrupted: false)
+                == .keep)
+    }
+
+    // AC-11: silence with a short click stays silent
+    @Test func silenceWithAClickIsDropped() {
+        let silent = meter([(-70, 100), (-30, 2), (-68, 40)])
+        #expect(silent.speechFraction() < RecordingInfo.minimumVoicedFraction)
+    }
+
+    // AC-11: in a loud room the fixed −35 dB rule still applies, below the limit nothing counts
+    @Test func speechThresholdStaysBetweenTheLimits() {
+        // Background −40 dB, talk at −36 dB: background + 12 would be −28, capped at −35.
+        let loudRoom = meter([(-40, 20), (-36, 80)])
+        #expect(loudRoom.speechFraction() == 0)
+        let deadQuiet = meter([(-120, 20), (-70, 80)])
+        #expect(deadQuiet.speechFraction() == 0)
+    }
+
     @Test func chunkJustAboveThresholdIsVoiced() {
         var meter = AudioMeter()
         meter.add(constant(decibels: -34))

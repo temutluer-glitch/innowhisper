@@ -13,6 +13,12 @@ public enum RecordingInfo {
     public static let minimumVoicedFraction = 0.05
     /// Level that counts a piece of audio as voiced (AC-11).
     public static let voicedThresholdDecibels: Float = -35
+    /// Quiet speech counts too: a chunk is voiced when it is this far above the
+    /// background noise of the same recording (live test 07.11.: quiet speech
+    /// peaked at −35 dB and was dropped with the fixed −35 dB rule).
+    public static let voicedMarginDecibels: Float = 12
+    /// Never count chunks below this as speech, however quiet the room.
+    public static let voicedLowerLimitDecibels: Float = -65
     /// Without real audio after this long the start is cancelled (AC-14).
     public static let noSoundTimeout: Duration = .seconds(1)
     /// Up to this length one Esc cancels; after it a second Esc is needed (AC-8, AC-9).

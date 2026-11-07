@@ -64,12 +64,34 @@ public struct AudioMeter: Equatable, Sendable {
     public private(set) var loudestDecibels: Float = AudioMeter.silenceDecibels
     private var chunkCount = 0
     private var voicedChunkCount = 0
+    /// Power of every chunk, for the speech share at the end (about 3 kB per minute).
+    private var chunkPowers: [Float] = []
 
     public init() {}
 
     /// Share of chunks above `voicedThresholdDecibels`, 0 before the first chunk (AC-11).
     public var voicedFraction: Double {
         chunkCount == 0 ? 0 : Double(voicedChunkCount) / Double(chunkCount)
+    }
+
+    /// Background noise of the recording: the power below which 10 % of the chunks lie.
+    public var backgroundDecibels: Float {
+        guard !chunkPowers.isEmpty else { return Self.silenceDecibels }
+        let sorted = chunkPowers.sorted()
+        return sorted[(sorted.count - 1) / 10]
+    }
+
+    /// Share of speech over the whole recording (AC-11), measured against its
+    /// own background: a chunk counts when it is `voicedMarginDecibels` above
+    /// the background, at most `voicedThresholdDecibels` and at least
+    /// `voicedLowerLimitDecibels` are required. Sorts all chunks: call once at the end.
+    public func speechFraction() -> Double {
+        guard !chunkPowers.isEmpty else { return 0 }
+        let threshold = min(
+            RecordingInfo.voicedThresholdDecibels,
+            max(backgroundDecibels + RecordingInfo.voicedMarginDecibels, RecordingInfo.voicedLowerLimitDecibels))
+        let voiced = chunkPowers.filter { $0 > threshold }.count
+        return Double(voiced) / Double(chunkPowers.count)
     }
 
     /// Adds one chunk of samples in −1…1. An empty chunk changes nothing.
@@ -80,6 +102,7 @@ public struct AudioMeter: Equatable, Sendable {
         loudestDecibels = max(loudestDecibels, decibels)
         level = Self.level(forDecibels: decibels)
         chunkCount += 1
+        chunkPowers.append(decibels)
         if decibels > RecordingInfo.voicedThresholdDecibels {
             voicedChunkCount += 1
         }
