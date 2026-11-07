@@ -1,5 +1,49 @@
 # QA-Ergebnisse PROJ-5: Aufnahme per Tastenkürzel
 
+## Nachtrag 2 vom 2026-11-07: Nachprüfung BUG-3 (Rest), BUG-12, BUG-13
+
+**Umfang:** `git diff --stat 7399d5a..HEAD -- App Packages`. 7399d5a hat den Bericht zuletzt geschrieben, HEAD ist 620908f. Geänderte Produktionsdateien:
+- `App/AppEnvironment.swift`
+- `Sources/Recording/Hotkey/ShortcutAvailability.swift`
+- `Sources/Recording/Hotkey/ShortcutFollower.swift` (neu)
+- `Sources/Recording/Recording.swift`
+- `Sources/Recording/Session/RecordingController.swift`
+
+Fünf Dateien, darunter die gemeinsame Verdrahtung, deshalb drei unabhängige Prüfer.
+
+**Prüfläufe:**
+- Testlauf einmal vorher: 277 Tests in 37 Suites bestanden (`scratchpad/qa-proj5-suite-3.log`).
+- Lint: Exit 0. Bau: BUILD SUCCEEDED, 0 Warnungen.
+- SEC-08: Eine einzige Testerwartung wurde umgedreht: „⌘F5 frei“ wird zu „belegt“ (VoiceOver). Begründung in `design.md`. Das verschärft die Prüfung.
+
+**Ergebnisse:**
+- [x] **BUG-13 behoben.** Die Suche liefert 0 Treffer, auch die breitere Suche nach demselben Vergleich.
+  - Tests `modeChangedThereAndBackKeepsTheLastChoice`, `modeChangeWaitsForTheNextRecording`.
+  - Rot-Probe des Prüfers: Mit dem alten Vergleich bleibt der falsche Modus aktiv, das nächste Antippen startet nichts.
+  - Dieselbe Klasse beim Kürzel (hin und zurück während einer Aufnahme) ist ebenfalls behoben.
+  - Keine Schleife, keine Nebenwirkung beim App-Start.
+- [x] **BUG-12 für den gemeldeten Ablauf behoben.** Es gibt nur noch eine Stelle, die das Wachhalten schaltet (`RecordingController.swift:282`).
+  - Die Freigabe kommt nach 120 bis 150 s ohne Pegel ab −45 dB.
+  - Alle Endwege sind ausgeglichen: Esc, Verwerfen, Fehler, Unterbrechung, 500 Pegelmeldungen ohne Flattern.
+  - In Timurs Raum trennt die Schwelle sauber. Stille mit Klopfen erreicht höchstens −51 bis −57 dB, leise Sprache −28 bis −36 dB.
+  - Test `keepAwakeEndsAfterTwoMinutesWithoutSpeech`.
+  - Rest: BUG-16.
+- [x] **BUG-3 für die gemeldeten Kürzel behoben.** ⌘ und ⇧⌘ sowie die Beispiele der Nachprüfung (⌥⌘H, ⌥⌘M, ⌥⌘W, ⌃⌘F, ⌃⌘Leertaste, ⌘F5, ⌥⌘D, ⌃⌘Q) gelten als belegt; ⌘F13 bis F19 sind frei.
+  - Test `appleShortcutsWithOptionOrControlCommandAreTaken`.
+  - Die Liste von Apples Kürzeln ist aber nicht vollständig, Rest: BUG-15.
+- [x] **AC-3, AC-5, AC-17, EC-3, EC-4, EC-8** in der Logik belegt (Tests und Gegenproben).
+- [x] **Regression:** Keine Rückfälle in PROJ-1 bis PROJ-4. BUG-1, BUG-2 und BUG-10 halten.
+- [!] **Laufzeit:** Freigabe des Wachhaltens am echten Mac, Bildschirm aus mit anschließender Sperre, laute Räume, Tastatur live. Grund: no way to run and probe this project was recorded.
+
+**Neue Befunde dieser Nachprüfung.** Nach der Abbruchregel lösen sie keine neue Runde aus und sind als Deferred vorgeschlagen:
+- BUG-15 (Low): restliche Apple- und macOS-Kürzel.
+- BUG-16 (Medium): Wachhalten an fester Lautstärke statt an Sprache.
+- BUG-17 (Low): Die feste Liste übersteuert ausgeschaltete Systemkürzel.
+
+**Ergebnis nach Nachtrag 2:** Kein Fehler ist mehr Open. Siehe „Ergebnis“ am Ende.
+
+---
+
 ## Nachtrag 2026-11-07: Nachprüfung BUG-1, BUG-2, BUG-3, BUG-10
 
 **Umfang:** `git diff --stat e31e217..HEAD`. e31e217 ist der Commit des Berichts, HEAD ist f36c9de. Geänderte Produktionsdateien:
@@ -161,7 +205,7 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02 (Einstellungen
 
 ### BUG-3: Standardkürzel der Programme gelten als frei
 - **Schwere:** Medium
-- **Status:** Open
+- **Status:** Fixed (Nachprüfung 07.11., 620908f; Reste siehe BUG-15, BUG-16)
 - **Klasse:** Belegt-Prüfung ohne Apples Standardkürzel der Programme.
 - **Suche:** `grep -cE "kVK_ANSI_(C|V|X|Z|Q|W|A|S|H|M)\b|kVK_Tab" Packages/InnoWhisperKit/Sources/Recording/Hotkey/ShortcutAvailability.swift` → 0.
 - **Folge:** Wer ⌘C als Kürzel wählt, bekommt keine Warnung. Im Modus Halten fängt InnoWhisper danach das C mit ⌘ systemweit ab: Kopieren geht in keinem Programm mehr, jeder Druck startet ein Diktat (AC-18). Gegenprobe `probeCommandCIsReportedFree`.
@@ -226,14 +270,14 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02 (Einstellungen
 
 ### BUG-12: Eine vergessene Aufnahme hält den Mac unbegrenzt wach
 - **Schwere:** Medium
-- **Status:** Open
+- **Status:** Fixed (Nachprüfung 07.11., 620908f; Reste siehe BUG-15, BUG-16)
 - **Klasse:** Systemweite Ausnahme gegen Ruhezustand ohne zeitliche Obergrenze.
 - **Suche:** `grep -rn 'idleSystemSleepDisabled\|idleDisplaySleepDisabled' Packages/InnoWhisperKit/Sources App` → 1 (`InterruptionWatcher.swift:53`).
 - **Folge:** Eine im Modus „Ein/aus“ vergessene Aufnahme läuft ohne Höchstdauer weiter und verhindert, dass Mac und Bildschirm schlafen gehen. Damit greift vermutlich auch die automatische Sperre über „Bildschirm aus“ nicht, und der Mac bleibt entsperrt, bis der Akku leer oder der Speicher unter 200 MB ist. Das Gerät bleibt also unbeaufsichtigt offen. Nicht am laufenden Programm geprüft.
 
 ### BUG-13: Modus während einer Aufnahme hin und zurück stellen lässt den falschen Modus aktiv
 - **Schwere:** Medium
-- **Status:** Open
+- **Status:** Fixed (Nachprüfung 07.11., 620908f; Reste siehe BUG-15, BUG-16)
 - **Klasse:** Eine zurückgestellte Einstellung wird gegen den aktiven Stand verglichen statt gegen den gewünschten.
 - **Suche:** `grep -rn "hotkeyMonitor\.shortcut\|hotkeyMonitor\.mode" App` → 1 (`AppEnvironment.swift:162`).
 - **Nachstellen:** Modus „Ein/aus“, Aufnahme läuft. In den Einstellungen auf „Halten“ und zurück auf „Ein/aus“ stellen, dann die Aufnahme beenden. Danach zeigt die Einstellung „Ein/aus“, der Wächter arbeitet aber im Modus „Halten“. Ein Antippen startet still nichts (Pflichtpunkt 1), bis zur nächsten Änderung oder bis zum Neustart. Gegenproben beider Prüfer: rot.
@@ -243,6 +287,32 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02 (Einstellungen
 - **Status:** Deferred
 - **Klasse:** Gespeicherter und flüchtiger Zustand werden auf verschiedenen Wegen fortgeschrieben.
 - **Suche:** `grep -rn "succeededDefaultsKey" Packages/InnoWhisperKit/Sources` → 3 (geschrieben nur bei Erfolg).
+
+### BUG-15: Restliche Apple- und macOS-Kürzel gelten als frei
+- **Schwere:** Low
+- **Status:** Deferred (vorgeschlagen)
+- **Klasse:** Belegt-Prüfung ohne vollständige Liste von Apples Standardkürzeln (Rest von BUG-3).
+- **Suche:** `grep -cE '"(7|8|9|10|11|12|13|29|31|57)": SystemShortcut' Packages/InnoWhisperKit/Sources/Recording/Hotkey/ShortcutAvailability.swift` → 0. Nach einer Korrektur sollten es 10 sein.
+- **Belege:**
+  - Auf einem frischen Mac gelten ⌃⇧⌘3 und ⌃⇧⌘4 (Bildschirmfoto in die Zwischenablage) als frei, ebenso ⌃F1 bis ⌃F8 (Tastaturnavigation).
+  - Ebenso Programmkürzel wie ⌥⇧⌘V, ⌥⌘C, ⌥⌘F, ⌥⌘L, ⌥⌘P, ⌃⌘A, ⌃⌘T und ⌥⌘←/→.
+  - Auf Timurs Mac sind die macOS-Kürzel gespeichert und werden deshalb erkannt.
+
+### BUG-16: Wachhalten hängt an fester Lautstärke statt an Sprache
+- **Schwere:** Medium
+- **Status:** Deferred (vorgeschlagen)
+- **Klasse:** Die Ausnahme gegen den Ruhezustand verlängert sich durch einen festen Pegel (−45 dB) statt durch erkannte Sprache oder die Anwesenheit des Nutzers.
+- **Suche:** `grep -rn "awakeSpeechLevel" Packages/InnoWhisperKit/Sources` → 2.
+- **Folge laut:** In einem lauten Raum (Großraumbüro, Fernseher, Musik) hält eine vergessene Aufnahme im Modus „Ein/aus“ den Mac weiter wach und entsperrt. Sie nimmt dabei Gespräche Dritter auf, die ab PROJ-6 an Groq gehen. Gegenprobe: Pegel −42 dB über 30 Minuten, keine Freigabe.
+- **Folge leise:** Sehr leise Sprache unter −45 dB gibt das Wachhalten nach 2 Minuten frei. Dann kann eine Bildschirmsperre ein laufendes Diktat beenden. Gegenprobe: −48 dB durchgehend, Freigabe nach etwa 2,5 Minuten. In Timurs Raum war leise Sprache aber −28 bis −36 dB.
+- **Hinweis:** Eine gute Lösung ist eine Produktentscheidung. Mögliche Wege sind eine Obergrenze ohne Tastatur- und Mauseingabe oder Sprache gemessen am eigenen Hintergrund wie bei AC-11.
+
+### BUG-17: Feste Kürzel-Liste übersteuert ausgeschaltete Systemkürzel
+- **Schwere:** Low
+- **Status:** Deferred (vorgeschlagen)
+- **Klasse:** Die feste Liste wird vor dem gespeicherten Zustand der Systemkürzel geprüft.
+- **Suche:** `grep -cE '\((kVK_ANSI_D, optionCommand|kVK_F5, \.command|kVK_F5, optionCommand|kVK_ANSI_8, optionCommand|kVK_ANSI_Equal, optionCommand|kVK_ANSI_Minus, optionCommand)\)' Packages/InnoWhisperKit/Sources/Recording/Hotkey/ShortcutAvailability.swift` → 6.
+- **Folge:** Ein in macOS ausgeschaltetes Kürzel, etwa ⌥⌘8 für Zoom, wird trotzdem als „schon belegt“ abgelehnt.
 
 ## Nicht geprüft in diesem Lauf
 
