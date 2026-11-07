@@ -1,5 +1,60 @@
 # QA-Ergebnisse PROJ-5: Aufnahme per Tastenkürzel
 
+## Nachtrag 2026-11-07: Nachprüfung BUG-1, BUG-2, BUG-3, BUG-10
+
+**Umfang:** `git diff --stat e31e217..HEAD`. e31e217 ist der Commit des Berichts, HEAD ist f36c9de. Geänderte Produktionsdateien:
+- `App/AppEnvironment.swift`
+- `Sources/Recording/Hotkey/HotkeyMonitor.swift`
+- `Sources/Recording/Hotkey/ShortcutAvailability.swift`
+- `Sources/Recording/Session/InterruptionWatcher.swift`
+- `Sources/Recording/Session/RecordingController.swift`
+- `Sources/Recording/UI/ShortcutStep.swift`
+
+Sechs Dateien, darunter die gemeinsame Verdrahtung. Deshalb haben drei unabhängige `qa-engineer`-Prüfer in voller Breite geprüft.
+
+**Prüfläufe:**
+- Testlauf einmal vorher: 274 Tests in 37 Suites bestanden (`scratchpad/qa-proj5-suite-2.log`).
+- Lint: Exit 0. Bau: BUILD SUCCEEDED, 0 Warnungen (Regressions-Prüfer).
+- SEC-08: Nur 2 Testzeilen entfernt. Die Probe nutzt jetzt eigene Test-Einstellungen statt der echten; das verschärft die Prüfung.
+
+**Ergebnisse zu den offenen Fehlern:**
+- [x] **BUG-1 behoben.** Die Suche liefert 5 Treffer, jeder ist abgesichert.
+  - Jede Ablehnung in `open()` und Esc ohne Aufnahme setzen den Wächter zurück (`RecordingController.swift:172, 177, 185, 191, 203, 345-348`).
+  - Ein Moduswechsel gilt erst nach der Aufnahme (`HotkeyMonitor.swift:149-159`). Eine Pause beendet die Aufnahme zuerst (`:165-168`).
+  - Tests `HotkeyControllerSyncTests` (3). Gegenproben mit echter verzögerter Zustellung: Esc wird danach nicht abgefangen, der nächste Druck startet.
+  - Neuer Randfall daraus: BUG-13.
+- [x] **BUG-2 behoben.** Der Kürzel-Schritt liest den gespeicherten Probe-Wert (`ShortcutStep.swift:20-31`).
+  - Test `probeSurvivesARestartOnTheLastPage`.
+  - Ohne gelungene Probe bleibt der Schritt offen: Der Wert ist anfangs false und wird nur bei Erfolg gesetzt; der Schritt erledigt sich nie automatisch.
+- [ ] **BUG-3 nur teilweise behoben, bleibt Open.** ⌘ und ⇧⌘ mit normalen Tasten gelten jetzt als belegt (Test `standardProgramShortcutsAreTaken`).
+  - Apples Standardkürzel mit ⌥⌘ und ⌃⌘ gelten weiter als frei, Gegenprobe 5 von 5: ⌥⌘H, ⌥⌘M, ⌥⌘W, ⌃⌘F, ⌃⌘Leertaste.
+  - Ebenso Systemkürzel von macOS, die nicht geändert und deshalb nicht gespeichert sind: ⌘F5 (VoiceOver), ⌥⌘D (Dock), ⌃⌘Q (Bildschirm sperren). Die Liste `macOSDefaults` hat nur 11 Einträge, und ein neuer Test hält ⌘F5 als frei fest.
+  - Leicht zu breit: ⌘F13 bis F19 und ⌘Return gelten als belegt.
+  - Neue Suche: `grep -cE '^\s+"[0-9]+": SystemShortcut' Packages/InnoWhisperKit/Sources/Recording/Hotkey/ShortcutAvailability.swift` → 11 Einträge.
+- [x] **BUG-10 behoben.** `screensDidSleepNotification` hat 0 Treffer. Beobachtet werden nur noch Ruhezustand, Benutzerwechsel und Bildschirmsperre.
+  - Während einer Aufnahme bleibt der Mac wach. Die Gegenprobe deckt alle neun Endwege ab, „an“ und „aus“ sind jedes Mal ausgeglichen.
+  - Test `recordingKeepsTheMacAwakeAndScreenSleepIsNoInterruption`.
+  - Neuer Befund daraus: BUG-12.
+
+**Berührte Abnahmekriterien in diesem Lauf:**
+- [x] AC-3, AC-7, AC-8, AC-9, AC-19, AC-20, EC-3, EC-5, EC-6, EC-8: Logik belegt durch die genannten Tests und Gegenproben.
+- [ ] AC-17: Randfall offen, BUG-13.
+- [ ] AC-18: BUG-3 Rest.
+- [x] **Regression:** PROJ-1 bis PROJ-4 unverändert.
+  - Fortsetzen der Einführung, neuer Schritt nach einem Update, Rücksprung bei entzogener Erlaubnis: Tests grün.
+  - Esc außerhalb einer Aufnahme wird nicht mehr abgefangen.
+  - Die beiden früheren Regressionen aus dem ersten Lauf sind weg.
+- [!] **Laufzeit:** Tastatur live, Bildschirm bleibt an, Darstellung. Grund: no way to run and probe this project was recorded.
+
+**Neue Befunde dieser Nachprüfung.** Nach der Abbruchregel lösen sie keine neue Runde aus; sie sind als Deferred vorgeschlagen, Timur entscheidet:
+- BUG-12 (Medium): Eine vergessene Aufnahme hält den Mac unbegrenzt wach.
+- BUG-13 (Medium): Modus während einer Aufnahme hin und zurück stellen lässt den falschen Modus aktiv.
+- BUG-14 (Low): Eine spätere fehlgeschlagene Probe wird nach einem Neustart vergessen.
+
+**Ergebnis nach Nachtrag:** NICHT BEREIT, Status bleibt In Review. BUG-3 ist nicht vollständig behoben.
+
+---
+
 **Geprüft:** 2026-11-07, erste Prüfung
 **App-Adresse:** hier nicht lauffähig (`probe.kind: none`, native Menüleisten-App). Laufzeitkriterien gelten nur dort als belegt, wo ein Test durch Timur aufgezeichnet ist: Zeilen aus `~/Library/Logs/InnoWhisper/InnoWhisper.log` vom 07.11. zwischen 14:10 und 14:39, dazu seine Rückmeldung.
 **Prüfer:** QA Engineer (KI). Drei unabhängige `qa-engineer`-Prüfer ohne Kenntnis des Baus: Abnahme (Schritt 2), Sicherheit (Schritt 3), Regression (Schritt 4 und 5). Zusammengeführt vom Owner.
@@ -87,7 +142,7 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02 (Einstellungen
 
 ### BUG-1: Kürzel-Wächter und Aufnahme-Steuerung laufen auseinander
 - **Schwere:** Medium
-- **Status:** Open
+- **Status:** Fixed (Nachprüfung 07.11., f36c9de)
 - **Klasse:** Eine Seite verwirft eine Aufnahme oder setzt sich zurück, ohne die andere mitzunehmen.
 - **Suche:** `grep -n "interpreter.reset()\|interpreter.configure(" Packages/InnoWhisperKit/Sources/Recording/Hotkey/HotkeyMonitor.swift; grep -n "a recording is already running" Packages/InnoWhisperKit/Sources/Recording/Session/RecordingController.swift` → 5 Treffer (HotkeyMonitor.swift:133, 140, 146, 155; RecordingController.swift:166).
 - **Fall A (AC-3, Pflichtpunkt 1, Esc):**
@@ -99,7 +154,7 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02 (Einstellungen
 
 ### BUG-2: Neustart auf „Fertig“ verlangt die Kürzel-Probe noch einmal
 - **Schwere:** Medium
-- **Status:** Open
+- **Status:** Fixed (Nachprüfung 07.11., f36c9de)
 - **Klasse:** Einführungsschritt, dessen „erfüllt“ flüchtigen Zustand im Speicher liest, wird von der dauerhaften Nachprüfung aus PROJ-3 EC-2 erfasst.
 - **Suche:** `grep -rn "isSatisfied:" Packages/InnoWhisperKit/Sources` → 6 Treffer, davon betroffen 1 (`ShortcutStep.swift:41`).
 - **Nachstellen:** Einführung bis „Fertig“ durchlaufen, auf „Fertig“ die App beenden, neu starten, „Fertig“ klicken. Die Einführung springt zurück auf „Tastenkürzel“ und nimmt den Schritt aus den erledigten. Gegenprobe `probe/main.swift`: nach `advance()` `finished = false`, Seite 4.
@@ -153,7 +208,7 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02 (Einstellungen
 
 ### BUG-10: Bildschirm-Ruhezustand ohne Sperre beendet eine Aufnahme
 - **Schwere:** Medium
-- **Status:** Open
+- **Status:** Fixed (Nachprüfung 07.11., f36c9de)
 - **Klasse:** Unterbrechung durch ein Ereignis, das keine Sperre ist.
 - **Suche:** `grep -n "screensDidSleepNotification" Packages/InnoWhisperKit/Sources/Recording/Session/InterruptionWatcher.swift` → 1 (Zeile 18); `grep -rn "IOPMAssertion\|beginActivity" Packages/InnoWhisperKit/Sources/Recording` → 0.
 - **Folge:** Im Modus „Ein/aus“ kann ein langes Diktat ohne Tastatur- oder Mauseingabe abgeschnitten werden, sobald der Bildschirm nach der eingestellten Zeit ausgeht, besonders im Akkubetrieb. Das trifft Pflichtpunkt 2 (lange Aufnahmen). Spec EC-3 nennt nur Ruhezustand und Sperre.
@@ -168,6 +223,26 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02 (Einstellungen
   - Abstecken vor dem ersten Ton endet ohne Meldung (`:267-271`).
   - Für ⌘Esc im Kürzel-Feld erscheint „Drücke dazu mindestens ⌘, ⌥, ⌃ oder ⇧.“, obwohl ⌘ gedrückt war (`ShortcutField.swift:44`).
   - Ein unlesbarer gespeicherter Modus fällt ohne Protokollzeile zurück (`ShortcutStore.swift:18`).
+
+### BUG-12: Eine vergessene Aufnahme hält den Mac unbegrenzt wach
+- **Schwere:** Medium
+- **Status:** Deferred (vorgeschlagen)
+- **Klasse:** Systemweite Ausnahme gegen Ruhezustand ohne zeitliche Obergrenze.
+- **Suche:** `grep -rn 'idleSystemSleepDisabled\|idleDisplaySleepDisabled' Packages/InnoWhisperKit/Sources App` → 1 (`InterruptionWatcher.swift:53`).
+- **Folge:** Eine im Modus „Ein/aus“ vergessene Aufnahme läuft ohne Höchstdauer weiter und verhindert, dass Mac und Bildschirm schlafen gehen. Damit greift vermutlich auch die automatische Sperre über „Bildschirm aus“ nicht, und der Mac bleibt entsperrt, bis der Akku leer oder der Speicher unter 200 MB ist. Das Gerät bleibt also unbeaufsichtigt offen. Nicht am laufenden Programm geprüft.
+
+### BUG-13: Modus während einer Aufnahme hin und zurück stellen lässt den falschen Modus aktiv
+- **Schwere:** Medium
+- **Status:** Deferred (vorgeschlagen)
+- **Klasse:** Eine zurückgestellte Einstellung wird gegen den aktiven Stand verglichen statt gegen den gewünschten.
+- **Suche:** `grep -rn "hotkeyMonitor\.shortcut\|hotkeyMonitor\.mode" App` → 1 (`AppEnvironment.swift:162`).
+- **Nachstellen:** Modus „Ein/aus“, Aufnahme läuft. In den Einstellungen auf „Halten“ und zurück auf „Ein/aus“ stellen, dann die Aufnahme beenden. Danach zeigt die Einstellung „Ein/aus“, der Wächter arbeitet aber im Modus „Halten“. Ein Antippen startet still nichts (Pflichtpunkt 1), bis zur nächsten Änderung oder bis zum Neustart. Gegenproben beider Prüfer: rot.
+
+### BUG-14: Fehlgeschlagene Probe nach einer gelungenen wird nach dem Neustart vergessen
+- **Schwere:** Low
+- **Status:** Deferred (vorgeschlagen)
+- **Klasse:** Gespeicherter und flüchtiger Zustand werden auf verschiedenen Wegen fortgeschrieben.
+- **Suche:** `grep -rn "succeededDefaultsKey" Packages/InnoWhisperKit/Sources` → 3 (geschrieben nur bei Erfolg).
 
 ## Nicht geprüft in diesem Lauf
 
