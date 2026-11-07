@@ -21,7 +21,7 @@ InnoWhisper ist eine Menüleisten-App ohne Dock-Symbol. Es gibt kein Hauptfenste
 | Einstellungsfenster | Alles einstellen | über Menüleisten-Fenster oder ⌘, | PROJ-1 (Rahmen) |
 | Sprechblase | Zeigt während der Aufnahme die Tonwelle am aktiven Eingabefeld | während Aufnahme und Umwandlung | PROJ-8 |
 | Einführung | Eigenes Fenster ohne Schließen-Knopf; führt durch Erlaubnisse, später auch Zugangsschlüssel, Tastenkürzel und Probe-Diktat | beim ersten Start, bis sie abgeschlossen ist, und wenn ein Update neue Schritte bringt | PROJ-3 (Rahmen), PROJ-4, PROJ-5, PROJ-7 (Schritte) |
-| Hinweise | Kurze Meldungen („Text eingefügt“, „Kein Internet“) | nach Ereignissen | PROJ-2 |
+| Hinweise | Kurze Meldungen („Text eingefügt“, „Kein Internet“), auf Wunsch mit einem Knopf (z. B. „Jetzt erlauben“, ab PROJ-5) | nach Ereignissen | PROJ-2 |
 
 ### Bereiche im Einstellungsfenster
 
@@ -29,7 +29,7 @@ InnoWhisper ist eine Menüleisten-App ohne Dock-Symbol. Es gibt kein Hauptfenste
 |---------|--------|---------------------|
 | Allgemein | Start beim Anmelden, Töne, Ausgabe (einfügen oder Zwischenablage), Fehlerprotokoll | PROJ-1, PROJ-2, PROJ-7 |
 | Zugang & Erlaubnisse | Groq-Schlüssel, Mikrofon, Bedienungshilfen | PROJ-4, PROJ-3 |
-| Tastenkürzel | Kürzel, Modus, verknüpfte Vorlage | PROJ-5, PROJ-12 |
+| Aufnahme (Kennung `hotkeys`, bis 07.11. „Tastenkürzel“) | Kürzel, Modus, Mikrofonwahl, später verknüpfte Vorlage | PROJ-5, PROJ-12 |
 | Umwandlung | Modell, Sprachhinweis | PROJ-6 |
 | KI-Vorlagen | Vorlagen anlegen, ändern, löschen | PROJ-11 |
 | Wörterbuch | Begriffe, Ersetzungen, gesprochene Satzzeichen, Weitergabe als Datei | PROJ-9 |
