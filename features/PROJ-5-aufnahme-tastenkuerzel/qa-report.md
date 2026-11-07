@@ -39,6 +39,8 @@ Vier Dateien, darunter die gemeinsame Verdrahtung, deshalb drei unabhängige Pr�
 
 **Ergebnis nach Nachtrag 3:** Kein Fehler mehr Open. Bereit unter einer Bedingung: Timur nimmt die nicht geprüften Laufzeit-Punkte bewusst in Kauf (Teil 2 des Live-Tests wurde übersprungen, die 10-Minuten-Aufnahme steht vor dem Umzug des Teams aus).
 
+**Entscheidung Timur, 07.11.2026:** „Ja, abnehmen“. Die nicht geprüften Laufzeit-Punkte sind bewusst in Kauf genommen. Status: **Approved**. Offen für später (Deferred): BUG-4 bis BUG-9, BUG-11, BUG-14, BUG-18 bis BUG-21. Die echte 10-Minuten-Aufnahme (AC-6, Pflichtpunkt 2) bleibt vor dem Umzug des Teams Pflicht.
+
 ---
 
 ## Nachtrag 2 vom 2026-11-07: Nachprüfung BUG-3 (Rest), BUG-12, BUG-13
