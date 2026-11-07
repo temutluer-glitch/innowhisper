@@ -66,6 +66,8 @@ public final class HotkeyMonitor {
     public var onAction: (@MainActor (KeyInterpreter.Action) -> Void)?
     public private(set) var isRunning = false
     public private(set) var isPaused = false
+    /// Shortcut and mode waiting for the end of the running recording.
+    private var pendingConfiguration: (Shortcut, ShortcutMode)?
 
     private var interpreter: KeyInterpreter
     private let tap: any KeyEventTapping
@@ -138,19 +140,32 @@ public final class HotkeyMonitor {
     /// The controller finished or cancelled a recording.
     public func reset() {
         interpreter.reset()
+        applyPendingConfiguration()
         updateTicker()
     }
 
-    /// A new shortcut or mode is in effect.
+    /// A new shortcut or mode. A running recording keeps the old one; the new
+    /// one applies from the next recording (AC-17, BUG-1).
     public func update(shortcut: Shortcut, mode: ShortcutMode) {
-        interpreter.configure(shortcut: shortcut, mode: mode)
+        pendingConfiguration = (shortcut, mode)
+        applyPendingConfiguration()
         updateTicker()
+    }
+
+    private func applyPendingConfiguration() {
+        guard interpreter.phase == .idle, let (shortcut, mode) = pendingConfiguration else { return }
+        pendingConfiguration = nil
+        interpreter.configure(shortcut: shortcut, mode: mode)
     }
 
     /// While paused (the settings field records a new shortcut) every event
     /// passes untouched and no action is reported.
     public func setPaused(_ paused: Bool) {
         guard paused != isPaused else { return }
+        if paused, interpreter.phase == .active {
+            // The keys of a running recording would go unseen: end it normally first (BUG-1).
+            deliver { [weak self] in self?.onAction?(.finish) }
+        }
         isPaused = paused
         interpreter.reset()
         if paused {
@@ -188,6 +203,7 @@ public final class HotkeyMonitor {
 
     private func apply(_ event: KeyInterpreter.Event) -> Bool {
         let decision = interpreter.handle(event, at: now())
+        applyPendingConfiguration()
         if decision.action != .none {
             let action = decision.action
             deliver { [weak self] in self?.onAction?(action) }

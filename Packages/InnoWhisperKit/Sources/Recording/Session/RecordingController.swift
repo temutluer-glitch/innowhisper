@@ -164,6 +164,8 @@ public final class RecordingController {
     private func open() {
         guard state == .idle else {
             Log.write("Shortcut ignored: a recording is already running", category: .recording)
+            // The watcher must not believe a recording runs that never started (BUG-1).
+            hotkeys.reset()
             return
         }
         guard gate != .blocked else {
@@ -335,7 +337,11 @@ public final class RecordingController {
 
     /// AC-8, AC-9: Esc cancels at once up to 30 s, later only on a second Esc.
     private func escape() {
-        guard state == .starting || state == .recording, let openedAt else { return }
+        guard state == .starting || state == .recording, let openedAt else {
+            // No recording here: the watcher must stop swallowing Esc (BUG-1).
+            hotkeys.reset()
+            return
+        }
         switch escapeRule.escape(atAge: services.now() - openedAt) {
         case .askAgain:
             Log.write("Escape pressed, waiting for a second one", category: .recording)
