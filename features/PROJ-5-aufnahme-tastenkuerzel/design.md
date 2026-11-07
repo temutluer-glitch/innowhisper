@@ -159,3 +159,16 @@ Keine in einem Dashboard. Die Erlaubnisse für Mikrofon und Bedienungshilfen ert
 ## Offene Fragen
 
 - Keine neuen. Die offenen Fragen der Spec sind oben beantwortet (Esc, Bedienungshilfen, Belegt-Prüfung); die Reihenfolge beim Einfügen bleibt Sache von PROJ-6 und PROJ-7.
+
+## Bau-Notizen
+
+Live-Test Teil 1 am 07.11.2026 mit Timur (Shure MV6 und Systemmikrofon), ausgewertet über `~/Library/Logs/InnoWhisper/InnoWhisper.log`.
+
+- **Startton (AC-4):** Ton fließt 85 bis 187 ms nach dem Öffnen des Mikrofons (über 20 Aufnahmen), also weit unter 1 s.
+- **Einführungsschritt (AC-19, AC-20):** Probe gelungen, Datei gelöscht, Schritt erledigt; der Schritt passt in das 540 Punkte hohe Fenster (Test).
+- **Esc (AC-8), Stille (AC-11), ⌘C (EC-1):** wie erwartet. Bei rund 20 schnellen ⌘C/⌘V öffnete das Mikrofon einmal und wurde sofort verworfen (rechte ⌘ länger als 0,25 s vor dem C gehalten).
+- **Korrektur 1, zweiter Druck übersehen:** Die Entscheidungslogik merkte sich die rechte ⌘ manchmal als noch gehalten und ignorierte den nächsten Druck. Jetzt zählt jedes echte Drücken, und die gehaltenen Zusatztasten kommen aus den Angaben des Ereignisses selbst. Test `secondPressWorksEvenWhenTheKeyWasStillCountedAsHeld`. Danach sechs Aufnahmen hintereinander ohne Ausfall.
+- **Korrektur 2, ⌘ Leertaste im Kürzel-Feld:** macOS öffnet damit Spotlight, bevor InnoWhisper die Leertaste sieht; das Feld speicherte die linke ⌘ allein. Verliert das Einstellungsfenster während der Eingabe die Tastatur, gilt das Kürzel jetzt als belegt (AC-18). Live bestätigt.
+- **Korrektur 3, leise Sprache verworfen:** Drei leise gesprochene Aufnahmen erreichten nur etwa −35 dB und fielen unter die feste −35-dB-Grenze. Abweichung vom Entwurf: Sprache wird jetzt gegen das Hintergrundgeräusch derselben Aufnahme gemessen (10-%-Wert der Tonpakete plus 12 dB, höchstens −35 dB, mindestens −65 dB). Gemessen danach: Stille mit Klopfen 2 bis 3 % Sprachanteil bei Hintergrund −83 bis −91 dB (verworfen), Sprache 65 bis 69 % (behalten). Der Abstand zur 5-%-Grenze ist bei Klopfen knapp; bei Bedarf wird die Grenze nachjustiert.
+- **Abweichung Datenmodell:** Neben der Kennung des gewählten Mikrofons wird auch sein Name gespeichert (`recording.microphoneName`), weil macOS ein abgestecktes Mikrofon nicht benennen kann und AC-13 den Namen braucht.
+- **Protokoll:** Jede Aufnahme schreibt Dauer, Sprachanteil, lautesten Wert und Hintergrund in dB, nie Ton oder Text.
