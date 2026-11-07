@@ -36,7 +36,7 @@
 ## Stufe 6 — Zusammenstecken und Live-Prüfung
 
 - [x] T13  App verdrahten: Aufnahme-Modul erzeugen und starten, Bereich „Aufnahme“ und Schritt anmelden, Aktivität (Menüleiste, Rückfrage beim Beenden), Erlaubnis-Wächter, Hinweise und Töne verbinden, Pegel für PROJ-8 bereitstellen  · files: App/AppEnvironment.swift  · → AC-1, AC-4, AC-5, AC-15, AC-19
-- [ ] T14  Am laufenden Programm prüfen, erst selbst messen (Protokoll), dann Timur: Startton-Zeit, 10-Minuten-Aufnahme (Dauer der Datei), zehnmal ⌘C/⌘V ohne Startton und ohne orange Mikrofonanzeige, Esc vor und nach 30 s, stille Aufnahme, Mikrofon abstecken, Ruhezustand, Mikrofon stummschalten (kein Ton), fehlendes Wunschmikrofon, Kürzel ändern und belegtes Kürzel, Einführungsschritt mit Probe, Aufnahme während eines Videocalls; Ergebnisse in die Bau-Notizen  · files: features/PROJ-5-aufnahme-tastenkuerzel/design.md  · → AC-4, AC-6, AC-8, AC-9, AC-11, AC-13, AC-14, AC-16, AC-18, AC-19, EC-1, EC-2, EC-3, EC-7
+- [x] T14  Am laufenden Programm prüfen, erst selbst messen (Protokoll), dann Timur: Startton-Zeit, 10-Minuten-Aufnahme (Dauer der Datei), zehnmal ⌘C/⌘V ohne Startton und ohne orange Mikrofonanzeige, Esc vor und nach 30 s, stille Aufnahme, Mikrofon abstecken, Ruhezustand, Mikrofon stummschalten (kein Ton), fehlendes Wunschmikrofon, Kürzel ändern und belegtes Kürzel, Einführungsschritt mit Probe, Aufnahme während eines Videocalls; Ergebnisse in die Bau-Notizen  · files: features/PROJ-5-aufnahme-tastenkuerzel/design.md  · → AC-4, AC-6, AC-8, AC-9, AC-11, AC-13, AC-14, AC-16, AC-18, AC-19, EC-1, EC-2, EC-3, EC-7
 
 ## Parallelisierung
 
