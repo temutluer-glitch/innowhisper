@@ -39,6 +39,18 @@ import Testing
         #expect(check.isFree(.combination(keyCode: 1, modifiers: .option)))
     }
 
+    // BUG-3 (QA 07.11.): the standard shortcuts every program uses are taken
+    @Test func standardProgramShortcutsAreTaken() {
+        let check = ShortcutAvailability(systemShortcuts: { [:] }, probe: { _, _ in true })
+        for key in [kVK_ANSI_C, kVK_ANSI_V, kVK_ANSI_X, kVK_ANSI_Z, kVK_ANSI_Q, kVK_ANSI_W, kVK_ANSI_A, kVK_Tab] {
+            #expect(!check.isFree(.combination(keyCode: UInt16(key), modifiers: .command)))
+        }
+        #expect(!check.isFree(.combination(keyCode: UInt16(kVK_ANSI_Z), modifiers: [.command, .shift])))
+        #expect(!check.isFree(.combination(keyCode: UInt16(kVK_LeftArrow), modifiers: .command)))
+        #expect(check.isFree(.combination(keyCode: UInt16(kVK_F5), modifiers: .command)))
+        #expect(check.isFree(.combination(keyCode: UInt16(kVK_ANSI_D), modifiers: [.control, .option])))
+    }
+
     @Test func loneModifierIsNeverChecked() {
         let check = ShortcutAvailability(systemShortcuts: { [:] }, probe: { _, _ in false })
         #expect(check.isFree(.modifierOnly(.rightCommand)))

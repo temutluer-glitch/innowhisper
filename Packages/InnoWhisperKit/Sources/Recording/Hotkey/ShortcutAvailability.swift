@@ -34,6 +34,7 @@ public struct ShortcutAvailability {
     public func isFree(_ shortcut: Shortcut) -> Bool {
         guard case .combination(let keyCode, let modifiers) = shortcut else { return true }
         let candidate = SystemShortcut(keyCode: keyCode, modifiers: modifiers)
+        if Self.isStandardProgramShortcut(keyCode: keyCode, modifiers: modifiers) { return false }
         if takenBySystem().contains(candidate) { return false }
         return probe(keyCode, modifiers)
     }
@@ -56,6 +57,20 @@ public struct ShortcutAvailability {
         }
         return taken
     }
+
+    /// ⌘ or ⇧⌘ with any key except F1 to F12 and the space bar: what programs
+    /// use for their own commands (⌘C, ⌘Q, ⇧⌘Z, ⌘Tab, ⌘← …). Taking one of them
+    /// would break it in every program (BUG-3). ⌘ Leertaste belongs to macOS
+    /// (Spotlight) and is judged by the system shortcuts above.
+    static func isStandardProgramShortcut(keyCode: UInt16, modifiers: ModifierSet) -> Bool {
+        guard modifiers.contains(.command), modifiers.isSubset(of: [.command, .shift]) else { return false }
+        return !functionKeys.contains(keyCode) && keyCode != UInt16(kVK_Space)
+    }
+
+    static let functionKeys: Set<UInt16> = Set(
+        [kVK_F1, kVK_F2, kVK_F3, kVK_F4, kVK_F5, kVK_F6, kVK_F7, kVK_F8, kVK_F9, kVK_F10, kVK_F11, kVK_F12].map {
+            UInt16($0)
+        })
 
     /// Default system shortcuts of macOS by their id in `AppleSymbolicHotKeys`.
     static let macOSDefaults: [String: SystemShortcut] = [
