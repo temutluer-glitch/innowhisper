@@ -33,8 +33,14 @@ public enum RecordingInfo {
     public static let awakeWithoutSpeech: Duration = .seconds(120)
     /// How often the time since the last speech is checked (BUG-12).
     public static let speechCheckInterval: Duration = .seconds(30)
-    /// Level (0…1, about −45 dB) that counts as speech for keeping the Mac awake.
-    public static let awakeSpeechLevel = 0.25
+    /// Speech keeps the Mac awake when it is this far above the room's
+    /// running background noise; steady noise does not (BUG-16).
+    public static let awakeSpeechMarginDecibels = 10.0
+    /// How fast the running background noise may rise, in dB per second (BUG-16).
+    public static let awakeBackgroundRisePerSecond = 0.5
+    /// Without keyboard or mouse input for this long the Mac may sleep and lock
+    /// even while sound continues (BUG-16, Timur 07.11.2026: 20 minutes).
+    public static let awakeWithoutInput: Duration = .seconds(20 * 60)
     /// How often the real key state is checked while recording (EC-5).
     public static let keyStateCheckInterval: Duration = .milliseconds(500)
     /// Audio format of the recording file (design.md → Datenmodell).

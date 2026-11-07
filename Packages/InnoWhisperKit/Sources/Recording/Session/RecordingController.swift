@@ -1,4 +1,5 @@
 import AppShell
+import CoreGraphics
 import Diagnostics
 import Foundation
 import Notices
@@ -47,6 +48,13 @@ public enum RecordingInterruption: Equatable, Sendable, LogValue {
     }
 }
 
+/// Time since the last keyboard or mouse input anywhere on this Mac (BUG-16).
+@MainActor public func systemInputIdle() -> Duration {
+    guard let anyInput = CGEventType(rawValue: ~0) else { return .zero }
+    let seconds = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: anyInput)
+    return .milliseconds(Int64(max(0, seconds) * 1000))
+}
+
 /// Everything the controller talks to, so tests can swap each part.
 @MainActor
 public struct RecordingServices {
@@ -56,6 +64,8 @@ public struct RecordingServices {
     public var activity: ActivityCenter
     /// Free disk space in bytes; `nil` when unknown (EC-4).
     public var freeBytes: @MainActor () -> Int64?
+    /// Time since the last keyboard or mouse input anywhere on the Mac (BUG-16).
+    public var inputIdle: @MainActor () -> Duration
     /// The chosen microphone (`nil` = system microphone) and its remembered name.
     public var chosenMicrophone: @MainActor () -> (id: String, name: String?)?
     public var microphoneAllowed: @MainActor () -> Bool
@@ -76,6 +86,7 @@ public struct RecordingServices {
         queue: RecordingQueue,
         activity: ActivityCenter,
         freeBytes: (@MainActor () -> Int64?)? = nil,
+        inputIdle: @escaping @MainActor () -> Duration = { .zero },
         chosenMicrophone: @escaping @MainActor () -> (id: String, name: String?)?,
         microphoneAllowed: @escaping @MainActor () -> Bool,
         requestMicrophone: @escaping @MainActor @Sendable () -> Void,
@@ -92,6 +103,7 @@ public struct RecordingServices {
         self.queue = queue
         self.activity = activity
         self.freeBytes = freeBytes ?? { storage.availableBytes() }
+        self.inputIdle = inputIdle
         self.chosenMicrophone = chosenMicrophone
         self.microphoneAllowed = microphoneAllowed
         self.requestMicrophone = requestMicrophone
@@ -146,6 +158,8 @@ public final class RecordingController {
     /// Whether the Mac is kept awake right now, and when speech was last heard (BUG-12).
     @ObservationIgnored private var isKeptAwake = false
     @ObservationIgnored private var lastSpeechAt: ContinuousClock.Instant?
+    /// Running background noise in dB and when it was last updated (BUG-16).
+    @ObservationIgnored private var background: (decibels: Double, at: ContinuousClock.Instant)?
     @ObservationIgnored private var watchers: [Task<Void, Never>] = []
 
     public init(hotkeys: any RecordingHotkeys, services: RecordingServices) {
@@ -214,6 +228,7 @@ public final class RecordingController {
         microphoneKind = start.kind
         escapeRule.reset()
         level = 0
+        background = nil
         Log.write(
             "Recording opening, microphone \(start.kind), gate \(gate)", category: .recording)
         if start.fellBack {
@@ -239,9 +254,12 @@ public final class RecordingController {
     private func received(_ captureLevel: CaptureLevel) {
         guard state == .starting || state == .recording else { return }
         level = captureLevel.level
-        if state == .recording, captureLevel.level >= RecordingInfo.awakeSpeechLevel {
+        let speech = isSpeech(captureLevel.level)
+        if state == .recording, speech {
             lastSpeechAt = services.now()
-            setKeptAwake(true)
+            if services.inputIdle() < RecordingInfo.awakeWithoutInput {
+                setKeptAwake(true)
+            }
         }
         guard state == .starting, captureLevel.hasSignal else { return }
         state = .recording
@@ -257,18 +275,38 @@ public final class RecordingController {
         watchForSilence(generation)
     }
 
-    /// A forgotten recording (nothing said for 2 minutes) lets the Mac sleep
-    /// and lock again; the lock then ends the recording (BUG-12, EC-3).
+    /// Speech is a level clearly above the room's running background noise:
+    /// the background follows quieter levels at once and rises only slowly, so
+    /// steady noise never counts and quiet speech in a quiet room does (BUG-16).
+    private func isSpeech(_ level: Double) -> Bool {
+        let decibels = level * 60 - 60
+        let now = services.now()
+        guard let background else {
+            self.background = (decibels, now)
+            return false
+        }
+        let elapsed = now - background.at
+        let seconds = Double(elapsed.components.seconds) + Double(elapsed.components.attoseconds) / 1e18
+        let risen = background.decibels + RecordingInfo.awakeBackgroundRisePerSecond * seconds
+        self.background = (min(decibels, risen), now)
+        return decibels >= background.decibels + RecordingInfo.awakeSpeechMarginDecibels
+    }
+
+    /// A forgotten recording (nothing said for 2 minutes, or no keyboard or
+    /// mouse input for 20 minutes) lets the Mac sleep and lock again; the lock
+    /// then ends the recording (BUG-12, BUG-16, EC-3).
     private func watchForSilence(_ current: Int) {
         let task = Task { [weak self] in
             while true {
                 guard let self else { return }
                 await services.sleep(RecordingInfo.speechCheckInterval)
                 guard generation == current, state == .recording else { return }
-                if let lastSpeechAt, services.now() - lastSpeechAt >= RecordingInfo.awakeWithoutSpeech,
-                    isKeptAwake
-                {
+                guard isKeptAwake else { continue }
+                if let lastSpeechAt, services.now() - lastSpeechAt >= RecordingInfo.awakeWithoutSpeech {
                     Log.write("Keep-awake released: no speech for 2 minutes", category: .recording)
+                    setKeptAwake(false)
+                } else if services.inputIdle() >= RecordingInfo.awakeWithoutInput {
+                    Log.write("Keep-awake released: no keyboard or mouse input for 20 minutes", category: .recording)
                     setKeptAwake(false)
                 }
             }
@@ -423,6 +461,7 @@ public final class RecordingController {
     private func endRecording() {
         setKeptAwake(false)
         lastSpeechAt = nil
+        background = nil
         stopWatchers()
         generation += 1
         state = .idle

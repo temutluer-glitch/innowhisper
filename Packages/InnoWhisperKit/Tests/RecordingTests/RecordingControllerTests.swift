@@ -115,6 +115,12 @@ func settle() async {
 
     let disk = Disk()
 
+    final class Input {
+        var idle: Duration = .zero
+    }
+
+    let input = Input()
+
     func makeController(
         allowed: Bool = true, chosen: (id: String, name: String?)? = nil
     ) -> RecordingController {
@@ -122,6 +128,7 @@ func settle() async {
         let services = RecordingServices(
             capture: capture, storage: storage, queue: queue, activity: activity,
             freeBytes: { [disk] in disk.free },
+            inputIdle: { [input] in input.idle },
             chosenMicrophone: { chosen },
             microphoneAllowed: { allowed },
             requestMicrophone: { [log] in log.requested += 1 },
@@ -195,6 +202,68 @@ func settle() async {
         await settle()
         #expect(log.awake == [true, false, true, false])
         #expect(controller.state == .idle)
+    }
+
+    /// Lets `seconds` pass in steps of 30 s, reporting `level` each step.
+    func pass(_ seconds: Int, level: Double) async {
+        for _ in 0..<(seconds / 30) {
+            clock.now += .seconds(30)
+            capture.sound(level)
+            await timers.elapse(RecordingInfo.speechCheckInterval)
+        }
+    }
+
+    // BUG-16 (QA 07.11.): steady noise of a loud room is no speech
+    @Test func steadyNoiseDoesNotKeepTheMacAwake() async {
+        let controller = makeController()
+        hotkeys.press(.open)
+        capture.sound(0.6)
+        await settle()
+        await pass(150, level: 0.3)
+        #expect(log.awake == [true, false])
+        #expect(controller.state == .recording)
+    }
+
+    // BUG-16: quiet speech in a quiet room keeps the Mac awake
+    @Test func quietSpeechKeepsTheMacAwake() async {
+        let controller = makeController()
+        hotkeys.press(.open)
+        capture.sound(0.6)
+        await settle()
+        for _ in 0..<10 {
+            capture.sound(0.0)
+            await pass(30, level: 0.2)
+        }
+        #expect(log.awake == [true])
+        #expect(controller.state == .recording)
+    }
+
+    /// Lets `seconds` pass in steps of 30 s with speech: silence, then `level`.
+    func speak(_ seconds: Int, level: Double = 0.6) async {
+        for _ in 0..<(seconds / 30) {
+            capture.sound(0.0)
+            await pass(30, level: level)
+        }
+    }
+
+    // BUG-16: at most 20 minutes without keyboard or mouse (Timur, 07.11.)
+    @Test func twentyMinutesWithoutInputLetTheMacSleep() async {
+        let controller = makeController()
+        hotkeys.press(.open)
+        capture.sound(0.6)
+        await settle()
+        input.idle = .seconds(19 * 60)
+        await speak(30)
+        #expect(log.awake == [true])
+        input.idle = .seconds(20 * 60)
+        await speak(30)
+        #expect(log.awake == [true, false])
+        await speak(60)
+        #expect(log.awake == [true, false])
+        input.idle = .seconds(5)
+        await speak(30)
+        #expect(log.awake == [true, false, true])
+        #expect(controller.state == .recording)
     }
 
     // AC-14: no sound for 1 s → cancelled, no start tone, notice

@@ -81,6 +81,7 @@ final class AppEnvironment {
                 queue: RecordingQueue(
                     storage: recordingStorage, consumer: PlaceholderConsumer(storage: recordingStorage)),
                 activity: activity,
+                inputIdle: { systemInputIdle() },
                 chosenMicrophone: { microphoneChoice.chosen },
                 microphoneAllowed: { [permissions] in permissions.isGranted(.microphone) },
                 requestMicrophone: { [permissions] in permissions.requestPermission(.microphone) },
