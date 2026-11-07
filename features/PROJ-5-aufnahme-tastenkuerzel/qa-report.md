@@ -87,7 +87,7 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02 (Einstellungen
 
 ### BUG-1: Kürzel-Wächter und Aufnahme-Steuerung laufen auseinander
 - **Schwere:** Medium
-- **Status:** Open (vorgeschlagen)
+- **Status:** Open
 - **Klasse:** Eine Seite verwirft eine Aufnahme oder setzt sich zurück, ohne die andere mitzunehmen.
 - **Suche:** `grep -n "interpreter.reset()\|interpreter.configure(" Packages/InnoWhisperKit/Sources/Recording/Hotkey/HotkeyMonitor.swift; grep -n "a recording is already running" Packages/InnoWhisperKit/Sources/Recording/Session/RecordingController.swift` → 5 Treffer (HotkeyMonitor.swift:133, 140, 146, 155; RecordingController.swift:166).
 - **Fall A (AC-3, Pflichtpunkt 1, Esc):**
@@ -99,68 +99,68 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02 (Einstellungen
 
 ### BUG-2: Neustart auf „Fertig“ verlangt die Kürzel-Probe noch einmal
 - **Schwere:** Medium
-- **Status:** Open (vorgeschlagen)
+- **Status:** Open
 - **Klasse:** Einführungsschritt, dessen „erfüllt“ flüchtigen Zustand im Speicher liest, wird von der dauerhaften Nachprüfung aus PROJ-3 EC-2 erfasst.
 - **Suche:** `grep -rn "isSatisfied:" Packages/InnoWhisperKit/Sources` → 6 Treffer, davon betroffen 1 (`ShortcutStep.swift:41`).
 - **Nachstellen:** Einführung bis „Fertig“ durchlaufen, auf „Fertig“ die App beenden, neu starten, „Fertig“ klicken. Die Einführung springt zurück auf „Tastenkürzel“ und nimmt den Schritt aus den erledigten. Gegenprobe `probe/main.swift`: nach `advance()` `finished = false`, Seite 4.
 
 ### BUG-3: Standardkürzel der Programme gelten als frei
 - **Schwere:** Medium
-- **Status:** Open (vorgeschlagen)
+- **Status:** Open
 - **Klasse:** Belegt-Prüfung ohne Apples Standardkürzel der Programme.
 - **Suche:** `grep -cE "kVK_ANSI_(C|V|X|Z|Q|W|A|S|H|M)\b|kVK_Tab" Packages/InnoWhisperKit/Sources/Recording/Hotkey/ShortcutAvailability.swift` → 0.
 - **Folge:** Wer ⌘C als Kürzel wählt, bekommt keine Warnung. Im Modus Halten fängt InnoWhisper danach das C mit ⌘ systemweit ab: Kopieren geht in keinem Programm mehr, jeder Druck startet ein Diktat (AC-18). Gegenprobe `probeCommandCIsReportedFree`.
 
 ### BUG-4: 1-Sekunden-Grenze ab Öffnen des Mikrofons statt ab Tastendruck gemessen
 - **Schwere:** Low
-- **Status:** Deferred (vorgeschlagen)
+- **Status:** Deferred
 - **Klasse:** Zeitgrenze ab falschem Bezugspunkt.
 - **Suche:** `grep -n "openedAt = services.now()\|RecordingInfo.noSoundTimeout" Packages/InnoWhisperKit/Sources/Recording/Session/RecordingController.swift` → 2.
 - **Folge:** Bei rechter ⌘ allein öffnet das Mikrofon erst nach 0,25 s; ein Startton kann so bis etwa 1,3 s nach dem Druck kommen (AC-4). Gemessen live: 85 bis 187 ms ab Öffnen, also weit darunter.
 
 ### BUG-5: Abbruch- und Verwerf-Zeilen im Protokoll ohne Dauer und Mikrofon-Art
 - **Schwere:** Low
-- **Status:** Deferred (vorgeschlagen)
+- **Status:** Deferred
 - **Klasse:** Protokollzeilen der Abbruchwege unvollständig (AC-21).
 - **Suche:** `grep -n "cancelRecording(reason:" Packages/InnoWhisperKit/Sources/Recording/Session/RecordingController.swift` → 4 Aufrufe und 1 Definition.
 
 ### BUG-6: Aufnahme-Ordner nicht von der Datensicherung ausgeschlossen
 - **Schwere:** Low
-- **Status:** Deferred (vorgeschlagen)
+- **Status:** Deferred
 - **Klasse:** Zwischengespeicherte personenbezogene Dateien ohne Ausschluss aus Time Machine.
 - **Suche:** `grep -rn "isExcludedFromBackup" Packages/InnoWhisperKit/Sources` → 0.
 
 ### BUG-7: ⌘-Klick oder Scrollen mit gehaltener rechter ⌘ startet eine Aufnahme
 - **Schwere:** Low
-- **Status:** Deferred (vorgeschlagen)
+- **Status:** Deferred
 - **Klasse:** Der Abgriff hört nur auf Tasten; Mausaktionen während des Haltens zählen nicht als „andere Taste“ (EC-1).
 - **Suche:** `grep -n "\[.flagsChanged, .keyDown, .keyUp\]" Packages/InnoWhisperKit/Sources/Recording/Hotkey/HotkeyMonitor.swift` → 1.
 - **Folge:** Startton und danach meist „Nichts gehört“.
 
 ### BUG-8: Töne bei still verworfenen Aufnahmen
 - **Schwere:** Low
-- **Status:** Deferred (vorgeschlagen)
+- **Status:** Deferred
 - **Klasse:** Endton vor der Entscheidung gespielt.
 - **Suche:** `grep -n "services.playEnd()" Packages/InnoWhisperKit/Sources/Recording/Session/RecordingController.swift` → 1 (Zeile 280).
 - **Folge:** Ein Antippen von etwa 0,35 bis 0,5 s kann Start- und Endton spielen, obwohl es still verworfen wird (AC-10).
 
 ### BUG-9: Effektive Mindestlänge länger als 0,5 s
 - **Schwere:** Low
-- **Status:** Deferred (vorgeschlagen)
+- **Status:** Deferred
 - **Klasse:** Mindestdauer gilt für die aufgenommene Länge, das Mikrofon öffnet aber erst nach der Wartezeit.
 - **Suche:** none.
 - **Folge:** Ein sehr kurzes Diktat („Ja.“) mit 0,5 bis 0,9 s Druck kann still verworfen werden.
 
 ### BUG-10: Bildschirm-Ruhezustand ohne Sperre beendet eine Aufnahme
 - **Schwere:** Medium
-- **Status:** Open (vorgeschlagen)
+- **Status:** Open
 - **Klasse:** Unterbrechung durch ein Ereignis, das keine Sperre ist.
 - **Suche:** `grep -n "screensDidSleepNotification" Packages/InnoWhisperKit/Sources/Recording/Session/InterruptionWatcher.swift` → 1 (Zeile 18); `grep -rn "IOPMAssertion\|beginActivity" Packages/InnoWhisperKit/Sources/Recording` → 0.
 - **Folge:** Im Modus „Ein/aus“ kann ein langes Diktat ohne Tastatur- oder Mauseingabe abgeschnitten werden, sobald der Bildschirm nach der eingestellten Zeit ausgeht, besonders im Akkubetrieb. Das trifft Pflichtpunkt 2 (lange Aufnahmen). Spec EC-3 nennt nur Ruhezustand und Sperre.
 
 ### BUG-11: Meldungen und Protokoll auf seltenen Wegen
 - **Schwere:** Low
-- **Status:** Deferred (vorgeschlagen)
+- **Status:** Deferred
 - **Klasse:** Randwege ohne passende Meldung.
 - **Suche:** none.
 - **Belege:**
@@ -195,4 +195,4 @@ Nicht ausgeführt (für native Menüleisten-Apps gibt es hier keinen Browser-Abl
 
 ## Ergebnis
 
-**NICHT BEREIT.** Es gibt keinen Fehler der Stufe Critical oder High. Vorgeschlagen sind vier Fehler der Stufe Medium als Open (BUG-1, BUG-2, BUG-3, BUG-10) und sieben Fehler der Stufe Low als Deferred (BUG-4 bis BUG-9, BUG-11). Die Entscheidung von Timur steht noch aus.
+**NICHT BEREIT.** Es gibt keinen Fehler der Stufe Critical oder High. Gefunden wurden vier Fehler der Stufe Medium als Open (BUG-1, BUG-2, BUG-3, BUG-10) und sieben Fehler der Stufe Low als Deferred (BUG-4 bis BUG-9, BUG-11). Timur hat am 07.11. entschieden: BUG-1, BUG-2, BUG-3 und BUG-10 werden jetzt behoben (Open), BUG-4 bis BUG-9 und BUG-11 kommen später gesammelt (Deferred). Status bleibt In Review.
