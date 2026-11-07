@@ -1,9 +1,9 @@
+import Foundation
 import Observation
 import Onboarding
 import SwiftUI
 
-/// Outcome of the probe in the onboarding step (AC-19, AC-20). In memory only:
-/// once the step is done the onboarding progress remembers it.
+/// Outcome of the probe in the onboarding step (AC-19, AC-20).
 @MainActor
 @Observable
 public final class ShortcutProbe {
@@ -15,10 +15,19 @@ public final class ShortcutProbe {
     public private(set) var result: Result?
     public var succeeded: Bool { result == .worked }
 
-    public init() {}
+    /// A probe that worked once stays done, also after a restart: the
+    /// onboarding re-checks earlier steps on "Fertig" (BUG-2).
+    static let succeededDefaultsKey = "recording.probeSucceeded"
+    @ObservationIgnored private let defaults: UserDefaults
+
+    public init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        if defaults.bool(forKey: Self.succeededDefaultsKey) { result = .worked }
+    }
 
     public func record(worked: Bool) {
         result = worked ? .worked : .nothingHeard
+        if worked { defaults.set(true, forKey: Self.succeededDefaultsKey) }
     }
 }
 
