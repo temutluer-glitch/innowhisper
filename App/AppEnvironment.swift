@@ -38,6 +38,7 @@ final class AppEnvironment {
     @ObservationIgnored let recording: RecordingController
     @ObservationIgnored let shortcutProbe = ShortcutProbe()
     @ObservationIgnored let keepAwake = KeepAwake()
+    @ObservationIgnored let shortcutFollower: ShortcutFollower
     @ObservationIgnored private var interruptions: InterruptionWatcher?
     @ObservationIgnored private var onboardingFlow: OnboardingFlow?
 
@@ -68,6 +69,7 @@ final class AppEnvironment {
         sounds.onMissingSound = { Log.write("Sound missing: \($0)", category: .notices, level: .error) }
 
         hotkeyMonitor = HotkeyMonitor(shortcut: shortcuts.shortcut, mode: shortcuts.mode)
+        shortcutFollower = ShortcutFollower(store: shortcuts, monitor: hotkeyMonitor)
         let microphoneChoice = microphoneChoice
         let recordingSounds = sounds
         let keepAwake = keepAwake
@@ -135,7 +137,7 @@ final class AppEnvironment {
     private func startRecording() {
         recordingStorage.removeLeftovers()
         startHotkeys()
-        observeShortcutChanges()
+        shortcutFollower.start()
         let recording = recording
         let watcher = InterruptionWatcher { recording.interrupt(.systemSleepOrLock) }
         watcher.start()
@@ -150,18 +152,6 @@ final class AppEnvironment {
             Task { @MainActor in self?.startHotkeys() }
         }
         if granted, !hotkeyMonitor.isRunning { hotkeyMonitor.start() }
-    }
-
-    /// A new shortcut or mode from the settings takes effect at once (AC-16, AC-17).
-    private func observeShortcutChanges() {
-        let (shortcut, mode) = withObservationTracking {
-            (shortcuts.shortcut, shortcuts.mode)
-        } onChange: { [weak self] in
-            Task { @MainActor in self?.observeShortcutChanges() }
-        }
-        if shortcut != hotkeyMonitor.shortcut || mode != hotkeyMonitor.mode {
-            hotkeyMonitor.update(shortcut: shortcut, mode: mode)
-        }
     }
 
     /// The one way to open the settings (PROJ-3 AC-14): while the onboarding

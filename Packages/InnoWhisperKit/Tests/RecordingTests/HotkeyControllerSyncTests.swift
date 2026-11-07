@@ -114,6 +114,26 @@ final class GatedCapture: MicrophoneCapturing {
         #expect(monitor.mode == .hold)
     }
 
+    // BUG-13 (QA 07.11.): mode changed there and back during a recording
+    @Test func modeChangedThereAndBackKeepsTheLastChoice() async {
+        let defaults = UserDefaults(suiteName: "Follower-\(UUID().uuidString)")!
+        let store = ShortcutStore(defaults: defaults)
+        store.setMode(.toggle)
+        let (monitor, controller) = make(mode: .toggle)
+        let follower = ShortcutFollower(store: store, monitor: monitor)
+        follower.start()
+        tapRightCommand()
+        capture.sound()
+        store.setMode(.hold)
+        await settle()
+        store.setMode(.toggle)
+        await settle()
+        tapRightCommand()
+        await capture.finishStop()
+        #expect(controller.state == .idle)
+        #expect(monitor.mode == .toggle)
+    }
+
     // Case B: clicking the shortcut field while recording ends the recording first
     @Test func pausingDuringARecordingEndsIt() {
         let (monitor, controller) = make(mode: .toggle)

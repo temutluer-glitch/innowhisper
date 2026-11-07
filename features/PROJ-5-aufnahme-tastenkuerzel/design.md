@@ -178,3 +178,7 @@ Live-Test Teil 1 am 07.11.2026 mit Timur (Shure MV6 und Systemmikrofon), ausgewe
   - BUG-2: Eine gelungene Probe wird gespeichert (`recording.probeSucceeded`, Abweichung im Datenmodell), damit „Fertig“ nach einem Neustart nicht zur Probe zurückspringt.
   - BUG-3: ⌘ oder ⇧⌘ mit jeder Taste außer F1 bis F12 und Leertaste gilt als belegt (Standardkürzel der Programme).
   - BUG-10: Ein dunkler Bildschirm beendet keine Aufnahme mehr; nur Ruhezustand, Benutzerwechsel und Bildschirmsperre. Während einer Aufnahme verhindert InnoWhisper, dass Mac und Bildschirm von selbst schlafen gehen.
+- **Korrekturen nach der Nachprüfung (07.11.):**
+  - BUG-3, zweite Runde: Zusätzlich gelten Apples Kürzel mit ⌥⌘ und ⌃⌘ sowie unveränderte macOS-Kürzel (⌘F5 VoiceOver, ⌥⌘D Dock, ⌃⌘Q Sperren …) als belegt; ⌘ mit F13 bis F19 ist frei.
+  - BUG-12: Der Mac bleibt nur wach, solange in den letzten 2 Minuten Sprache zu hören war (Pegel ab etwa −45 dB). Eine vergessene Aufnahme lässt Mac und Bildschirm danach wieder schlafen und sperren; die Sperre beendet die Aufnahme (EC-3).
+  - BUG-13: Kürzel- und Modusänderungen gehen über `ShortcutFollower` immer als letzte Wahl an den Wächter; der Abgleich gegen den gerade wirksamen Modus ist weg.
