@@ -1,5 +1,46 @@
 # QA-Ergebnisse PROJ-5: Aufnahme per Tastenkürzel
 
+## Nachtrag 3 vom 2026-11-07: Nachprüfung BUG-15, BUG-16, BUG-17
+
+**Umfang:** `git diff --stat a7f24cc..HEAD`. a7f24cc hat den Bericht zuletzt geschrieben, HEAD ist 46a8d31. Geänderte Produktionsdateien:
+- `App/AppEnvironment.swift`
+- `Sources/Recording/Hotkey/ShortcutAvailability.swift`
+- `Sources/Recording/Recording.swift`
+- `Sources/Recording/Session/RecordingController.swift`
+
+Vier Dateien, darunter die gemeinsame Verdrahtung, deshalb drei unabhängige Prüfer (Abnahme, Sicherheit, Regression).
+
+**Prüfläufe:**
+- Testlauf einmal vorher: 281 Tests in 37 Suites bestanden (`scratchpad/qa3-suite.log`). Gegenprobe des Abnahme-Prüfers: 13 Tests der betroffenen Bereiche bestanden.
+- Lint: Exit 0. Bau: BUILD SUCCEEDED beim Abschluss von `/build`; das Programm enthält den neuen Protokolltext (`strings | grep -c "no keyboard or mouse input"` = 1).
+- SEC-08: Der Test-Diff fügt nur hinzu (`git diff a7f24cc..HEAD -- Packages/InnoWhisperKit/Tests | grep -cE '^-.*#expect'` → 0). ⌘F5 und ⌥⌘D bleiben durch die unveränderten Tests belegt.
+
+**Ergebnisse:**
+- [x] **BUG-15 behoben.** Suche → 10 (Soll 10). Alle gemeldeten Beispiele stehen im Code (`ShortcutAvailability.swift:93-134`). Test `fullAppleListRespectsSwitchedOffSystemShortcuts`. Rest: BUG-19.
+- [x] **BUG-16 behoben.** Suche `awakeSpeechLevel` → 0.
+  - Laute Richtung: gleichmäßiger Raum bei −42 dB ±4 über 30 Minuten zählt nicht mehr als Sprache, Freigabe nach 120 s (Modell `scratchpad/probe/awake.py`, Test `steadyNoiseDoesNotKeepTheMacAwake`).
+  - Schwankender Lärm (Fernseher, Musik) kann weiter als Sprache zählen; dann greift Timurs Obergrenze: Freigabe 20:00 bis 20:30 Minuten nach der letzten Tastatur- oder Mauseingabe, Sprache holt das Wachhalten nicht zurück, eine neue Eingabe schon (`RecordingController.swift:260, 308`, Test `twentyMinutesWithoutInputLetTheMacSleep`).
+  - Leise Richtung: leise Sprache bei −48 dB mit Pausen in einem stillen Raum bleibt wach (Test `quietSpeechKeepsTheMacAwake`).
+  - Eingabepause gemessen: `CGEventType(rawValue: ~0)` ist nicht leer, Mausbewegungen zählen mit, keine Erlaubnisabfrage im Code (`grep -rnE "CGRequestListenEventAccess|IOHIDRequestAccess" App Packages` → 0). Verdrahtet in `App/AppEnvironment.swift:84`.
+  - Rest: BUG-18.
+- [x] **BUG-17 behoben.** Suche → 0. Ausgeschaltetes ⌥⌘8 und ⌥⌘D gelten als frei (Test `fullAppleListRespectsSwitchedOffSystemShortcuts`). Rest: BUG-20.
+- [x] **AC-4, AC-5, AC-14, AC-18, AC-21, EC-3, EC-8** in der Logik belegt (Tests im Testlauf, `RecordingController.swift:231, 254-273, 303, 461-464`). Neue Protokollzeilen sind feste Texte ohne Inhalt (`RecordingController.swift:306, 309`).
+- [x] **AC-6** in der Logik: kein Höchstwert für die Aufnahmedauer, Test `tenMinutesInChunksStayComplete`.
+- [x] **Sicherheit:** 13 Prüfungen belegt, keine neue Lücke (keine Geheimnisse in Diff, Verlauf oder Programm; Sperren ⌃⌘Q und Abmelden ⌥⇧⌘Q bleiben unantastbar; die App erzeugt keine eigenen Eingaben). 7 nicht geprüft, davon 4 ohne passende Oberfläche (SEC-04 bis SEC-07).
+- [x] **Regression:** PROJ-1 bis PROJ-4 im Diff unberührt, ihre Tests grün. Start/Stopp, Esc-Regeln, Speicherplatz, Unterbrechungen, rechte ⌘ allein und ⌘F13 bis F19 halten.
+- [!] **Laufzeit:** Freigabe des Wachhaltens am echten Mac (nach 2 Minuten Ruhe, nach 20 Minuten ohne Eingabe), Bildschirm aus mit Sperre, echte laute und leise Räume, Eingabepause in der laufenden App, ob macOS 26 beim Lesen der Eingabepause etwas abfragt, Programme, die künstliche Mausbewegungen erzeugen. Grund: no way to run and probe this project was recorded.
+
+**Neue Befunde dieser Nachprüfung** (blockieren nicht, deshalb Deferred): BUG-18 (Medium), BUG-19, BUG-20, BUG-21 (Low).
+
+**Weitere Hinweise:**
+- Spec-Abweichung: `spec.md` sagt „Keine Obergrenze für die Aufnahmedauer“. Timurs 20-Minuten-Regel begrenzt nicht die Aufnahme, sondern nur das Wachhalten; bei kurzer Bildschirm-aus-Zeit endet ein freihändiges Diktat aber praktisch nach etwa 20 Minuten ohne Eingabe. Gehört per `/refine PROJ-5` in die Spec.
+- Zoom-Kürzel (⌥⌘8, ⌥⌘=, ⌥⌘−) gelten auf einem frischen Mac ohne gespeicherten Eintrag als belegt, obwohl sie ab Werk vermutlich aus sind. Schützt eher zu viel.
+- `features/INDEX.md` → Deployments enthält noch die Musterzeile `v1.0.0 · 2026-01-31 · https://app.example.com`.
+
+**Ergebnis nach Nachtrag 3:** Kein Fehler mehr Open. Bereit unter einer Bedingung: Timur nimmt die nicht geprüften Laufzeit-Punkte bewusst in Kauf (Teil 2 des Live-Tests wurde übersprungen, die 10-Minuten-Aufnahme steht vor dem Umzug des Teams aus).
+
+---
+
 ## Nachtrag 2 vom 2026-11-07: Nachprüfung BUG-3 (Rest), BUG-12, BUG-13
 
 **Umfang:** `git diff --stat 7399d5a..HEAD -- App Packages`. 7399d5a hat den Bericht zuletzt geschrieben, HEAD ist 620908f. Geänderte Produktionsdateien:
@@ -290,7 +331,7 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02 (Einstellungen
 
 ### BUG-15: Restliche Apple- und macOS-Kürzel gelten als frei
 - **Schwere:** Low
-- **Status:** Open
+- **Status:** Fixed (Nachprüfung 3, 07.11., c555206; Rest siehe BUG-19)
 - **Klasse:** Belegt-Prüfung ohne vollständige Liste von Apples Standardkürzeln (Rest von BUG-3).
 - **Suche:** `grep -cE '"(7|8|9|10|11|12|13|29|31|57)": SystemShortcut' Packages/InnoWhisperKit/Sources/Recording/Hotkey/ShortcutAvailability.swift` → 0. Nach einer Korrektur sollten es 10 sein.
 - **Belege:**
@@ -300,7 +341,7 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02 (Einstellungen
 
 ### BUG-16: Wachhalten hängt an fester Lautstärke statt an Sprache
 - **Schwere:** Medium
-- **Status:** Open
+- **Status:** Fixed (Nachprüfung 3, 07.11., 46a8d31; Rest siehe BUG-18)
 - **Klasse:** Die Ausnahme gegen den Ruhezustand verlängert sich durch einen festen Pegel (−45 dB) statt durch erkannte Sprache oder die Anwesenheit des Nutzers.
 - **Suche:** `grep -rn "awakeSpeechLevel" Packages/InnoWhisperKit/Sources` → 2.
 - **Folge laut:** In einem lauten Raum (Großraumbüro, Fernseher, Musik) hält eine vergessene Aufnahme im Modus „Ein/aus“ den Mac weiter wach und entsperrt. Sie nimmt dabei Gespräche Dritter auf, die ab PROJ-6 an Groq gehen. Gegenprobe: Pegel −42 dB über 30 Minuten, keine Freigabe.
@@ -309,10 +350,37 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02 (Einstellungen
 
 ### BUG-17: Feste Kürzel-Liste übersteuert ausgeschaltete Systemkürzel
 - **Schwere:** Low
-- **Status:** Open
+- **Status:** Fixed (Nachprüfung 3, 07.11., c555206; Rest siehe BUG-20)
 - **Klasse:** Die feste Liste wird vor dem gespeicherten Zustand der Systemkürzel geprüft.
 - **Suche:** `grep -cE '\((kVK_ANSI_D, optionCommand|kVK_F5, \.command|kVK_F5, optionCommand|kVK_ANSI_8, optionCommand|kVK_ANSI_Equal, optionCommand|kVK_ANSI_Minus, optionCommand)\)' Packages/InnoWhisperKit/Sources/Recording/Hotkey/ShortcutAvailability.swift` → 6.
 - **Folge:** Ein in macOS ausgeschaltetes Kürzel, etwa ⌥⌘8 für Zoom, wird trotzdem als „schon belegt“ abgelehnt.
+
+### BUG-18: Wachhalten verlangt in lauten Räumen mehr als die Aufnahme selbst
+- **Schwere:** Medium
+- **Status:** Deferred (neuer Befund einer Nachprüfung, blockiert nicht)
+- **Klasse:** Die Sprachregel fürs Wachhalten weicht von der Sprachregel der Aufnahme (AC-11) ab: AC-11 zählt alles über −35 dB als Sprache, das Wachhalten verlangt immer 10 dB über dem Grundrauschen, ohne diese Obergrenze.
+- **Suche:** `grep -rn "awakeSpeechMarginDecibels\|voicedThresholdDecibels" Packages/InnoWhisperKit/Sources | grep -v "public static let"` → 5; nur `RecordingController.swift:292` nutzt die Regel ohne die −35-dB-Grenze.
+- **Folge:** Freihändiges Diktat in einem gleichmäßig lauten Raum (Café, Lüfter, etwa −32 dB), Sprache nur 6 bis 8 dB lauter: Das Wachhalten endet nach 2 Minuten. Ist die Bildschirm-aus-Zeit kürzer als die Zeit seit der letzten Eingabe, sperrt der Mac und beendet das Diktat (EC-3). Das Gesagte bleibt erhalten. Ausweg: Maus kurz bewegen. Beleg: Modell des Codes (`scratchpad/probe/awake.py`), keine echte Aufnahme.
+
+### BUG-19: Weitere Apple- und macOS-Kürzel gelten auf einem frischen Mac als frei
+- **Schwere:** Low
+- **Status:** Deferred (neuer Befund einer Nachprüfung)
+- **Klasse:** Belegt-Prüfung ohne vollständige Liste der Standardkürzel (Rest von BUG-15).
+- **Suche:** `python3 -I scratchpad/probe/fresh.py` (bildet die Prüfung für einen frischen Mac nach) → 8 Treffer: ⌃⇧↑/↓/←/→ (Kennungen 34, 35, 80, 82), ⇧F11 (37), ⇧F12 (63), ⌥F14/⌥F15 (55, 56). Dazu Finder: ⌃⇧⌘T und ⌥⇧⌘⌫, `grep -cE 'kVK_ANSI_T, \[?\.control, \.shift|kVK_Delete' Packages/InnoWhisperKit/Sources/Recording/Hotkey/ShortcutAvailability.swift` → 0.
+- **Einschränkung:** Ob diese Kürzel auf einem frischen macOS 26 ab Werk eingeschaltet sind, ist nicht geprüft.
+
+### BUG-20: macOS-Kürzel mit ⌘ oder ⇧⌘ bleiben belegt, auch wenn sie ausgeschaltet sind
+- **Schwere:** Low
+- **Status:** Deferred (neuer Befund einer Nachprüfung)
+- **Klasse:** Die feste Regel für ⌘ und ⇧⌘ wird vor dem gespeicherten Zustand der Systemkürzel geprüft (Rest von BUG-17).
+- **Suche:** `grep -nE '"[0-9]+": SystemShortcut\(keyCode: UInt16\(kVK_[A-Za-z0-9_]+\), modifiers: (\.command|\[\.command, \.shift\]|\[\.shift, \.command\])\)' Packages/InnoWhisperKit/Sources/Recording/Hotkey/ShortcutAvailability.swift | grep -vE 'kVK_Space|kVK_F[0-9]+\)'` → 3 (⇧⌘3, ⇧⌘4, ⇧⌘5); dazu auf diesem Mac Kennung 27 (⌘´) und 98 (⇧⌘ß).
+- **Folge:** Wer in macOS das Bildschirmfoto-Kürzel ⇧⌘4 ausschaltet, kann es trotzdem nicht für InnoWhisper wählen. ⌘ Leertaste ist korrekt ausgenommen.
+
+### BUG-21: Bau-Notiz zu BUG-15/17 beschreibt die falsche Kürzelgruppe
+- **Schwere:** Low
+- **Status:** Deferred (neuer Befund einer Nachprüfung)
+- **Klasse:** Entscheidungs-Log beschreibt eine andere Änderung als den Code.
+- **Suche:** none (Abgleich Notiz gegen Diff). Stelle: `design.md:186` nennt „⌘ und ⇧⌘“; geändert wurde die Liste mit ⌥⌘, ⌥⇧⌘ und ⌃⌘ sowie der Umzug von ⌥⌘D, ⌘F5, ⌥⌘F5 und Zoom in die macOS-Werkstabelle.
 
 ## Nicht geprüft in diesem Lauf
 
