@@ -36,7 +36,7 @@ public enum SettingsSection: String, CaseIterable, Sendable, Identifiable, LogVa
         switch self {
         case .general: "Allgemein"
         case .access: "Zugang & Erlaubnisse"
-        case .hotkeys: "Tastenkürzel"
+        case .hotkeys: "Aufnahme"
         case .transcription: "Umwandlung"
         case .prompts: "KI-Vorlagen"
         case .vocabulary: "Wörterbuch"
