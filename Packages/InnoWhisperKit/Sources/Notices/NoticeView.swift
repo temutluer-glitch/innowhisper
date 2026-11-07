@@ -4,6 +4,7 @@ import SwiftUI
 struct NoticeView: View {
     let notice: Notice
     let onClick: @MainActor () -> Void
+    var onAction: @MainActor () -> Void = {}
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
@@ -17,6 +18,11 @@ struct NoticeView: View {
                 .font(.callout)
                 .foregroundStyle(.primary)
                 .lineLimit(1)
+            if let action = notice.action {
+                Button(action.title, action: onAction)
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
@@ -29,7 +35,7 @@ struct NoticeView: View {
         .fixedSize()
         .contentShape(Capsule())
         .onTapGesture { onClick() }
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: notice.action == nil ? .combine : .contain)
         .accessibilityLabel(notice.text)
     }
 

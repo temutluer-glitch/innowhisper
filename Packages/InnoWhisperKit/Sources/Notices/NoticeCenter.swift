@@ -20,9 +20,9 @@ public final class NoticeCenter {
     }
 
     /// Shows a notice; it replaces any visible one (AC-5).
-    public func show(_ kind: NoticeKind, _ text: String) {
+    public func show(_ kind: NoticeKind, _ text: String, action: NoticeAction? = nil) {
         timer?.cancel()
-        let notice = Notice(kind: kind, text: text)
+        let notice = Notice(kind: kind, text: text, action: action)
         current = notice
         onShow?(notice)
         guard kind.closesAutomatically else { return }
@@ -40,6 +40,13 @@ public final class NoticeCenter {
         guard current?.id == id else { return }
         timer?.cancel()
         current = nil
+    }
+
+    /// The notice's button: runs its action and closes the notice (PROJ-5 AC-15).
+    public func performAction(id: Notice.ID) {
+        guard let notice = current, notice.id == id, let action = notice.action else { return }
+        dismissCurrent()
+        action.perform()
     }
 
     /// Click or Esc on an error notice (AC-4).

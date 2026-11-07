@@ -45,9 +45,12 @@ public final class NoticePanelController {
         let panel = self.panel ?? makePanel()
         self.panel = panel
         let host = NSHostingView(
-            rootView: NoticeView(notice: notice) { [weak center] in
-                if notice.kind == .error { center?.dismissCurrent() }
-            })
+            rootView: NoticeView(
+                notice: notice,
+                onClick: { [weak center] in
+                    if notice.kind == .error { center?.dismissCurrent() }
+                },
+                onAction: { [weak center] in center?.performAction(id: notice.id) }))
         let size = host.fittingSize
         host.frame = CGRect(origin: .zero, size: size)
         panel.contentView = host
