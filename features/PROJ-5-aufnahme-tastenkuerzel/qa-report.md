@@ -46,7 +46,7 @@ Sechs Dateien, darunter die gemeinsame Verdrahtung. Deshalb haben drei unabhäng
   - Die beiden früheren Regressionen aus dem ersten Lauf sind weg.
 - [!] **Laufzeit:** Tastatur live, Bildschirm bleibt an, Darstellung. Grund: no way to run and probe this project was recorded.
 
-**Neue Befunde dieser Nachprüfung.** Nach der Abbruchregel lösen sie keine neue Runde aus; sie sind als Deferred vorgeschlagen, Timur entscheidet:
+**Neue Befunde dieser Nachprüfung.** Weil BUG-3 ohnehin noch eine Runde braucht, hat Timur am 07.11. entschieden, BUG-12 und BUG-13 gleich mit zu beheben (Open); BUG-14 bleibt Deferred:
 - BUG-12 (Medium): Eine vergessene Aufnahme hält den Mac unbegrenzt wach.
 - BUG-13 (Medium): Modus während einer Aufnahme hin und zurück stellen lässt den falschen Modus aktiv.
 - BUG-14 (Low): Eine spätere fehlgeschlagene Probe wird nach einem Neustart vergessen.
@@ -226,21 +226,21 @@ Grundlage `docs/kit/guides/security.md`. Geprüft: SEC-01, SEC-02 (Einstellungen
 
 ### BUG-12: Eine vergessene Aufnahme hält den Mac unbegrenzt wach
 - **Schwere:** Medium
-- **Status:** Deferred (vorgeschlagen)
+- **Status:** Open
 - **Klasse:** Systemweite Ausnahme gegen Ruhezustand ohne zeitliche Obergrenze.
 - **Suche:** `grep -rn 'idleSystemSleepDisabled\|idleDisplaySleepDisabled' Packages/InnoWhisperKit/Sources App` → 1 (`InterruptionWatcher.swift:53`).
 - **Folge:** Eine im Modus „Ein/aus“ vergessene Aufnahme läuft ohne Höchstdauer weiter und verhindert, dass Mac und Bildschirm schlafen gehen. Damit greift vermutlich auch die automatische Sperre über „Bildschirm aus“ nicht, und der Mac bleibt entsperrt, bis der Akku leer oder der Speicher unter 200 MB ist. Das Gerät bleibt also unbeaufsichtigt offen. Nicht am laufenden Programm geprüft.
 
 ### BUG-13: Modus während einer Aufnahme hin und zurück stellen lässt den falschen Modus aktiv
 - **Schwere:** Medium
-- **Status:** Deferred (vorgeschlagen)
+- **Status:** Open
 - **Klasse:** Eine zurückgestellte Einstellung wird gegen den aktiven Stand verglichen statt gegen den gewünschten.
 - **Suche:** `grep -rn "hotkeyMonitor\.shortcut\|hotkeyMonitor\.mode" App` → 1 (`AppEnvironment.swift:162`).
 - **Nachstellen:** Modus „Ein/aus“, Aufnahme läuft. In den Einstellungen auf „Halten“ und zurück auf „Ein/aus“ stellen, dann die Aufnahme beenden. Danach zeigt die Einstellung „Ein/aus“, der Wächter arbeitet aber im Modus „Halten“. Ein Antippen startet still nichts (Pflichtpunkt 1), bis zur nächsten Änderung oder bis zum Neustart. Gegenproben beider Prüfer: rot.
 
 ### BUG-14: Fehlgeschlagene Probe nach einer gelungenen wird nach dem Neustart vergessen
 - **Schwere:** Low
-- **Status:** Deferred (vorgeschlagen)
+- **Status:** Deferred
 - **Klasse:** Gespeicherter und flüchtiger Zustand werden auf verschiedenen Wegen fortgeschrieben.
 - **Suche:** `grep -rn "succeededDefaultsKey" Packages/InnoWhisperKit/Sources` → 3 (geschrieben nur bei Erfolg).
 
