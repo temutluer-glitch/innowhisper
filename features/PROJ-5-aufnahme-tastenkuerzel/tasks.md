@@ -30,8 +30,8 @@
 
 ## Stufe 5 — Oberfläche
 
-- [ ] T11 [P]  Einstellungsbereich „Aufnahme“: Gruppe „Tastenkürzel“ mit Kürzel-Feld (nimmt eine Taste auf, Esc bricht ab, Belegt-Meldung) und Modus-Wahl, Gruppe „Mikrofon“ mit Auswahl; Anzeigename des Bereichs `hotkeys` wird „Aufnahme“; Knöpfe und Felder einheitlich nach dem Muster von „Zugang & Erlaubnisse“  · files: RC/UI/RecordingSettingsPane.swift, RC/UI/ShortcutField.swift, RC/UI/MicrophonePicker.swift, Kit/Sources/AppShell/Settings/SettingsSection.swift  · → AC-12, AC-16, AC-17, AC-18
-- [ ] T12  Einführungsschritt „Tastenkürzel“ (Reihenfolge 60, nicht automatisch erledigt): Text „Halte die rechte ⌘-Taste und sprich.“ (passend zum gespeicherten Kürzel), Mikrofonwahl aus T11, Pegelanzeige, Probe-Aufnahme, „Weiter“ erst nach gelungener Probe, Meldung „Klappt. Dein Mikrofon funktioniert.“; passt in die Fensterhöhe der Einführung (Test wie in PROJ-4)  · files: RC/UI/ShortcutStep.swift, RC/UI/LevelMeter.swift, RCT/ShortcutStepTests.swift  · → AC-19, AC-20, EC-6
+- [x] T11 [P]  Einstellungsbereich „Aufnahme“: Gruppe „Tastenkürzel“ mit Kürzel-Feld (nimmt eine Taste auf, Esc bricht ab, Belegt-Meldung) und Modus-Wahl, Gruppe „Mikrofon“ mit Auswahl; Anzeigename des Bereichs `hotkeys` wird „Aufnahme“; Knöpfe und Felder einheitlich nach dem Muster von „Zugang & Erlaubnisse“  · files: RC/UI/RecordingSettingsPane.swift, RC/UI/ShortcutField.swift, RC/UI/MicrophonePicker.swift, Kit/Sources/AppShell/Settings/SettingsSection.swift  · → AC-12, AC-16, AC-17, AC-18
+- [x] T12  Einführungsschritt „Tastenkürzel“ (Reihenfolge 60, nicht automatisch erledigt): Text „Halte die rechte ⌘-Taste und sprich.“ (passend zum gespeicherten Kürzel), Mikrofonwahl aus T11, Pegelanzeige, Probe-Aufnahme, „Weiter“ erst nach gelungener Probe, Meldung „Klappt. Dein Mikrofon funktioniert.“; passt in die Fensterhöhe der Einführung (Test wie in PROJ-4)  · files: RC/UI/ShortcutStep.swift, RC/UI/LevelMeter.swift, RCT/ShortcutStepTests.swift  · → AC-19, AC-20, EC-6
 
 ## Stufe 6 — Zusammenstecken und Live-Prüfung
 
