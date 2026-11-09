@@ -181,3 +181,12 @@ Keine Einstellung bei einem Anbieter nötig. Hinweis: Timur kann unter `console.
 
 - [ ] Klappt das Schreiben von FLAC mit Apples Bordmitteln auf macOS 26? Wird im ersten Bau-Schritt geprüft; sonst WAV mit 4-Minuten-Teilen (siehe Entscheidungen).
 - [ ] Liefert Groq im Antwortformat mit Abschnitten die Werte „keine Sprache“ und „mittlere Wortwahrscheinlichkeit“ bei beiden Modellen? Wird im Bau mit einer echten Antwort von Timurs Mac geprüft (Antwort ohne Text ins Protokoll: nur ob die Felder da sind). Fehlen sie, bleiben Satzliste und Untertitel-Muster.
+
+## Bau-Notizen
+
+- **FLAC klappt** mit Apples Bordmitteln (`AVAudioFile` mit FLAC, 16 kHz Mono), kein Rückfall auf WAV nötig (T4, 09.11.2026).
+- **Schnittmarken:** Jede Marke liegt 5 Minuten nach dem vorigen Schnitt, nicht starr bei 5, 10, 15 Minuten ab Beginn. So bleiben alle Teile zwischen 4:40 und 5:20 lang. Bei gleich leisen Stellen gewinnt die nächste zur Marke; ein ganz stiller Abschnitt wird genau an der Marke geschnitten (EC-1).
+- **Nicht lesbares Teil** (Datei fehlt beim Hochladen) zählt beim Groq-Anschluss als eigener Fehler ohne Status: kein stiller Versuch, Hinweis „Umwandlung fehlgeschlagen …“.
+- **Leerer Text:** Ein Text nur aus Leerzeichen und Zeilenumbrüchen gilt als leer und wird nicht übergeben; ein Ergebnis, das nach dem Entfernen von Untertitel-Sätzen leer ist, behandelt die Warteschlange wie „Nichts erkannt“ (AC-15).
+- **Einstellungsbereich „Aufnahme“:** `RecordingSettingsPane` nimmt weitere Abschnitte im selben Formular auf; die App hängt dort „Umwandlung“ an. Kleine Änderung in `Sources/Recording/UI/RecordingSettingsPane.swift`, die in `tasks.md` T9 nicht aufgeführt war.
+- **Tests und iCloud:** Der Schreibtisch wird von iCloud abgeglichen; `swift test` bricht dann mit „was modified during the build“ ab. Abhilfe: Zwischendateien außerhalb des Schreibtischs, `swift test --package-path Packages/InnoWhisperKit --scratch-path "$HOME/Library/Developer/InnoWhisperKit-build"`.
