@@ -32,7 +32,7 @@
 
 ## Stufe 5 — Zusammenstecken
 
-- [ ] T12  App-Verdrahtung: Umwandlung erzeugen und als Empfänger der Aufnahme-Ablage setzen (Platzhalter fällt weg); beim Start Aufnahme-Liste lesen, dann `removeLeftovers` mit Ausnahmeliste, dann Nachholen; Schlüssel aus dem Schlüsselbund lesen, „abgelehnt“ → vorhandene Prüfung des gespeicherten Schlüssels (PROJ-4), Knöpfe „Schlüssel eintragen“/„Schlüssel prüfen“ → Schlüssel-Einstellungen; Probleme, Hinweise, Aktivität; Bereich „Aufnahme“ zeigt unter den Gruppen aus PROJ-5 die Gruppe „Umwandlung“; einmalige Protokollzeile, ob Groqs Antwort die Abschnitts-Werte enthält (ohne Text)  · files: App/AppEnvironment.swift  · → AC-1, AC-2, AC-3, AC-12, AC-13, AC-20
+- [x] T12  App-Verdrahtung: Umwandlung erzeugen und als Empfänger der Aufnahme-Ablage setzen (Platzhalter fällt weg); beim Start Aufnahme-Liste lesen, dann `removeLeftovers` mit Ausnahmeliste, dann Nachholen; Schlüssel aus dem Schlüsselbund lesen, „abgelehnt“ → vorhandene Prüfung des gespeicherten Schlüssels (PROJ-4), Knöpfe „Schlüssel eintragen“/„Schlüssel prüfen“ → Schlüssel-Einstellungen; Probleme, Hinweise, Aktivität; Bereich „Aufnahme“ zeigt unter den Gruppen aus PROJ-5 die Gruppe „Umwandlung“; einmalige Protokollzeile, ob Groqs Antwort die Abschnitts-Werte enthält (ohne Text)  · files: App/AppEnvironment.swift  · → AC-1, AC-2, AC-3, AC-12, AC-13, AC-20
 
 ## Abdeckung
 

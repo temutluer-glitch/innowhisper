@@ -7,6 +7,7 @@ import Onboarding
 import Permissions
 import Recording
 import SwiftUI
+import Transcription
 
 /// Composition root: creates the shared objects once and wires the features.
 @MainActor
@@ -39,6 +40,9 @@ final class AppEnvironment {
     @ObservationIgnored let shortcutProbe = ShortcutProbe()
     @ObservationIgnored let keepAwake = KeepAwake()
     @ObservationIgnored let shortcutFollower: ShortcutFollower
+    @ObservationIgnored let transcriptionSettings = TranscriptionSettings()
+    @ObservationIgnored let recordingList: RecordingList
+    @ObservationIgnored let transcription: TranscriptionQueue
     @ObservationIgnored private var interruptions: InterruptionWatcher?
     @ObservationIgnored private var onboardingFlow: OnboardingFlow?
 
@@ -68,6 +72,31 @@ final class AppEnvironment {
         groqKey = GroqKeyModel(problems: problems, onboardingFinishedOnce: { onboardingStore.finishedOnce })
         sounds.onMissingSound = { Log.write("Sound missing: \($0)", category: .notices, level: .error) }
 
+        // Transcription (PROJ-6): the list is read before the recordings folder
+        // is tidied up at start, so open and kept recordings survive (AC-20).
+        recordingList = RecordingList(storage: recordingStorage)
+        let keyModel = groqKey
+        transcription = TranscriptionQueue(
+            services: TranscriptionServices(
+                readKey: {
+                    do throws(KeychainError) {
+                        return try SystemKeyStore().read()
+                    } catch {
+                        Log.write(
+                            "Stored key could not be read for transcription: status \(Int(error.status))",
+                            category: .transcription, level: .error)
+                        return nil
+                    }
+                },
+                keyRejected: { Task { await keyModel.checkStored() } },
+                showKeySettings: { keyModel.showKeySettings() },
+                notify: { kind, text, action in notices.show(kind, text, action: action) },
+                problems: problems,
+                activity: activity,
+                delivery: ClipboardDelivery(notify: { kind, text, action in notices.show(kind, text, action: action) }),
+                list: recordingList,
+                settings: transcriptionSettings))
+
         hotkeyMonitor = HotkeyMonitor(shortcut: shortcuts.shortcut, mode: shortcuts.mode)
         shortcutFollower = ShortcutFollower(store: shortcuts, monitor: hotkeyMonitor)
         let microphoneChoice = microphoneChoice
@@ -78,8 +107,7 @@ final class AppEnvironment {
             services: RecordingServices(
                 capture: MicrophoneCapture(),
                 storage: recordingStorage,
-                queue: RecordingQueue(
-                    storage: recordingStorage, consumer: PlaceholderConsumer(storage: recordingStorage)),
+                queue: RecordingQueue(storage: recordingStorage, consumer: transcription),
                 activity: activity,
                 inputIdle: { systemInputIdle() },
                 chosenMicrophone: { microphoneChoice.chosen },
@@ -110,11 +138,15 @@ final class AppEnvironment {
         let shortcuts = shortcuts
         let microphones = microphones
         let hotkeyMonitor = hotkeyMonitor
+        let transcriptionSettings = transcriptionSettings
         registry.register(
             SettingsPane(section: .hotkeys) {
                 RecordingSettingsPane(
                     shortcuts: shortcuts, microphone: microphoneChoice, microphones: microphones,
-                    onRecordingShortcut: { hotkeyMonitor.setPaused($0) })
+                    onRecordingShortcut: { hotkeyMonitor.setPaused($0) }
+                ) {
+                    TranscriptionSettingsGroup(settings: transcriptionSettings)
+                }
             })
         registry.register(
             GeneralSettingsGroup(id: "sounds", title: "Töne", order: 20) { SoundSettingsGroup(player: sounds) })
@@ -132,11 +164,13 @@ final class AppEnvironment {
         observeActivity()
     }
 
-    /// Recording by shortcut (PROJ-5): leftovers of a crash go, the shortcut
-    /// watcher starts (again once Accessibility is allowed), sleep and screen
-    /// lock end a running recording.
+    /// Recording by shortcut (PROJ-5): leftovers of a crash go (except the
+    /// recordings the transcription still needs, PROJ-6), the shortcut watcher
+    /// starts (again once Accessibility is allowed), sleep and screen lock end
+    /// a running recording; dictations not converted before are recovered.
     private func startRecording() {
-        recordingStorage.removeLeftovers()
+        recordingStorage.removeLeftovers(keeping: recordingList.keptFileNames)
+        TranscriptionRecovery.resume(list: recordingList, queue: transcription)
         startHotkeys()
         shortcutFollower.start()
         let recording = recording

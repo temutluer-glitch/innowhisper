@@ -170,12 +170,14 @@ public final class TranscriptionQueue: RecordingConsumer {
         }
         let ordered = pieces.pieces.map { job.finished[$0.index] ?? [] }
         let filtered = TranscriptFilter.filter(pieces: ordered)
+        let segments = ordered.flatMap { $0 }
+        let withValues = segments.filter { $0.noSpeechProbability != nil && $0.averageLogProbability != nil }.count
         pieces.remove()
         job.pieces = nil
         job.finished = [:]
         let elapsed = job.startedAt.map { services.now() - $0 } ?? .zero
         Log.write(
-            "Dictation #\(job.order) converted: model \(job.model), language \(job.language), \(job.duration), \(pieces.pieces.count) pieces, \(elapsed), dropped segments \(filtered.droppedSegments), subtitle sentences \(filtered.removedSubtitleSentences)",
+            "Dictation #\(job.order) converted: model \(job.model), language \(job.language), \(job.duration), \(pieces.pieces.count) pieces, \(elapsed), segments with values \(withValues) of \(segments.count), dropped segments \(filtered.droppedSegments), subtitle sentences \(filtered.removedSubtitleSentences)",
             category: .transcription)
         if filtered.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             services.notify(.info, TranscriptionTexts.nothingRecognized, nil)

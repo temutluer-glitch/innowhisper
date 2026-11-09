@@ -21,6 +21,7 @@ smell never becomes `Accepted`: it is a finding for `/security-check` or the own
 
 | ID | Status | Path | What | Why it matters | Severity | Owning features | Found (commit) | Resolved (commit) |
 |----|--------|------|------|----------------|----------|-----------------|----------------|-------------------|
+| TD-1 | Open | Packages/InnoWhisperKit/Tests/GroqAccessTests/KeyValidatorTests.swift | `hangingAnswerStopsAtTheTimeLimit` misst echte Zeit (Grenze 2 s bei 50 ms Zeitlimit) und schlug einmal unter voller Rechnerlast fehl (2,59 s); einzeln und in drei weiteren vollen Läufen grün | Ein zufällig roter Test verdeckt echte Fehler oder führt zu falschem Alarm | Low | PROJ-4 | 93cc3a6 | |
 
 ## Archive (Resolved)
 _Moved here by `/cleanup`, one line each: ID, path, what, resolving commit._
