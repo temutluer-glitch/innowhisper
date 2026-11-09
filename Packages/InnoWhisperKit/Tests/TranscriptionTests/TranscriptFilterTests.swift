@@ -113,6 +113,16 @@ import Testing
         "Untertitel der Amara.org-Seite bitte prüfen.",
         "Wir nutzen die Amara.org Community für Untertitel.",
         "Die Untertitel vom ZDF, die sind schlecht.",
+        // BUG-3, third round (re-verification 2): nothing is cut from the middle or end of a sentence
+        "Schick mir bitte die Untertitel vom ZDF.",
+        "Wir brauchen eine Untertitelung vom ZDF.",
+        "Das ist die Untertitelung des ZDF!",
+        "Ich danke der Amara.org-Community.",
+        "Wir arbeiten mit der Amara.org Community.",
+        "Für das Projekt nehmen wir Untertitel von ZDF für funk.",
+        "Wir haben die Untertitel vom ZDF, 2019.",
+        "Die Untertitel vom ZDF. Die sind schlecht.",
+        "Untertitel vom ZDF.",
     ])
     func spokenSubtitleSentencesStay(sentence: String) {
         let result = TranscriptFilter.filter(pieces: [[segment(sentence)]])
@@ -120,22 +130,39 @@ import Testing
         #expect(result.removedSubtitleSentences == 0)
     }
 
-    // BUG-16: a complete credit line goes wherever it stands — in quotes, in
-    // brackets, after a dash or comma, or glued to a piece without full stop
+    // BUG-16, BUG-18: a credit line goes when it is a whole sentence (with
+    // quotes, brackets, a dash, any closing punctuation, between line breaks)
+    // or a whole Groq section (glued to a piece without full stop, two in a row)
     @Test(arguments: [
-        ("Gut. „Untertitel im Auftrag des ZDF.“ Weiter.", "Gut. Weiter."),
-        ("Gut. - Untertitel im Auftrag des ZDF. Weiter.", "Gut. Weiter."),
-        ("Gut, Untertitel im Auftrag des ZDF. Weiter.", "Gut, Weiter."),
-        ("Gut. (Untertitel im Auftrag des ZDF für funk, 2017) Weiter.", "Gut. Weiter."),
-        ("Bis morgen dann Untertitel im Auftrag des ZDF für funk, 2017", "Bis morgen dann"),
-        ("Gut. Untertitel: ZDF für funk, 2017. Weiter.", "Gut. Weiter."),
-        ("Gut. Untertitel der Amara .org-Community", "Gut."),
-        ("Ende. Untertitel im Auftrag von ZDF für funk, 2017", "Ende."),
+        ([["Gut. „Untertitel im Auftrag des ZDF.“ Weiter."]], "Gut. Weiter."),
+        ([["Gut. „Untertitel im Auftrag des ZDF“. Weiter."]], "Gut. Weiter."),
+        ([["Gut. - Untertitel im Auftrag des ZDF. Weiter."]], "Gut. Weiter."),
+        ([["Gut. (Untertitel im Auftrag des ZDF für funk, 2017) Weiter."]], "Gut. Weiter."),
+        ([["Gut. Untertitel: ZDF für funk, 2017. Weiter."]], "Gut. Weiter."),
+        ([["Gut. Untertitel im Auftrag des ZDF für funk, 2017… Weiter."]], "Gut. Weiter."),
+        ([["Gut.\nUntertitel im Auftrag des ZDF für funk, 2017\nWeiter."]], "Gut.\nWeiter."),
+        ([["Gut. Untertitel der Amara .org-Community"]], "Gut."),
+        ([["Ende. Untertitel im Auftrag von ZDF für funk, 2017"]], "Ende."),
+        ([["Bis morgen dann"], ["Untertitel im Auftrag des ZDF für funk, 2017"]], "Bis morgen dann"),
+        ([["Anfang."], ["Untertitel im Auftrag des ZDF für funk, 2017"], ["Weiter."]], "Anfang. Weiter."),
+        ([["Gut.", "Untertitel im Auftrag des ZDF für funk, 2017", "Untertitel der Amara.org-Community"]], "Gut."),
+        ([["Untertitelung aufgrund der Amara.org-Community"]], ""),
+        ([["Untertitel im Auftrag des ZDF f\u{0075}\u{0308}r funk, 2017"]], ""),
     ])
-    func creditLinesGoWhereverTheyStand(input: String, expected: String) {
-        let result = TranscriptFilter.filter(pieces: [[segment(input)]])
+    func creditLinesGoAsWholeSentencesOrSections(pieces: [[String]], expected: String) {
+        let result = TranscriptFilter.filter(pieces: pieces.map { $0.map { segment($0) } })
         #expect(result.text == expected)
-        #expect(result.removedSubtitleSentences == 1)
+        #expect(result.removedSubtitleSentences >= 1)
+    }
+
+    // BUG-19: long runs of whitespace in Groq's answer never stall the filter
+    // (the broken pattern took about 30 s for 20 000 line breaks; the bound is generous on purpose)
+    @Test(arguments: ["\n", "\u{00A0}", "\u{2028}"])
+    func longWhitespaceRunsStayFast(blank: String) {
+        let hostile = "a" + String(repeating: blank, count: 20_000) + "b"
+        let started = ContinuousClock.now
+        _ = TranscriptFilter.filter(pieces: [[segment(hostile)]])
+        #expect(ContinuousClock.now - started < .seconds(5))
     }
 
     // AC-16: removal is case-insensitive; a sentence that merely mentions subtitles stays

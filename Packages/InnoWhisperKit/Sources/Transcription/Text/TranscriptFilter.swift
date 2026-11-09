@@ -34,7 +34,9 @@ public enum TranscriptFilter {
 
     private static let normalisedInventedPhrases = Set(inventedPhrases.map(normalised))
 
-    private static let closingPunctuation: Set<Character> = [".", "!", "?", "…"]
+    private static let closingPunctuation: Set<Character> = [
+        ".", "!", "?", "…", ";", "“", "”", "\"", "»", "«", ")", "]",
+    ]
     private static let trailingStrip: Set<Character> = [
         ".", "!", "?", "…", ",", ";", ":", "\"", "'", "„", "“", "”", "‚", "‘", "’", "«", "»",
     ]
@@ -56,15 +58,21 @@ public enum TranscriptFilter {
     /// invented phrase.
     public static func filter(pieces: [[TranscriptSegment]]) -> FilteredTranscript {
         var dropped = 0
+        var creditSections = 0
         var pieceTexts: [String] = []
         for segments in pieces {
             let kept = segments.filter(keeps)
             dropped += segments.count - kept.count
-            let texts = kept.map { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+            var texts = kept.map { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+            // A Groq section that is exactly a credit line goes as a whole (BUG-16).
+            let beforeCredits = texts.count
+            texts.removeAll(where: isCreditLine)
+            creditSections += beforeCredits - texts.count
             if !texts.isEmpty { pieceTexts.append(texts.joined(separator: " ")) }
         }
         let joined = tidy(pieceTexts.joined(separator: " "))
-        let (withoutSubtitles, removed) = removingSubtitleSentences(from: joined)
+        let (withoutSubtitles, creditSentences) = removingSubtitleSentences(from: joined)
+        let removed = creditSections + creditSentences
 
         guard !withoutSubtitles.isEmpty else {
             return FilteredTranscript(
@@ -86,38 +94,71 @@ public enum TranscriptFilter {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    /// Removes every complete subtitle credit line, wherever it stands
-    /// (AC-16): in quotes or brackets, after a dash or a comma, or glued to a
-    /// piece without full stop (BUG-16). Only the whole credit wording counts
-    /// and it must end the sentence, so a spoken sentence that merely
-    /// mentions subtitles, funk, the ZDF or Amara.org stays (BUG-3).
+    /// Removes every sentence that is, as a whole, a subtitle credit line
+    /// (AC-16, BUG-16). Nothing is ever cut from inside a sentence, so a
+    /// spoken sentence that mentions subtitles, funk, the ZDF or Amara.org
+    /// stays (BUG-3).
     static func removingSubtitleSentences(from text: String) -> (text: String, removed: Int) {
-        let range = NSRange(text.startIndex..., in: text)
-        let removed = creditPattern.numberOfMatches(in: text, range: range)
-        guard removed > 0 else { return (text, 0) }
-        let kept = creditPattern.stringByReplacingMatches(in: text, range: range, withTemplate: " ")
-        return (tidy(kept), removed)
+        var removed = 0
+        var kept = ""
+        for sentence in sentences(of: text) {
+            if isCreditLine(sentence) {
+                removed += 1
+            } else {
+                kept += sentence
+            }
+        }
+        return removed == 0 ? (text, 0) : (tidy(kept), removed)
     }
 
-    /// A credit line Whisper invents from subtitled training data: who made the
-    /// subtitles (ZDF, also "für funk", with an optional year, or the
-    /// Amara.org community), with optional quotes, brackets or a dash around
-    /// it, and closed by punctuation, a closing quote or the end of the text.
-    static let creditPattern: NSRegularExpression = {
-        let opening = #"(?:[-–—]\s*)?[„“"'«»(\[]?\s*"#
-        let zdf =
-            #"untertitel(?:ung)?(?:\s*:\s*|\s+(?:im\s+auftrag\s+)?(?:des|vom|von)\s+)zdf(?:\s+für\s+funk)?(?:,?\s*\d{4})?"#
-        let amara =
-            #"(?:untertitel(?:ung)?\s+(?:der|von\s+der)\s+|subtitles\s+by\s+the\s+)?amara\s*\.\s*org[\s-]*community"#
-        let closing = #"(?:\s*[.!]+[“”"'«»)\]]*|[“”"'«»)\]]+|\s*$)"#
-        let pattern = #"(?<![\p{L}\p{N}])"# + opening + "(?:" + zdf + "|" + amara + ")" + closing + #"(?=\s|$)"#
-        // The pattern is a fixed literal; a failure here is a programming error.
-        return try! NSRegularExpression(pattern: pattern, options: [.caseInsensitive])
-    }()
+    /// Credit lines are short; anything longer is never one, which also keeps
+    /// the check cheap on hostile model output (BUG-19).
+    static let longestCreditLine = 160
 
-    /// Splits text into sentences. A sentence ends after a run of closing
-    /// punctuation followed by whitespace or the end, so "Amara.org" and
-    /// "20.10.2020" stay whole. Leading whitespace belongs to the next
+    /// Whether `candidate` is exactly a credit line Whisper invents from
+    /// subtitled training data: who made the subtitles (the ZDF with "im
+    /// Auftrag", "für funk" or a year, or the Amara.org community). Quotes,
+    /// brackets, a leading dash and closing punctuation around it are ignored.
+    /// The short "Untertitel vom ZDF" alone is spoken German and stays.
+    static func isCreditLine(_ candidate: String) -> Bool {
+        guard candidate.count <= longestCreditLine else { return false }
+        let line = creditCore(of: candidate)
+        guard !line.isEmpty else { return false }
+        return creditWordings.contains { line.wholeMatch(of: $0) != nil }
+    }
+
+    /// Lowercased, Unicode-composed, whitespace collapsed, and stripped of
+    /// surrounding quotes, brackets, dashes and punctuation; no regular
+    /// expression runs over the raw text (BUG-19).
+    static func creditCore(of candidate: String) -> String {
+        let words = candidate.precomposedStringWithCanonicalMapping.lowercased()
+            .split(whereSeparator: { $0.isWhitespace })
+        var line = words.joined(separator: " ")
+        while let first = line.first, creditWrapping.contains(first) || first == " " { line.removeFirst() }
+        while let last = line.last, creditWrapping.contains(last) || last == " " { line.removeLast() }
+        return line
+    }
+
+    private static let creditWrapping: Set<Character> = [
+        "-", "–", "—", "\"", "'", "„", "“", "”", "‚", "‘", "’", "«", "»", "(", ")", "[", "]",
+        ".", "!", "?", "…", ";", ":", ",",
+    ]
+
+    /// The credit wordings, each matched against the whole normalised line.
+    nonisolated(unsafe) private static let creditWordings: [Regex<Substring>] = [
+        /untertitel(?:ung)? im auftrag (?:des|von|vom) zdf(?: für funk)?(?:,? \d{4})?/,
+        /untertitel(?:ung)? (?:des|vom|von) zdf für funk(?:,? \d{4})?/,
+        /untertitel(?:ung)? (?:des|vom|von) zdf,? \d{4}/,
+        /untertitel(?:ung)? ?: ?zdf(?: für funk)?(?:,? \d{4})?/,
+        /(?:untertitel(?:ung)? (?:der|von der|durch die|aufgrund der) )?amara ?\. ?org[ -]?community/,
+        /subtitles (?:created )?by the amara ?\. ?org community/,
+    ]
+
+    /// Splits text into sentences for the credit check. A sentence ends after
+    /// closing punctuation, a closing quote or bracket followed by whitespace
+    /// or the end, and at every line break, so "Amara.org" and "20.10.2020"
+    /// stay whole. Splitting too often is harmless: only whole credit lines
+    /// are removed, everything else is put back unchanged. Leading whitespace belongs to the next
     /// sentence; concatenating all parts gives back the input.
     static func sentences(of text: String) -> [String] {
         var result: [String] = []
@@ -127,8 +168,8 @@ public enum TranscriptFilter {
             let character = text[index]
             current.append(character)
             let next = text.index(after: index)
-            if closingPunctuation.contains(character),
-                next == text.endIndex || text[next].isWhitespace
+            if character.isNewline
+                || (closingPunctuation.contains(character) && (next == text.endIndex || text[next].isWhitespace))
             {
                 result.append(current)
                 current = ""
