@@ -10,6 +10,28 @@
 - SEC-08: Test-Diff `813190f..HEAD` hat 0 gelöschte Zeilen, keine übersprungenen oder abgeschwächten Tests.
 - `tasks.md`: keine `[user]`-Aufgaben.
 
+## Nachtrag 3 vom 2026-11-09: Nachprüfung BUG-3, BUG-16, BUG-19 (dritte Runde, „Einfacher Weg“)
+
+**Umfang:** `git diff --stat 3d8f1c3..HEAD` (HEAD d709113). Geändert: `Sources/Transcription/Text/TranscriptFilter.swift` und sein Test. Ein Prüfer mit allen drei Bereichen.
+
+**Prüfläufe:** Testlauf einmal vorher: 377 Tests bestanden (`scratchpad/qa-proj6-suite-4.log`). Lint der Dateien: Exit 0. SEC-08: Zwei Erwartungen sind mit der Entscheidung „Einfacher Weg“ weggefallen („Gut, Untertitel im Auftrag des ZDF. Weiter.“ und der Ein-Abschnitt-Fall „Bis morgen dann Untertitel …“), begründet in `design.md`; die Zählung im Test wurde von `== 1` auf `>= 1` gelockert (Proben zeigen exakte Zählungen). Neuer Test mit Wanduhr-Grenze 5 s (`TranscriptFilterTests.swift:165`) gehört zur Klasse von BUG-15, deren Suche jetzt 3 Treffer hat.
+
+**Ergebnisse:**
+- [x] **BUG-3 behoben** für das Abschneiden innerhalb eines Satzes: alle gemeldeten Sätze und 27 neue bleiben unverändert; Abspann wird nur noch als ganzes Stück entfernt (`TranscriptFilter.swift:98-112, 127`). Rest über Abschnitts- und Satzgrenzen: BUG-20.
+- [x] **BUG-16 behoben** für ganze Sätze und ganze Abschnitte: Anführungszeichen, Klammern, Strich, „…“, „;“, „!“, „?“, zwischen Zeilenumbrüchen, angehängter oder stiller Abschnitt, zwei hintereinander als eigene Abschnitte, allein → leer. Bewusst nicht entfernte Fälle: BUG-21.
+- [x] **BUG-18 behoben:** ein Abspann wird ganz oder gar nicht entfernt, kein Rest mehr. Unbekannte Wortlaute („Untertitel von Stephanie Geiges“, „… im Auftrag der Amara.org-Community“) bleiben ganz stehen.
+- [x] **BUG-19 behoben:** Suche → 0. 78 Läufe mit feindlichen Eingaben von 20.000 Zeichen, höchstens 0,054 s; lineares Wachstum bis 320.000 Zeichen; alter Stand 34,5 s.
+- [x] **Gleichwertigkeit:** 60.000 Zufallseingaben ohne Abspann ergeben dieselbe Ausgabe wie vorher (0 Abweichungen).
+- [x] **AC-15, AC-17 (Code), EC-1 (Filteranteil)** bestanden. **AC-16** bis auf BUG-21 bestanden.
+- [x] **Sicherheit:** kein Text im Protokoll; die festen Muster sind unveränderlich, nur gelesen, unter ThreadSanitizer mit 16 parallelen Aufgaben ohne Warnung.
+- [!] Laufzeit, echte Groq-Antworten (wie oft Groq mitten im Satz trennt), Release-Bau — no way to run and probe this project was recorded.
+
+**Neue Befunde** (blockieren nicht, deshalb Deferred): BUG-20, BUG-21, BUG-22, BUG-23 (alle Low).
+
+**Ergebnis nach Nachtrag 3:** Kein Fehler mehr Open. Es fehlt der Live-Test mit Timur (AC-5, AC-6, AC-17, AC-18 und alle sichtbaren Teile). Bis dahin: NICHT BEREIT — nicht geprüft. Status bleibt In Review.
+
+---
+
 ## Nachtrag 2 vom 2026-11-09: Nachprüfung BUG-3 (zweite Runde) und BUG-16
 
 **Umfang:** `git diff --stat ab9adb8..HEAD` (HEAD eb90efc). Geändert: `Sources/Transcription/Text/TranscriptFilter.swift` und sein Test. Eine Datei, deshalb ein Prüfer mit allen drei Bereichen.
@@ -153,7 +175,7 @@ Vier Dateien, deshalb drei unabhängige Prüfer.
 
 ### BUG-3: Echte Sätze mit „Untertitel“ werden als Untertitel-Satz gelöscht
 - **Schwere:** Medium
-- **Status:** Open (zweite Nachprüfung 09.11.: weiter nicht geschlossen, siehe Nachtrag 2)
+- **Status:** Fixed (Nachprüfung 3, 09.11., d709113; Rest über Abschnitts- und Satzgrenzen siehe BUG-20)
 - **Klasse:** Muster für erfundene Sätze ist zu weit und trifft gesprochenen Inhalt.
 - **Suche:** `grep -nE 'zdf|funk|"amara"' Packages/InnoWhisperKit/Sources/Transcription/Text/TranscriptFilter.swift` → 2 (`:131, :133`).
 - **Ablauf:** „Bitte prüfe die Untertitel für den Funk-Spot.“, „Die Untertitel für die ZDF-Doku sind fertig.“, „Ich habe den Funk-Untertitel geändert.“ werden zu leerem Text. Bei einem Ein-Satz-Diktat folgt „Nichts erkannt“ und die Aufnahme wird gelöscht.
@@ -244,7 +266,7 @@ Vier Dateien, deshalb drei unabhängige Prüfer.
 
 ### BUG-16: Abspann-Zeilen ohne eigenen Satzanfang bleiben im Text
 - **Schwere:** Low
-- **Status:** Open (Entscheidung Timur 09.11.: mit BUG-3 beheben; zweite Nachprüfung: Restfälle, siehe Nachtrag 2)
+- **Status:** Fixed (Nachprüfung 3, 09.11., d709113; bewusst nicht entfernte Fälle siehe BUG-21)
 - **Klasse:** Erkennung erfundener Sätze hängt an Satzgrenze und Satzanfang statt am Wortlaut des Abspanns.
 - **Suche:** `grep -n 'hasPrefix("untertitel")' Packages/InnoWhisperKit/Sources/Transcription/Text/TranscriptFilter.swift` → 1 (`:135`).
 - **Ablauf:** „„Untertitel im Auftrag des ZDF, 2020““, „(Untertitel im Auftrag des ZDF für funk, 2017)“, „- Untertitel …“, „Gut, Untertitel im Auftrag des ZDF. Weiter.“ und ein Abspann direkt an einem Abschnitt ohne Schlusspunkt („Bis morgen dann Untertitel im Auftrag des ZDF für funk, 2017“) bleiben stehen. Vor ac30c7f wurden sie entfernt.
@@ -259,17 +281,45 @@ Vier Dateien, deshalb drei unabhängige Prüfer.
 
 ### BUG-18: Unbekannter Wortlaut vor „Amara.org-Community“ bleibt als Rest stehen
 - **Schwere:** Low
-- **Status:** Deferred (neuer Befund der zweiten Nachprüfung)
+- **Status:** Fixed (Nachprüfung 3, 09.11., d709113: Abspann wird ganz oder gar nicht entfernt)
 - **Klasse:** Abspann wird nur zum Teil entfernt, der Rest der Zeile bleibt.
 - **Suche:** `grep -n 'subtitles\\s+by\\s+the\\s+)?amara' Packages/InnoWhisperKit/Sources/Transcription/Text/TranscriptFilter.swift` → 1.
 - **Ablauf:** „Untertitelung aufgrund der Amara.org-Community“ → «Untertitelung aufgrund der»; ein Diktat nur aus so einer Zeile ergibt Rest-Text statt „Nichts erkannt“ (AC-15).
 
 ### BUG-19: Neues Filter-Muster hängt bei langen Leerraum-Läufen in der Groq-Antwort
 - **Schwere:** Medium
-- **Status:** Open (Rückschritt aus eb90efc; Entscheidung Timur steht aus)
+- **Status:** Fixed (Nachprüfung 3, 09.11., d709113: 20.000 Umbrüche 0,04 s statt 34,5 s)
 - **Klasse:** Unverankerter regulärer Ausdruck mit freiem Leerraum-Quantor auf ungeprüfter Modell-Ausgabe.
 - **Suche:** `grep -rnE '\\s\*' Packages/InnoWhisperKit/Sources App` → 4 (`TranscriptFilter.swift:107, 109, 111, 112`; kritisch `:107`).
 - **Ablauf:** 20.000 Zeilenumbrüche, geschützte Leerzeichen oder U+2028 in einem Teil → 30 bis 35 s auf dem Haupt-Thread, die App hängt (quadratisches Wachstum). Alter Stand: 0,02 s. Normale Diktate: unter 0,01 s. SEC-02, SEC-07.
+
+### BUG-20: Ende eines gesprochenen Satzes fällt weg, wenn Groq genau vor einem Abspann-Wortlaut trennt
+- **Schwere:** Low
+- **Status:** Deferred (neuer Befund der dritten Nachprüfung; Rest der BUG-3-Klasse)
+- **Klasse:** Abspann-Erkennung verlässt sich auf Abschnitts- und Satzgrenzen als Satzanfang und trifft so das Ende gesprochener Sätze.
+- **Suche:** `grep -nE 'removeAll\(where: isCreditLine\)|closingPunctuation: Set' Packages/InnoWhisperKit/Sources/Transcription/Text/TranscriptFilter.swift` → 2.
+- **Ablauf:** Abschnitte `["Ich danke der", "Amara.org-Community"]` → «Ich danke der»; „Die Liste: Ton; Untertitel im Auftrag des ZDF; Schnitt.“ → «Die Liste: Ton; Schnitt.». Braucht den vollständigen Abspann-Wortlaut und eine Groq-Abschnittsgrenze oder „;“, „““, „)“ direkt davor; wie oft Groq so trennt, ist ohne echte Antworten offen.
+
+### BUG-21: Abspann ohne eigene Satzgrenze mitten im Text bleibt stehen
+- **Schwere:** Low
+- **Status:** Deferred (bewusste Entscheidung „Einfacher Weg“ vom 09.11.; weicht von AC-16 „egal wo er steht“ ab, braucht `/refine PROJ-6` oder bleibt zurückgestellt)
+- **Klasse:** Erkennung nur über ganze Sätze und Abschnitte.
+- **Suche:** none (bewusste Grenze, in `design.md` Bau-Notizen beschrieben).
+- **Ablauf:** „Gut, Untertitel im Auftrag des ZDF. Weiter.“, „Bis morgen dann Untertitel im Auftrag des ZDF für funk, 2017“ im selben Abschnitt, zwei Abspanne ohne Trennung, Abspann in einfachen Anführungszeichen ('…'), Abspann zwischen zwei Gedankenstrichen, geschützter Bindestrich U+2011 in „Amara.org‑Community“.
+
+### BUG-22: Nach dem Entfernen eines Abspanns vor einem Zeilenumbruch kleben Wörter zusammen
+- **Schwere:** Low
+- **Status:** Deferred (neuer Befund der dritten Nachprüfung)
+- **Klasse:** Beim Entfernen eines Teilstücks fällt das Trennzeichen weg, das der Nachbar braucht.
+- **Suche:** `grep -nE 'kept \+= sentence|character\.isNewline' Packages/InnoWhisperKit/Sources/Transcription/Text/TranscriptFilter.swift` → 2.
+- **Ablauf:** `"Gut. Untertitel im Auftrag des ZDF\nWeiter."` → «Gut.Weiter.».
+
+### BUG-23: „Untertitel: ZDF“ ohne Zusatz wird entfernt, obwohl der Entwurf einen Zusatz verlangt
+- **Schwere:** Low
+- **Status:** Deferred (neuer Befund der dritten Nachprüfung)
+- **Klasse:** Wortlaut-Muster ist breiter als die Regel im Entwurf.
+- **Suche:** `grep -cE '\?: \?zdf' Packages/InnoWhisperKit/Sources/Transcription/Text/TranscriptFilter.swift` → 1.
+- **Ablauf:** „Ton: WDR. Untertitel: ZDF. Schnitt: intern.“ → «Ton: WDR. Schnitt: intern.»
 
 ## Nicht geprüft in diesem Lauf
 
