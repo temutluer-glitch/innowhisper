@@ -20,13 +20,20 @@ public final class ClipboardDelivery: TextDelivering {
         self.notify = notify
     }
 
-    public func deliver(_ text: String, kind: DeliveryKind) {
+    /// The clipboard holds one text: several texts of one step go together,
+    /// in spoken order, separated by a blank line (AC-20, BUG-4). The notice
+    /// says "Nachgeholtes …" as soon as one of them was recovered.
+    public func deliver(_ texts: [DeliveredText]) {
         // Nothing to hand over: no clipboard change, no notice (AC-15 is the queue's job).
-        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        let usable = texts.filter { !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        guard !usable.isEmpty else { return }
+        let text = usable.map(\.text).joined(separator: "\n\n")
+        let kind: DeliveryKind = usable.contains { $0.kind == .recovered } ? .recovered : .live
         writeToPasteboard(text)
         notify(.info, Self.noticeText(for: kind), nil)
-        // Only the kind and the length, never the text itself (PROJ-2 AC-12).
-        Log.write("Text delivered: \(kind), \(text.count) characters", category: .transcription)
+        // Only the kind, the count and the length, never the text itself (PROJ-2 AC-12).
+        Log.write(
+            "Text delivered: \(kind), \(usable.count) texts, \(text.count) characters", category: .transcription)
     }
 
     /// The notice shown after delivering.

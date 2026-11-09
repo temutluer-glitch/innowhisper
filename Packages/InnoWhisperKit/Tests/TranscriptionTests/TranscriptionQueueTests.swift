@@ -72,8 +72,11 @@ final class ScriptedTranscriber: Transcribing {
 
 @MainActor
 final class FakeDelivery: TextDelivering {
-    var delivered: [(text: String, kind: DeliveryKind)] = []
-    func deliver(_ text: String, kind: DeliveryKind) { delivered.append((text, kind)) }
+    /// Every call, as it came: one batch per step.
+    var batches: [[DeliveredText]] = []
+    /// All texts in delivery order, across batches.
+    var delivered: [DeliveredText] { batches.flatMap { $0 } }
+    func deliver(_ texts: [DeliveredText]) { batches.append(texts) }
 }
 
 func said(_ text: String) -> TranscriptionPieceResult {
@@ -183,6 +186,8 @@ func said(_ text: String) -> TranscriptionPieceResult {
         await gate.release("a-0.flac")
         await settleQueue()
         #expect(delivery.delivered.map(\.text) == ["Eins.", "Zwei."])
+        // BUG-4: both became ready in one step and leave together
+        #expect(delivery.batches.map { $0.map(\.text) } == [["Eins.", "Zwei."]])
     }
 
     // AC-9, AC-11: a failed dictation does not hold later ones; retry hands it on later
@@ -395,6 +400,48 @@ func said(_ text: String) -> TranscriptionPieceResult {
         #expect(delivery.delivered.map(\.text) == ["T0. T1. T2. T3. T4."])
     }
 
+    // BUG-1: a live dictation ready first does not overtake a recovered one spoken earlier
+    @Test func liveDoesNotOvertakeRecovered() async throws {
+        defer { try? FileManager.default.removeItem(at: base) }
+        let gate = RequestGate()
+        let transcriber = ScriptedTranscriber(["old-0.flac": [said("Alt.")], "new-0.flac": [said("Neu.")]], gate: gate)
+        let (first, list, _) = makeQueue(transcriber)
+        _ = first
+        list.add(try recording("old", sequence: 1))
+        let (queue, reloaded, _) = makeQueue(transcriber)
+        queue.receiveRecovered(reloaded.openEntries)
+        queue.receive(try recording("new", sequence: 2))
+        await settleQueue()
+        await gate.release("new-0.flac")
+        await settleQueue()
+        #expect(delivery.batches.isEmpty)
+        await gate.release("old-0.flac")
+        await settleQueue()
+        #expect(delivery.batches.count == 1)
+        #expect(delivery.delivered.map(\.text) == ["Alt.", "Neu."])
+        #expect(delivery.delivered.map(\.kind) == [.recovered, .live])
+    }
+
+    // BUG-2, EC-5: a key removed while pieces wait for a free slot is never sent
+    @Test func removedKeyIsNotUsedAfterWaiting() async throws {
+        defer { try? FileManager.default.removeItem(at: base) }
+        let gate = RequestGate()
+        let scripts = Dictionary(uniqueKeysWithValues: (0..<4).map { ("a-\($0).flac", [said("T\($0).")]) })
+        let transcriber = ScriptedTranscriber(scripts, gate: gate)
+        let (queue, list, _) = makeQueue(transcriber)
+        box.pieceCount["a"] = 4
+        queue.receive(try recording("a", seconds: 1200))
+        await settleQueue()
+        #expect(transcriber.calls.count == 3)
+        box.key = nil
+        for index in 0..<4 { await gate.release("a-\(index).flac") }
+        await settleQueue()
+        #expect(transcriber.calls.count == 3)
+        #expect(delivery.batches.isEmpty)
+        #expect(box.notices.map(\.text) == ["Kein Groq-Zugangsschlüssel eingetragen."])
+        #expect(list.entry(named: "a.caf")?.state == .open)
+    }
+
     // AC-20: recovered dictations go together to the clipboard, separated by a blank line
     @Test func recoveredAreCombined() async throws {
         defer { try? FileManager.default.removeItem(at: base) }
@@ -413,8 +460,8 @@ func said(_ text: String) -> TranscriptionPieceResult {
         #expect(delivery.delivered.isEmpty)
         await gate.release("b-0.flac")
         await settleQueue()
-        #expect(delivery.delivered.map(\.text) == ["Alt eins.\n\nAlt zwei."])
-        #expect(delivery.delivered.map(\.kind) == [.recovered])
+        #expect(delivery.batches.map { $0.map(\.text) } == [["Alt eins.", "Alt zwei."]])
+        #expect(delivery.delivered.map(\.kind) == [.recovered, .recovered])
         #expect(reloaded.openEntries.isEmpty)
     }
 }

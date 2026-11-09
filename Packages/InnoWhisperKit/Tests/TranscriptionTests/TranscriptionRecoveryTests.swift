@@ -29,8 +29,8 @@ import Testing
         // Both run at the same time, so only the set of requests is fixed; the
         // spoken order shows in the text.
         #expect(Set(transcriber.calls.map(\.piece)) == ["a-0.flac", "b-0.flac"])
-        #expect(queueTests.delivery.delivered.map(\.text) == ["Eins.\n\nZwei."])
-        #expect(queueTests.delivery.delivered.map(\.kind) == [.recovered])
+        #expect(queueTests.delivery.batches.map { $0.map(\.text) } == [["Eins.", "Zwei."]])
+        #expect(queueTests.delivery.delivered.map(\.kind) == [.recovered, .recovered])
         #expect(list.openEntries.isEmpty)
     }
 

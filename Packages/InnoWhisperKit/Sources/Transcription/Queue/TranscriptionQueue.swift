@@ -199,8 +199,12 @@ public final class TranscriptionQueue: RecordingConsumer {
         var silentDelays = TranscriptionInfo.silentRetryDelays
         var waitedForLimit: Duration = .zero
         while true {
-            guard let key = services.readKey(), !key.isEmpty else { return .failure(.keyMissing) }
             await acquireSlot(order: job.order, piece: piece.index)
+            // Read right before sending: a key removed while waiting is never used (EC-5, BUG-2).
+            guard let key = services.readKey(), !key.isEmpty else {
+                releaseSlot()
+                return .failure(.keyMissing)
+            }
             let result = await services.transcriber.transcribe(
                 piece: piece.fileURL, duration: piece.duration, model: job.model, language: job.language, key: key)
             releaseSlot()
@@ -265,10 +269,12 @@ public final class TranscriptionQueue: RecordingConsumer {
     // MARK: - Handing on
 
     /// Hands ready texts on from the front (AC-8); failed jobs are skipped (AC-9).
-    /// Recovered texts wait until no recovered job is still converting and then
-    /// go together, separated by a blank line (AC-20).
+    /// Recovered texts wait until no recovered job is still converting (AC-20).
+    /// Everything that becomes ready in one step leaves together, in spoken
+    /// order, in one delivery (BUG-1, BUG-4): a later text never overtakes an
+    /// earlier one, and a one-text target keeps all of them.
     private func handOn() {
-        var recoveredTexts: [String] = []
+        var ready: [DeliveredText] = []
         for job in jobs {
             switch job.state {
             case .handedOn, .failed:
@@ -276,21 +282,14 @@ public final class TranscriptionQueue: RecordingConsumer {
             case .waiting, .converting:
                 break
             case .ready(let text):
-                if job.recovered {
-                    guard !jobs.contains(where: { $0.recovered && $0.isBusy }) else { break }
-                    markHandedOn(job)
-                    recoveredTexts.append(text)
-                } else {
-                    markHandedOn(job)
-                    services.delivery.deliver(text, kind: .live)
-                }
+                if job.recovered, jobs.contains(where: { $0.recovered && $0.isBusy }) { break }
+                markHandedOn(job)
+                ready.append(DeliveredText(text, kind: job.recovered ? .recovered : .live))
                 continue
             }
             break
         }
-        if !recoveredTexts.isEmpty {
-            services.delivery.deliver(recoveredTexts.joined(separator: "\n\n"), kind: .recovered)
-        }
+        if !ready.isEmpty { services.delivery.deliver(ready) }
         jobs.removeAll { $0.state == .handedOn }
         refreshStatus()
     }

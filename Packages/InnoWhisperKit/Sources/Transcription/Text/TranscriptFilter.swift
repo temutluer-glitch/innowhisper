@@ -124,13 +124,17 @@ public enum TranscriptFilter {
         return result
     }
 
-    /// "Untertitel…"/"Untertitelung…" together with ZDF, Amara or funk, or
-    /// "Amara.org community" (AC-16).
+    /// Only the credit lines Whisper invents from subtitled training data
+    /// (AC-16): a sentence that starts with "Untertitel…" and names the
+    /// Amara.org community or the ZDF as the subtitler, or any sentence
+    /// naming the "Amara.org community". A spoken sentence that merely mentions subtitles,
+    /// funk or the ZDF stays (BUG-3).
     static func isSubtitleSentence(_ sentence: String) -> Bool {
-        let lower = sentence.lowercased()
+        let lower = sentence.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         if lower.contains(/amara\.org[\s\-]*community/) { return true }
-        guard lower.contains("untertitel") else { return false }
-        return lower.contains("amara") || lower.contains(/\bzdf\b/) || lower.contains(/\bfunk\b/)
+        guard lower.hasPrefix("untertitel") else { return false }
+        if lower.contains("amara.org") { return true }
+        return lower.prefixMatch(of: /untertitel(ung)?\s+(im\s+auftrag\s+)?(des|vom)\s+zdf\b/) != nil
     }
 
     /// Lowercased, whitespace collapsed, surrounding quotes and trailing

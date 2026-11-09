@@ -98,6 +98,20 @@ import Testing
         #expect(english.text == "Bitte prüfen.")
     }
 
+    // BUG-3: spoken sentences that mention subtitles together with funk, ZDF or Amara stay
+    @Test(arguments: [
+        "Bitte prüfe die Untertitel für den Funk-Spot.",
+        "Die Untertitel für die ZDF-Doku sind fertig.",
+        "Ich habe den Funk-Untertitel geändert.",
+        "Untertitel für Funk und Fernsehen kosten extra.",
+        "Schick die Untertitel an Amara.",
+    ])
+    func spokenSubtitleSentencesStay(sentence: String) {
+        let result = TranscriptFilter.filter(pieces: [[segment(sentence)]])
+        #expect(result.text == sentence)
+        #expect(result.removedSubtitleSentences == 0)
+    }
+
     // AC-16: removal is case-insensitive; a sentence that merely mentions subtitles stays
     @Test func subtitleMatchIsCaseInsensitiveAndNarrow() {
         let shouting = TranscriptFilter.filter(pieces: [[segment("Gut. UNTERTITEL IM AUFTRAG DES ZDF! Weiter.")]])
