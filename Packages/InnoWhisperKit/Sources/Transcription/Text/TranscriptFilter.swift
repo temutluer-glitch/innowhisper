@@ -86,19 +86,34 @@ public enum TranscriptFilter {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    /// Removes every subtitle sentence, including its closing punctuation.
+    /// Removes every complete subtitle credit line, wherever it stands
+    /// (AC-16): in quotes or brackets, after a dash or a comma, or glued to a
+    /// piece without full stop (BUG-16). Only the whole credit wording counts
+    /// and it must end the sentence, so a spoken sentence that merely
+    /// mentions subtitles, funk, the ZDF or Amara.org stays (BUG-3).
     static func removingSubtitleSentences(from text: String) -> (text: String, removed: Int) {
-        var removed = 0
-        var kept = ""
-        for sentence in sentences(of: text) {
-            if isSubtitleSentence(sentence) {
-                removed += 1
-            } else {
-                kept += sentence
-            }
-        }
-        return removed == 0 ? (text, 0) : (tidy(kept), removed)
+        let range = NSRange(text.startIndex..., in: text)
+        let removed = creditPattern.numberOfMatches(in: text, range: range)
+        guard removed > 0 else { return (text, 0) }
+        let kept = creditPattern.stringByReplacingMatches(in: text, range: range, withTemplate: " ")
+        return (tidy(kept), removed)
     }
+
+    /// A credit line Whisper invents from subtitled training data: who made the
+    /// subtitles (ZDF, also "für funk", with an optional year, or the
+    /// Amara.org community), with optional quotes, brackets or a dash around
+    /// it, and closed by punctuation, a closing quote or the end of the text.
+    static let creditPattern: NSRegularExpression = {
+        let opening = #"(?:[-–—]\s*)?[„“"'«»(\[]?\s*"#
+        let zdf =
+            #"untertitel(?:ung)?(?:\s*:\s*|\s+(?:im\s+auftrag\s+)?(?:des|vom|von)\s+)zdf(?:\s+für\s+funk)?(?:,?\s*\d{4})?"#
+        let amara =
+            #"(?:untertitel(?:ung)?\s+(?:der|von\s+der)\s+|subtitles\s+by\s+the\s+)?amara\s*\.\s*org[\s-]*community"#
+        let closing = #"(?:\s*[.!]+[“”"'«»)\]]*|[“”"'«»)\]]+|\s*$)"#
+        let pattern = #"(?<![\p{L}\p{N}])"# + opening + "(?:" + zdf + "|" + amara + ")" + closing + #"(?=\s|$)"#
+        // The pattern is a fixed literal; a failure here is a programming error.
+        return try! NSRegularExpression(pattern: pattern, options: [.caseInsensitive])
+    }()
 
     /// Splits text into sentences. A sentence ends after a run of closing
     /// punctuation followed by whitespace or the end, so "Amara.org" and
@@ -122,19 +137,6 @@ public enum TranscriptFilter {
         }
         if !current.isEmpty { result.append(current) }
         return result
-    }
-
-    /// Only the credit lines Whisper invents from subtitled training data
-    /// (AC-16): a sentence that starts with "Untertitel…" and names the
-    /// Amara.org community or the ZDF as the subtitler, or any sentence
-    /// naming the "Amara.org community". A spoken sentence that merely mentions subtitles,
-    /// funk or the ZDF stays (BUG-3).
-    static func isSubtitleSentence(_ sentence: String) -> Bool {
-        let lower = sentence.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        if lower.contains(/amara\.org[\s\-]*community/) { return true }
-        guard lower.hasPrefix("untertitel") else { return false }
-        if lower.contains("amara.org") { return true }
-        return lower.prefixMatch(of: /untertitel(ung)?\s+(im\s+auftrag\s+)?(des|vom)\s+zdf\b/) != nil
     }
 
     /// Lowercased, whitespace collapsed, surrounding quotes and trailing

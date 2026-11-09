@@ -105,11 +105,37 @@ import Testing
         "Ich habe den Funk-Untertitel geändert.",
         "Untertitel für Funk und Fernsehen kosten extra.",
         "Schick die Untertitel an Amara.",
+        // BUG-3, second round (re-verification 09.11.)
+        "Untertitel vom ZDF sind oft fehlerhaft.",
+        "Untertitel des ZDF fehlen bei dem Beitrag.",
+        "Untertitel im Auftrag des ZDF kosten uns zu viel.",
+        "Untertitelung des ZDF-Beitrags ist fertig.",
+        "Untertitel der Amara.org-Seite bitte prüfen.",
+        "Wir nutzen die Amara.org Community für Untertitel.",
+        "Die Untertitel vom ZDF, die sind schlecht.",
     ])
     func spokenSubtitleSentencesStay(sentence: String) {
         let result = TranscriptFilter.filter(pieces: [[segment(sentence)]])
         #expect(result.text == sentence)
         #expect(result.removedSubtitleSentences == 0)
+    }
+
+    // BUG-16: a complete credit line goes wherever it stands — in quotes, in
+    // brackets, after a dash or comma, or glued to a piece without full stop
+    @Test(arguments: [
+        ("Gut. „Untertitel im Auftrag des ZDF.“ Weiter.", "Gut. Weiter."),
+        ("Gut. - Untertitel im Auftrag des ZDF. Weiter.", "Gut. Weiter."),
+        ("Gut, Untertitel im Auftrag des ZDF. Weiter.", "Gut, Weiter."),
+        ("Gut. (Untertitel im Auftrag des ZDF für funk, 2017) Weiter.", "Gut. Weiter."),
+        ("Bis morgen dann Untertitel im Auftrag des ZDF für funk, 2017", "Bis morgen dann"),
+        ("Gut. Untertitel: ZDF für funk, 2017. Weiter.", "Gut. Weiter."),
+        ("Gut. Untertitel der Amara .org-Community", "Gut."),
+        ("Ende. Untertitel im Auftrag von ZDF für funk, 2017", "Ende."),
+    ])
+    func creditLinesGoWhereverTheyStand(input: String, expected: String) {
+        let result = TranscriptFilter.filter(pieces: [[segment(input)]])
+        #expect(result.text == expected)
+        #expect(result.removedSubtitleSentences == 1)
     }
 
     // AC-16: removal is case-insensitive; a sentence that merely mentions subtitles stays
