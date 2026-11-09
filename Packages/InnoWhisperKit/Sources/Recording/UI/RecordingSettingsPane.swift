@@ -1,21 +1,25 @@
 import SwiftUI
 
 /// Area "Aufnahme" (AC-12, AC-16 to AC-18): shortcut, mode and microphone.
-/// Same building blocks and sizes as "Zugang & Erlaubnisse".
-public struct RecordingSettingsPane: View {
+/// Same building blocks and sizes as "Zugang & Erlaubnisse". Later features
+/// add their own sections below in the same form (PROJ-6: "Umwandlung").
+public struct RecordingSettingsPane<Extra: View>: View {
     let shortcuts: ShortcutStore
     let microphone: MicrophoneChoiceStore
     let microphones: MicrophoneList
     let availability: ShortcutAvailability
     let onRecordingShortcut: @MainActor (Bool) -> Void
+    let extra: Extra
 
     public init(
         shortcuts: ShortcutStore,
         microphone: MicrophoneChoiceStore,
         microphones: MicrophoneList,
         availability: ShortcutAvailability = ShortcutAvailability(),
-        onRecordingShortcut: @escaping @MainActor (Bool) -> Void
+        onRecordingShortcut: @escaping @MainActor (Bool) -> Void,
+        @ViewBuilder extra: () -> Extra
     ) {
+        self.extra = extra()
         self.shortcuts = shortcuts
         self.microphone = microphone
         self.microphones = microphones
@@ -42,12 +46,27 @@ public struct RecordingSettingsPane: View {
             Section("Mikrofon") {
                 MicrophonePicker(store: microphone, list: microphones)
             }
+            extra
         }
         .formStyle(.grouped)
     }
 
     private var modeBinding: Binding<ShortcutMode> {
         Binding(get: { shortcuts.mode }, set: { shortcuts.setMode($0) })
+    }
+}
+
+extension RecordingSettingsPane where Extra == EmptyView {
+    public init(
+        shortcuts: ShortcutStore,
+        microphone: MicrophoneChoiceStore,
+        microphones: MicrophoneList,
+        availability: ShortcutAvailability = ShortcutAvailability(),
+        onRecordingShortcut: @escaping @MainActor (Bool) -> Void
+    ) {
+        self.init(
+            shortcuts: shortcuts, microphone: microphone, microphones: microphones, availability: availability,
+            onRecordingShortcut: onRecordingShortcut, extra: { EmptyView() })
     }
 }
 
