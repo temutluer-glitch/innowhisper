@@ -10,6 +10,41 @@
 - SEC-08: Test-Diff `813190f..HEAD` hat 0 gelöschte Zeilen, keine übersprungenen oder abgeschwächten Tests.
 - `tasks.md`: keine `[user]`-Aufgaben.
 
+## Nachtrag vom 2026-11-09: Nachprüfung BUG-1 bis BUG-4
+
+**Umfang:** `git diff --stat 82217f5..HEAD` (82217f5 hat den Bericht zuletzt geschrieben, HEAD ist ac30c7f). Geänderte Produktionsdateien:
+- `Sources/Transcription/Delivery/ClipboardDelivery.swift`
+- `Sources/Transcription/Delivery/TextDelivery.swift`
+- `Sources/Transcription/Queue/TranscriptionQueue.swift`
+- `Sources/Transcription/Text/TranscriptFilter.swift`
+
+Vier Dateien, deshalb drei unabhängige Prüfer.
+
+**Prüfläufe:**
+- Testlauf einmal vorher: 375 Tests in 45 Suites bestanden (`scratchpad/qa-proj6-suite-2.log`).
+- Lint: Exit 0. Bau: BUILD SUCCEEDED, 0 Warnungen.
+- SEC-08: 4 Erwartungen ersetzt durch gleichwertige Prüfungen der Übergabe-Gruppen; das Zusammensetzen mit Leerzeile prüft jetzt `severalTextsGoTogetherInOrder`; Gegenprobe des Regressions-Prüfers verbindet echte Warteschlange und echte Zwischenablage: „Alt eins.\n\nAlt zwei.“ mit „Nachgeholtes …“. Keine Tests abgeschaltet.
+
+**Ergebnisse:**
+- [x] **BUG-1 behoben.** Suche → 1 (vorher 2). Tests `liveDoesNotOvertakeRecovered`, `textsLeaveInSpokenOrder`; Gegenproben mit zwei nachgeholten und einem Live-Diktat sowie mit einem endgültig gescheiterten nachgeholten Diktat bestanden.
+- [x] **BUG-2 behoben.** Suche → 0 (vorher 1). Schlüssel wird nach dem Warten auf einen Platz gelesen (`TranscriptionQueue.swift:202-209`); Platz wird auf jedem Weg freigegeben; Gegenproben mit 4 und 7 Teilen ohne Hängenbleiben, höchstens 3 gleichzeitig. Test `removedKeyIsNotUsedAfterWaiting`.
+- [x] **BUG-4 behoben.** Suche → 1 Schreibstelle, ein Aufruf pro Schritt, Texte mit Leerzeile verbunden, ein Hinweis. Test `severalTextsGoTogetherInOrder`.
+- [ ] **BUG-3 nicht geschlossen.** Die drei gemeldeten Sätze bleiben jetzt stehen (Test `spokenSubtitleSentencesStay`). Aber das neue Muster ist nicht abgeschlossen: „Untertitel vom ZDF sind oft fehlerhaft.“, „Untertitel des ZDF fehlen bei dem Beitrag.“, „Untertitel im Auftrag des ZDF kosten uns zu viel.“, „Untertitelung des ZDF-Beitrags ist fertig.“, „Untertitel der Amara.org-Seite bitte prüfen.“, „Wir nutzen die Amara.org Community für Untertitel.“ werden weiter gelöscht. Neue Suche: `grep -nE 'prefixMatch\(of: /untertitel|contains\(/amara' Packages/InnoWhisperKit/Sources/Transcription/Text/TranscriptFilter.swift` → 2.
+- [x] **AC-3, AC-8, AC-9, AC-10, AC-12, AC-14, AC-15, AC-20, AC-21 (geänderte Zeile), EC-2, EC-3, EC-5, EC-6, EC-7** in der Logik bestanden. **AC-16** nicht bestanden (BUG-3, BUG-16).
+- [x] **Sicherheit:** 16 Prüfungen belegt, 0 neue Funde; Schlüssel nur direkt vor dem Senden gelesen, nie im Protokoll; Zwischenablage nur mit den Texten dieses Schritts; Filter-Muster ohne Rückschritt-Gefahr (20.000 Zeichen in unter 8 ms); BUG-9, BUG-10, BUG-11 unberührt. 6 NOT VERIFIED (Laufzeit und nicht anwendbare Prüfungen).
+- [x] **Regression:** App-Verdrahtung unverändert und baut; kein anderer Nutzer der geänderten Übergabe-Schnittstelle.
+- [!] **Laufzeit:** wie im Hauptbericht, no way to run and probe this project was recorded.
+
+**Neue Befunde dieser Nachprüfung** (blockieren nicht, deshalb Deferred): BUG-16, BUG-17 (beide Low).
+
+**Hinweise für Spec und PROJ-7:**
+- Geht ein nachgeholter Text zusammen mit einem Live-Text raus, zeigt der Hinweis nur „Nachgeholtes Diktat in der Zwischenablage.“; mehrere Live-Texte eines Schritts werden ebenfalls mit Leerzeile zusammengesetzt. Beides steht in `design.md`, die Spec sagt dazu nichts.
+- PROJ-7 muss eine gemischte Übergabe nach Art aufteilen und die Reihenfolge halten.
+
+**Ergebnis nach diesem Nachtrag:** BUG-1, BUG-2, BUG-4 behoben. BUG-3 (Medium) bleibt Open. Der Live-Test mit Timur steht weiter aus. Status bleibt In Review.
+
+---
+
 ## Abnahmekriterien
 
 - [x] **AC-1** Umwandeln und „wandelt um“ — `TranscriptionQueue.swift:85-94, 198-205, 308`, `DictationActivity.swift:28-31`; Tests `recordingIsConvertedAndHandedOn`, `activityCombinesRecordingAndTranscribing`. Symbol live: [!] NOT VERIFIED.
@@ -84,7 +119,7 @@
 
 ### BUG-1: Live-Text überholt einen früher gesprochenen nachgeholten Text und geht in der Zwischenablage verloren
 - **Schwere:** High
-- **Status:** Open
+- **Status:** Fixed (Nachprüfung 09.11., ac30c7f)
 - **Klasse:** Übergabe in zwei Phasen (sofort in der Schleife, gesammelt danach) bricht die Reihenfolge.
 - **Suche:** `grep -rn "delivery.deliver(" Packages/InnoWhisperKit/Sources/Transcription` → 2 (`TranscriptionQueue.swift:285, 292`).
 - **Ablauf:** Beim Start wird ein offenes Diktat nachgeholt. Der Nutzer diktiert sofort, sein kurzes Live-Diktat ist zuerst fertig und wartet richtig. Wird das nachgeholte fertig, geht im selben Schritt zuerst das Live-Diktat raus, danach das nachgeholte. Gegenprobe: `["live:Live zwei.", "recovered:Nachgeholt eins."]`. In der Zwischenablage bleibt nur der nachgeholte Text; der Live-Text ist für den Nutzer weg (die Aufnahme bleibt gespeichert, zurückholen geht erst mit PROJ-10).
@@ -92,7 +127,7 @@
 
 ### BUG-2: Ein entfernter Schlüssel geht für wartende Teile noch an Groq
 - **Schwere:** Medium
-- **Status:** Open (Entscheidung Timur, 09.11.)
+- **Status:** Fixed (Nachprüfung 09.11., ac30c7f)
 - **Klasse:** Zugangsdaten werden vor einem Wartepunkt gelesen und danach benutzt.
 - **Suche:** `grep -rn -A1 "readKey()" Packages/InnoWhisperKit/Sources/Transcription | grep -c await` → 1 (`TranscriptionQueue.swift:202-205`).
 - **Ablauf:** Zwei Diktate mit je 2 Teilen, 3 Plätze. Der Nutzer entfernt den Schlüssel, während 3 Teile laufen. Das 4. Teil startet danach mit dem alten Schlüssel; beide Diktate werden übergeben, kein Hinweis aus AC-12.
@@ -100,7 +135,7 @@
 
 ### BUG-3: Echte Sätze mit „Untertitel“ werden als Untertitel-Satz gelöscht
 - **Schwere:** Medium
-- **Status:** Open (Entscheidung Timur, 09.11.)
+- **Status:** Open (Nachprüfung 09.11.: gemeldete Sätze bleiben jetzt, die Klasse besteht weiter, siehe Nachtrag)
 - **Klasse:** Muster für erfundene Sätze ist zu weit und trifft gesprochenen Inhalt.
 - **Suche:** `grep -nE 'zdf|funk|"amara"' Packages/InnoWhisperKit/Sources/Transcription/Text/TranscriptFilter.swift` → 2 (`:131, :133`).
 - **Ablauf:** „Bitte prüfe die Untertitel für den Funk-Spot.“, „Die Untertitel für die ZDF-Doku sind fertig.“, „Ich habe den Funk-Untertitel geändert.“ werden zu leerem Text. Bei einem Ein-Satz-Diktat folgt „Nichts erkannt“ und die Aufnahme wird gelöscht.
@@ -108,7 +143,7 @@
 
 ### BUG-4: Mehrere Live-Texte im selben Schritt überschreiben sich in der Zwischenablage
 - **Schwere:** Medium (gilt bis PROJ-7)
-- **Status:** Open (Entscheidung Timur, 09.11.)
+- **Status:** Fixed (Nachprüfung 09.11., ac30c7f)
 - **Klasse:** Ein Ziel mit nur einem Platz bekommt mehrere Texte pro Schritt.
 - **Suche:** `grep -rn "writeToPasteboard(text)" Packages/InnoWhisperKit/Sources/Transcription` → 1, zusammen mit der Suche aus BUG-1.
 - **Ablauf:** Genau der Fall aus AC-8: Das zweite Diktat ist zuerst fertig, das erste kommt nach. Beide gehen direkt hintereinander raus; übrig bleibt nur das zweite, zweimal erscheint „Text in der Zwischenablage.“
@@ -188,6 +223,21 @@
 - **Status:** Deferred (Entscheidung Timur, 09.11.; zugleich `docs/tech-debt.md` TD-1)
 - **Klasse:** Wanduhr-Zeitgrenze in einem Unit-Test.
 - **Suche:** `grep -rnE "\.duration < \.seconds\(|ContinuousClock\.now - started < " Packages/InnoWhisperKit/Tests` → 2 (`KeyValidatorTests.swift:54`, `GroqTranscriberTests.swift:243`).
+
+### BUG-16: Abspann-Zeilen ohne eigenen Satzanfang bleiben im Text
+- **Schwere:** Low
+- **Status:** Deferred (neuer Befund der Nachprüfung; wird mit BUG-3 behoben, falls Timur es so entscheidet)
+- **Klasse:** Erkennung erfundener Sätze hängt an Satzgrenze und Satzanfang statt am Wortlaut des Abspanns.
+- **Suche:** `grep -n 'hasPrefix("untertitel")' Packages/InnoWhisperKit/Sources/Transcription/Text/TranscriptFilter.swift` → 1 (`:135`).
+- **Ablauf:** „„Untertitel im Auftrag des ZDF, 2020““, „(Untertitel im Auftrag des ZDF für funk, 2017)“, „- Untertitel …“, „Gut, Untertitel im Auftrag des ZDF. Weiter.“ und ein Abspann direkt an einem Abschnitt ohne Schlusspunkt („Bis morgen dann Untertitel im Auftrag des ZDF für funk, 2017“) bleiben stehen. Vor ac30c7f wurden sie entfernt.
+- **Verletzt:** AC-16 („egal wo er steht“), Pflichtpunkt 6.
+
+### BUG-17: „Ältere Diktate zuerst“ gilt nur, solange Anfragen warten
+- **Schwere:** Low
+- **Status:** Deferred (neuer Befund der Nachprüfung)
+- **Klasse:** Vorrang nur unter Wartenden, nicht bei freien Plätzen.
+- **Suche:** `grep -n "activeRequests < TranscriptionInfo.maximumParallelRequests" Packages/InnoWhisperKit/Sources/Transcription/Queue/TranscriptionQueue.swift` → 1.
+- **Ablauf:** Ist das Aufteilen eines späteren Diktats zuerst fertig, belegt es alle drei Plätze, das frühere wartet. Die Reihenfolge der Übergabe bleibt richtig (AC-8); nur das frühere Diktat kommt etwas später.
 
 ## Nicht geprüft in diesem Lauf
 
