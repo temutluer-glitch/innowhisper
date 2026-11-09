@@ -15,6 +15,7 @@ public struct LogCategory: Sendable, Equatable {
     public static let permissions = LogCategory("permissions")
     public static let groq = LogCategory("groq")
     public static let recording = LogCategory("recording")
+    public static let transcription = LogCategory("transcription")
 }
 
 /// The log file on this Mac (AC-11, AC-13, EC-3, EC-4). All file access runs

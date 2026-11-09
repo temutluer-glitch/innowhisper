@@ -270,7 +270,7 @@ public final class RecordingController {
         lastSpeechAt = services.now()
         setKeptAwake(true)
         services.dictationStarted()
-        services.activity.activity = .recording
+        services.activity.isRecording = true
         watchDiskSpace(generation)
         watchForSilence(generation)
     }
@@ -468,9 +468,7 @@ public final class RecordingController {
         level = 0
         fileURL = nil
         openedAt = nil
-        if services.activity.activity == .recording {
-            services.activity.activity = .idle
-        }
+        services.activity.isRecording = false
     }
 
     private func stopWatchers() {

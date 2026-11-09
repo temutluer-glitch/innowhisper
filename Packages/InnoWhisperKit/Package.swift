@@ -13,6 +13,7 @@ let package = Package(
         .library(name: "Permissions", targets: ["Permissions"]),
         .library(name: "GroqAccess", targets: ["GroqAccess"]),
         .library(name: "Recording", targets: ["Recording"]),
+        .library(name: "Transcription", targets: ["Transcription"]),
     ],
     targets: [
         .target(name: "Diagnostics"),
@@ -23,6 +24,7 @@ let package = Package(
         .target(name: "GroqAccess", dependencies: ["AppShell", "Diagnostics", "Onboarding"]),
         .target(
             name: "Recording", dependencies: ["AppShell", "Diagnostics", "Notices", "Onboarding", "Permissions"]),
+        .target(name: "Transcription", dependencies: ["AppShell", "Diagnostics", "Notices", "Recording"]),
         .testTarget(name: "DiagnosticsTests", dependencies: ["Diagnostics"]),
         .testTarget(name: "AppShellTests", dependencies: ["AppShell"]),
         .testTarget(name: "NoticesTests", dependencies: ["Notices"]),
@@ -30,5 +32,6 @@ let package = Package(
         .testTarget(name: "PermissionsTests", dependencies: ["Permissions"]),
         .testTarget(name: "GroqAccessTests", dependencies: ["GroqAccess"]),
         .testTarget(name: "RecordingTests", dependencies: ["Recording"]),
+        .testTarget(name: "TranscriptionTests", dependencies: ["Transcription"]),
     ]
 )

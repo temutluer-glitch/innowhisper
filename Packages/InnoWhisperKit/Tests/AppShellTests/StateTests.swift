@@ -30,6 +30,20 @@ struct StateTests {
         #expect(MenuBarStatus.problem.accessibilityLabel.contains("Problem"))
     }
 
+    // PROJ-6 AC-1: recording and transcribing are separate facts; recording is shown first
+    @Test func activityCombinesRecordingAndTranscribing() {
+        let center = ActivityCenter()
+        #expect(center.activity == .idle)
+        center.isTranscribing = true
+        #expect(center.activity == .transcribing)
+        center.isRecording = true
+        #expect(center.activity == .recording)
+        center.isRecording = false
+        #expect(center.activity == .transcribing)
+        center.isTranscribing = false
+        #expect(center.activity == .idle)
+    }
+
     @Test func onlyIdleIsInactive() {
         #expect(!DictationActivity.idle.isActive)
         #expect(DictationActivity.recording.isActive)

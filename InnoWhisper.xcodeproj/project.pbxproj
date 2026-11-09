@@ -14,6 +14,7 @@
 		A1000000000000000000F005 /* Permissions in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000D005 /* Permissions */; };
 		A1000000000000000000F006 /* GroqAccess in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000D006 /* GroqAccess */; };
 		A1000000000000000000F007 /* Recording in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000D007 /* Recording */; };
+		A1000000000000000000F008 /* Transcription in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000D008 /* Transcription */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +54,7 @@
 				A1000000000000000000F005 /* Permissions in Frameworks */,
 				A1000000000000000000F006 /* GroqAccess in Frameworks */,
 				A1000000000000000000F007 /* Recording in Frameworks */,
+				A1000000000000000000F008 /* Transcription in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -102,6 +104,7 @@
 				A1000000000000000000D005 /* Permissions */,
 				A1000000000000000000D006 /* GroqAccess */,
 				A1000000000000000000D007 /* Recording */,
+				A1000000000000000000D008 /* Transcription */,
 			);
 			productName = InnoWhisper;
 			productReference = A10000000000000000000P01 /* InnoWhisper.app */;
@@ -312,6 +315,10 @@
 		A1000000000000000000D007 /* Recording */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Recording;
+		};
+		A1000000000000000000D008 /* Transcription */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Transcription;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

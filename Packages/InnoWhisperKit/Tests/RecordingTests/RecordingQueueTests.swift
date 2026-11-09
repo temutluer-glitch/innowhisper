@@ -124,6 +124,17 @@ private final class CollectingConsumer: RecordingConsumer {
         #expect(remaining.isEmpty)
     }
 
+    // PROJ-6 AC-20: files the transcription still needs survive the start
+    @Test func leftoversKeepNamedFiles() throws {
+        defer { try? FileManager.default.removeItem(at: base) }
+        let files = try (0..<3).map { _ in try makeFile() }
+        let kept: Set<String> = [files[0].lastPathComponent, files[2].lastPathComponent, "missing.caf"]
+        #expect(storage.removeLeftovers(keeping: kept) == 1)
+        #expect(exists(files[0]))
+        #expect(!exists(files[1]))
+        #expect(exists(files[2]))
+    }
+
     // New file locations are unique, end in .caf and lie inside the folder
     @Test func newFileURLsAreUniqueAndInsideFolder() throws {
         defer { try? FileManager.default.removeItem(at: base) }

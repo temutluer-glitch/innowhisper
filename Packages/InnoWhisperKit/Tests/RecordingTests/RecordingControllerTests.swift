@@ -204,6 +204,19 @@ func settle() async {
         #expect(controller.state == .idle)
     }
 
+    // PROJ-6 AC-1: the end of a recording does not hide a transcription still running
+    @Test func recordingEndKeepsTranscribingVisible() async {
+        let controller = makeController()
+        activity.isTranscribing = true
+        hotkeys.press(.open)
+        capture.sound()
+        #expect(activity.activity == .recording)
+        hotkeys.press(.finish)
+        await settle()
+        #expect(controller.state == .idle)
+        #expect(activity.activity == .transcribing)
+    }
+
     /// Lets `seconds` pass in steps of 30 s, reporting `level` each step.
     func pass(_ seconds: Int, level: Double) async {
         for _ in 0..<(seconds / 30) {

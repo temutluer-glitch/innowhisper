@@ -77,9 +77,11 @@ public struct RecordingStorage: Sendable {
 
     /// Deletes every file left in the folder, the remains of a crash; there
     /// is no recovery (design.md → Datenmodell). Called once at app start.
-    /// Returns how many files were removed, for the log.
+    /// Files named in `keeping` stay: recordings the transcription still has to
+    /// convert or keeps for later (PROJ-6 AC-19, AC-20). Returns how many files
+    /// were removed, for the log.
     @discardableResult
-    public func removeLeftovers() -> Int {
+    public func removeLeftovers(keeping: Set<String> = []) -> Int {
         let files: [URL]
         do {
             files = try FileManager.default.contentsOfDirectory(
@@ -90,16 +92,17 @@ public struct RecordingStorage: Sendable {
             Log.write("Recordings folder unreadable: \(error: error)", category: .recording, level: .error)
             return 0
         }
+        let leftovers = files.filter { !keeping.contains($0.lastPathComponent) }
         var removed = 0
-        for file in files where delete(file) {
+        for file in leftovers where delete(file) {
             removed += 1
         }
         if removed > 0 {
             Log.write("Leftover recordings removed at start: \(removed)", category: .recording)
         }
-        if removed < files.count {
+        if removed < leftovers.count {
             Log.write(
-                "Leftover recordings not removed: \(files.count - removed)", category: .recording, level: .error)
+                "Leftover recordings not removed: \(leftovers.count - removed)", category: .recording, level: .error)
         }
         return removed
     }
