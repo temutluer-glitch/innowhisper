@@ -146,3 +146,21 @@ public final class TranscriptionSettings {
         Log.write("Transcription language changed to \(new)", category: .transcription)
     }
 }
+
+/// One section of Groq's answer for one piece (design.md → Abläufe). Shared
+/// by the Groq adapter (T5), which produces it, and the text filter (T6),
+/// which decides what stays.
+public struct TranscriptSegment: Equatable, Sendable {
+    /// The recognised text of the section, already checked by the adapter.
+    public let text: String
+    /// Groq's estimate that the section holds no speech (0…1); `nil` when absent.
+    public let noSpeechProbability: Double?
+    /// Average log probability of the section's tokens; `nil` when absent.
+    public let averageLogProbability: Double?
+
+    public init(text: String, noSpeechProbability: Double? = nil, averageLogProbability: Double? = nil) {
+        self.text = text
+        self.noSpeechProbability = noSpeechProbability
+        self.averageLogProbability = averageLogProbability
+    }
+}
