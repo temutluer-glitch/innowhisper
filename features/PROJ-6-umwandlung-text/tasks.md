@@ -28,7 +28,7 @@
 
 ## Stufe 4 — Nachholen
 
-- [ ] T11  Nachholen beim Start: offene Einträge nach „gesprochen ab“ umwandeln, alle gelungenen zu einem Text mit Leerzeile, Übergabe als nachgeholt; einzeln gescheiterte wie AC-11, später als nachgeholt übergeben; nichts doppelt, was schon umgewandelt war; temporäre Teil-Ordner beim Start löschen  · files: TR/Queue/TranscriptionRecovery.swift, TRT/TranscriptionRecoveryTests.swift  · → AC-20, EC-6
+- [x] T11  Nachholen beim Start: offene Einträge nach „gesprochen ab“ umwandeln, alle gelungenen zu einem Text mit Leerzeile, Übergabe als nachgeholt; einzeln gescheiterte wie AC-11, später als nachgeholt übergeben; nichts doppelt, was schon umgewandelt war; temporäre Teil-Ordner beim Start löschen  · files: TR/Queue/TranscriptionRecovery.swift, TRT/TranscriptionRecoveryTests.swift  · → AC-20, EC-6
 
 ## Stufe 5 — Zusammenstecken
 
