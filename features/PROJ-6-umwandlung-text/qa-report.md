@@ -10,6 +10,22 @@
 - SEC-08: Test-Diff `813190f..HEAD` hat 0 gelöschte Zeilen, keine übersprungenen oder abgeschwächten Tests.
 - `tasks.md`: keine `[user]`-Aufgaben.
 
+## Nachtrag 4 vom 2026-11-21: Live-Test mit Timur, Teil 1
+
+**Ablauf:** Testversion (Debug-Bau, Stand d709113) auf Timurs Mac, alte App beendet. Timur hat den Bereich „Aufnahme“ angesehen und drei kurze Diktate in eine Notiz eingefügt. Belege aus dem Protokoll (`/usr/bin/log show --predicate 'subsystem == "com.innosolv.InnoWhisper"'`, 21.11. 09:36 bis 09:38).
+
+- [x] **AC-1** — verified by the user on Timurs Mac, 21.11.2026: drei Diktate (#6 bis #8) umgewandelt und übergeben.
+- [x] **AC-2** — verified by the user on Timurs Mac, 21.11.2026: Gruppe „Umwandlung“ mit „Schnell“ und „Deutsch“; Umschalten Schnell/Genauer im Protokoll („Transcription model changed …“), zurück auf „Schnell“.
+- [x] **AC-3** — verified by the user on Timurs Mac, 21.11.2026: Text kam in die Zwischenablage, mit ⌘V eingefügt; Protokoll „Text delivered: live, 1 texts, … characters“.
+- [x] **AC-5** — verified by the user on Timurs Mac, 21.11.2026: Diktate von 2,7 s, 5,9 s und 7,0 s; vom Ende der Aufnahme bis zur Übergabe 0,30 s, 0,34 s und 0,31 s (Grenze 3 s). Groq brauchte je 247 bis 276 ms.
+- [x] **Offene Frage aus `design.md`** beantwortet für Modell „Schnell“: Groq liefert die Abschnitts-Werte („segments with values 1 of 1“, „2 of 2“). Für „Genauer“ noch nicht belegt.
+- [!] **AC-11** (ohne Internet) — von Timur am 21.11. übersprungen („weil ich gerade noch an was anderem arbeite“). Offen.
+- [!] **AC-6** (10-Minuten-Diktat), **AC-17**, **AC-18** (20 echte Diktate, beide Modelle) — noch nicht gemacht.
+
+**Ergebnis nach Nachtrag 4:** Kein Fehler Open. Live belegt: AC-1, AC-2, AC-3, AC-5. Offen für die Abnahme: AC-6, AC-11, AC-17, AC-18. Status bleibt In Review.
+
+---
+
 ## Nachtrag 3 vom 2026-11-09: Nachprüfung BUG-3, BUG-16, BUG-19 (dritte Runde, „Einfacher Weg“)
 
 **Umfang:** `git diff --stat 3d8f1c3..HEAD` (HEAD d709113). Geändert: `Sources/Transcription/Text/TranscriptFilter.swift` und sein Test. Ein Prüfer mit allen drei Bereichen.
