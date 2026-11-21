@@ -31,7 +31,7 @@
 | PROJ-4 | Groq-Zugang | Zugangsschlüssel eintragen, prüfen und im Schlüsselbund ablegen. | Approved | [PROJ-4](PROJ-4-groq-zugang/) | 2026-11-04 |
 | PROJ-5 | Aufnahme per Tastenkürzel | Startet und stoppt die Aufnahme (halten oder ein/aus), Mikrofonwahl, Abbruch mit Esc, stille Aufnahmen werden verworfen. | Approved | [PROJ-5](PROJ-5-aufnahme-tastenkuerzel/) | 2026-11-04 |
 | PROJ-6 | Umwandlung in Text | Wandelt die Aufnahme über Groq in Text um, mit Modell- und Sprachwahl, langen Aufnahmen und Filter gegen Erfundenes. | In Review | [PROJ-6](PROJ-6-umwandlung-text/) | 2026-11-04 |
-| PROJ-7 | Text einfügen | Fügt den Text ins aktive Eingabefeld ein oder legt ihn nur in die Zwischenablage und stellt die alte Zwischenablage wieder her. | Roadmap | — | 2026-11-04 |
+| PROJ-7 | Text einfügen | Fügt den Text ins aktive Eingabefeld ein oder legt ihn nur in die Zwischenablage und stellt die alte Zwischenablage wieder her. | Planned | [PROJ-7](PROJ-7-text-einfuegen/) | 2026-11-04 |
 | PROJ-8 | Sprechblase am Eingabefeld | Zeigt während der Aufnahme eine Sprechblase mit Tonwelle direkt am aktiven Eingabefeld. | Roadmap | — | 2026-11-04 |
 | PROJ-9 | Wörterbuch & Ersetzungen | Namen und Fachbegriffe, Textersetzungen und gesprochene Satzzeichen, Weitergabe als Datei. | Roadmap | — | 2026-11-04 |
 | PROJ-10 | Verlauf | Die letzten 50 Diktate mit Kopieren, Löschen und erneutem Umwandeln. | Roadmap | — | 2026-11-04 |
